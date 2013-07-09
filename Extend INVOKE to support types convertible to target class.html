@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Extend INVOKE to support types convertible to target class</title>
+<script type="text/javascript">$(function() {
+    var next_id = 0
+    function find_id(node) {
+        // Look down the first children of 'node' until we find one
+        // with an id. If we don't find one, give 'node' an id and
+        // return that.
+        var cur = node[0];
+        while (cur) {
+            if (cur.id) return curid;
+            if (cur.tagName == 'A' && cur.name)
+                return cur.name;
+            cur = cur.firstChild;
+        };
+        // No id.
+        node.attr('id', 'gensection-' + next_id++);
+        return node.attr('id');
+    };
+
+    // Put a table of contents in the #toc nav.
+
+    // This is a list of <ol> elements, where toc[N] is the list for
+    // the current sequence of <h(N+2)> tags. When a header of an
+    // existing level is encountered, all higher levels are popped,
+    // and an <li> is appended to the level
+    var toc = [$("<ol/>")];
+    $(':header').not('h1').each(function() {
+        var header = $(this);
+        // For each <hN> tag, add a link to the toc at the appropriate
+        // level.  When toc is one element too short, start a new list
+        var levels = {H2: 0, H3: 1, H4: 2, H5: 3, H6: 4};
+        var level = levels[this.tagName];
+        if (typeof level == 'undefined') {
+            throw 'Unexpected tag: ' + this.tagName;
+        }
+        // Truncate to the new level.
+        toc.splice(level + 1, toc.length);
+        if (toc.length < level) {
+            // Omit TOC entries for skipped header levels.
+            return;
+        }
+        if (toc.length == level) {
+            // Add a <ol> to the previous level's last <li> and push
+            // it into the array.
+            var ol = $('<ol/>')
+            toc[toc.length - 1].children().last().append(ol);
+            toc.push(ol);
+        }
+        var header_text = header.text();
+        toc[toc.length - 1].append(
+            $('<li/>').append($('<a href="#' + find_id(header) + '"/>')
+                              .text(header_text)));
+    });
+    $('#toc').append(toc[0]);
+})
+</script>
+</head>
+
+<body>
+
+<h1><a name="title">Extend INVOKE to support types convertible to target class</a></h1>
+
+
+<!--p>ISO/IEC JTC1 SC22 WG21 N????</p--> 
+<p>2013-05-27</p>
+
+<address>
+Tomasz Kamiński, tomaszkam@gmail.com
+</address>
+
+
+<h2><a name="intro">Introduction</a></h2>
+
+<p>This proposal is to extend the definition of <code>INOVKE</code> to support types convertible to target class in case of member pointers.</p>
+
+<p>The proposal also address <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-active.html#2219">LWG issue #2219</a></p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="motivation">Motivation and Scope</a></h2>
+
+<p>The standard definition of <code>INOVKE</code> expression allow to treat member pointers in a way similiar to free standing function that takes as the first argument reference to the target class or pointer (including smart pointer). While user definied conversions are allowed in invocation of free standing functions, the <code>INOVKE</code> expression does not allow such conversions.</p>
+
+<p>This behaviour diffrence causes problem with usage of standard library functions (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>) with types that has defines such conversions. The most notable example is <code>std::reference_wrapper</code>, but other classes, such as <code>boost::flyweight</code> and <code>std::chrono::duration</code> specializations will benefit for this change.
+
+<p>This proposal addresses the problem by changing the definition of <code>INOVKE</code> to allow conversions.</p>
+
+<h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
+
+<p>Current defintion of the <code>INOVKE</code> is extendable to any user definied type via definiton of <code>operator*</code>. This solution is accetable for types with pointer semantics, but it breaks the semnatics of the interface in case of other classes. Futhermore it not feasible if the code of the classes cannot be changed.</p>
+
+<h3><a name="motivation.lambda">Lambda</a></h3>
+
+<p>No lambda</p>
+
+<h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
+
+<p>In case of <code>bind</code> expressions the problem may be mitigatated by introduction of additional cast expression functors that specializes <code>std::is_bind_expressions</code> and preforms explicit cast.
+<pre>
+std::bind(&Class::method, _1)(std::ref(clazz));
+std::bind(&Class::method, std::cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
+</pre>
+But this approach cannot be extended to the other standard library counterparts that uses <code>INVOKE</code>.</p>
+
+<h2><a name="design">Design Decisions</a></h2>
+
+<h3><a name="design.specializations">Threatment of ambigus classes</a></h3>
+
+<p>Extending the defintion of the <code>INOVKE</code> to support of the convertible operators may lead to the ambiguity with objects <code>t</code>, for which both result of expression <code>t</code> and <code>*t</code> are covertible to target class. Example:
+<pre>
+  struct Clazz { int foo; }
+
+  struct Mixed
+  {
+    Clazz& operator*();
+    operator Clazz&();
+  };
+</pre>
+In case of such amibiguity the expression <code>INVOKE(&Clazz::foo, Mixed{})</code> may be interpreted as <code>static_cast&lt;Clazz&amp;&gt;(Mixed{}).*foo</code> or
+<code>(*Mixed{}).*foo</code>.
+</p>
+
+<p>The described ambiguity may be sloved by:
+  <ul>
+    <li>Option 1: compilation error</li>
+    <li>Option 2: prefer <code>operator*</code></li>
+    <li>Option 3: prefer conversion</li>
+  </ul>
+</p>
+
+<h3><a name="design.error">Option 1: compilation error</a></h3>
+
+<p>This option seems to be most intuitive to the author of the proposal and it leads to the less complicated defintion of the <code>Mixed</code>. The major problem ot this solution is that it would break existing standard compilant code in case of <code>Mixed</code> class, which may be the result of implementing one of the current <a href="#motivation.deference-operator">work arounds</a> to the problem.</p>
+
+<p>Wording for this option is presented in the alternate proposal section.</p>
+
+<h3><a name="design.prefer-dereference">Option 2: prefer <code>operator*</code></h3>
+
+<p>This option is not breaking approach and was considered as the best resultion by the majority of participtians of dicussion on <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> forum. The only drawback is this options is that it leads to more complicated defintion of <code>INVOKE</code>.</p>
+
+<p>This proposal recomends to implemented this options.</p>
+
+<h3><a name="design.specializations">Option 3: prefer conversion</a></h3>
+
+<p>This approach will make the <code>INVOKE</code> in case of member pointer most consistent with the free-standing function, but it will introduce the silent behaviour chnages in case of classes similiar to <code>Mixed</code> example, so it is not futher discussed.</p>
+
+
+
+<h2><a name="standard">Impact On The Standard</a></h2>
+
+<p>This proposal has no dependencies beyond a C++11 compiler and 
+Standard Library implementation. (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
+
+<p>Nothing depends on this proposal.</p>
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+<p>After paragraph 20.10.8 Negators [negators], insert a new paragraph. (Chapter [bind] (Function template <code>bind</code>) becomes 20.10.?)</p>
+  
+<blockquote class="std"> 
+<h4><a name="optional.general">20.10.9 Function template <code>not_fn</code> <span style="float:right">[not_fn]</span></a></h4>
+
+<pre>  template &lt;class F&gt;
+    <em>unspecified</em> not_fn(F f);
+</pre>
+    <dl class="attribute">
+    <dd><p>In the text that follows, the following names have the following meanings:
+    </p><ul>
+      <li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      <li><code>FN</code> is a type of <code>fn</code>,</li>
+      <li><code>FW</code> is a type of forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
+    </ul><p></p></dd>
+
+    <dt>Requires:</dt> <dd><p><code>F</code> shall be <code>CopyConstructible</code>. <code>f</code> shall be a callable object ([func.require] 20.10.2).</p></dd>
+    <dt>Returns:</dt> <dd><p>A simple call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> is equivalent to <code>!INVOKE(f, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p>
+    </dd><dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code> only if <code>FW</code> would have a nested type <code>result_type</code>; the type <code>R</code> is <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
+    <dd><p>The <code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> only if the type <code>F</code> is any of the following: 
+    </p></dd><dd><ul>
+     <li>a function type or a pointer to function type taking one argument of type <code>T1</code></li> 
+     <li>a pointer to member function <code>R T0::f cv</code> (where <code>cv</code> represents the member function's cv-qualifiers); the type <code>T1</code> is <code>cv T0*</code>
+</li>
+     <li>a class type with a member type <code>argument_type</code>; the type <code>T1</code> is <code>F::argument_type.</code>
+    </li></ul><p></p></dd>
+    <dd><p>The <code>FN</code> shall define two nested types named <code>first_argument_type</code> and <code>second_argument_type</code> as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>F</code> is any of the following:
+    </p></dd><dd><ul>
+     <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
+     <li>a pointer to member function <code>R T0::f(T2) cv</code> (where <code>cv</code> represents the member function's cv-qualifiers); the type <code>T1</code> is <code>cv T0*</code></li>
+     <li>a class type with member types <code>first_argument_type</code> and <code>second_argument_type</code>; the type <code>T1</code> is <code>F::first_argument_type</code> and the type <code>T2</code> is <code>F::second_argument_type.</code>
+   </li></ul><p></p></dd>
+  </dl>
+</blockquote>
+
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
+
+<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group "ISO C++ Standard - Future Proposals".</p>
+<p>Mateusz Kwiatkowski, Jonathan Wakely and Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
+
+<h2><a name="literature">References</a></h2>
+
+<ol>
+
+<li>Stephan T. Lavavej, "Making Operator Functors greater&lt;&gt;" (N3421, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm</a>)</li>
+
+<li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (<a href="https://github.com/akrzemi1/Optional/">https://github.com/akrzemi1/Optional/</a>)</li>
+</ol>
+
+
+</body></html>
