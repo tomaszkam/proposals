@@ -217,38 +217,29 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>After paragraph 20.10.8 Negators [negators], insert a new paragraph. (Chapter [bind] (Function template <code>bind</code>) becomes 20.10.?)</p>
+<p>Change the paragraph 20.10.2 Requiremenets [negators]</p>
   
-<blockquote class="std"> 
-<h4><a name="optional.general">20.10.9 Function template <code>not_fn</code> <span style="float:right">[not_fn]</span></a></h4>
-
-<pre>  template &lt;class F&gt;
-    <em>unspecified</em> not_fn(F f);
-</pre>
-    <dl class="attribute">
-    <dd><p>In the text that follows, the following names have the following meanings:
+<blockquote class="std">
+  <dl class="attribute">
+     
+    <dd><p>Viable reference types <code>TR</code> for member pointer <code>p</code> of type <code>M T::*</code> are:
     </p><ul>
-      <li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
-      <li><code>FN</code> is a type of <code>fn</code>,</li>
-      <li><code>FW</code> is a type of forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
+      <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> for all posible cv-qualifiers <code>cv</code> if <code>M</code> is not function type,</li>
+      <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> if <code>M</code> is function type without ref-qualifier and with cv-qualifiers <code>cv</code>,</li>
+      <li><code>T cv ref</code> if <code>M</code> is function type without ref-qualifier <code>ref</code> and cv-qualifiers <code>cv</code>.</li>
     </ul><p></p></dd>
 
-    <dt>Requires:</dt> <dd><p><code>F</code> shall be <code>CopyConstructible</code>. <code>f</code> shall be a callable object ([func.require] 20.10.2).</p></dd>
-    <dt>Returns:</dt> <dd><p>A simple call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> is equivalent to <code>!INVOKE(f, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p>
-    </dd><dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code> only if <code>FW</code> would have a nested type <code>result_type</code>; the type <code>R</code> is <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
-    <dd><p>The <code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> only if the type <code>F</code> is any of the following: 
-    </p></dd><dd><ul>
-     <li>a function type or a pointer to function type taking one argument of type <code>T1</code></li> 
-     <li>a pointer to member function <code>R T0::f cv</code> (where <code>cv</code> represents the member function's cv-qualifiers); the type <code>T1</code> is <code>cv T0*</code>
-</li>
-     <li>a class type with a member type <code>argument_type</code>; the type <code>T1</code> is <code>F::argument_type.</code>
-    </li></ul><p></p></dd>
-    <dd><p>The <code>FN</code> shall define two nested types named <code>first_argument_type</code> and <code>second_argument_type</code> as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>F</code> is any of the following:
-    </p></dd><dd><ul>
-     <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
-     <li>a pointer to member function <code>R T0::f(T2) cv</code> (where <code>cv</code> represents the member function's cv-qualifiers); the type <code>T1</code> is <code>cv T0*</code></li>
-     <li>a class type with member types <code>first_argument_type</code> and <code>second_argument_type</code>; the type <code>T1</code> is <code>F::first_argument_type</code> and the type <code>T2</code> is <code>F::second_argument_type.</code>
-   </li></ul><p></p></dd>
+    <dd><p>Define <code>INVOKE(f, t1, t2, ..., tN)</code> as follows:
+    </p><ul>
+      <li><code>(t1.*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
+      <li><code>(static_cast&lt;TR&gt;(*t1).*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> does not match criteria of any of previous point and <code>*t1</code> is implicitly convertible to <code>TR</code> where <code>TR</code> is viable reference type for <code>f</code>;</li>
+      <li><code>(static_cast&lt;TR&gt;(t1).*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> does not match criteria of any of previous point and <code>t1</code> is implicitly convertible to <code>TR</code> where <code>TR</code> is viable reference type for <code>f</code>;</li>
+      <li><code>t1.*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
+      <li><code>static_cast&lt;TR&gt;(*t1).*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> does not match criteria of any of previous point and <code>*t1</code> is implicitly convertible to <code>TR</code> where <code>TR</code> is viable reference type for <code>f</code>;</li>
+      <li><code>static_cast&lt;TR&gt;(t1).*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> does not match criteria of any of previous point and <code>t1</code> is implicitly convertible to <code>TR</code> where <code>TR</code> is viable reference type for <code>f</code>;</li>
+      <li><code>f(t1, t2, ..., tN)</code> in all other cases.
+    <ul><p></p></dd>
+
   </dl>
 </blockquote>
 
