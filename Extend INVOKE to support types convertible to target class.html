@@ -149,20 +149,24 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
 
-<p>Current defintion of the <code>INOVKE</code> is extendable to any user definied type via definiton of <code>operator*</code>. This solution is accetable for types with pointer semantics, but it breaks the semnatics of the interface in case of other classes. Futhermore it not feasible if the code of the classes cannot be changed.</p>
+<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the result as the conversion operator. Firstly this solution is only aplicable for situation where the interface of the class can be changed, so it is not feasible for third-party librarby objects. Secondly it leads to unelengant interface than combines wrapper and pointer semantics.</p>
 
-<h3><a name="motivation.lambda">Lambda</a></h3>
+<h3><a name="motivation.lambda">Using lambda</a></h3>
 
-<p>No lambda</p>
+<p>The other workaround of this problem is to use the lambda expression instead of library functions, but in the most examples it leads to the less readable and clear code. Please compare following code snippets:</p>
+<pre>
+  std::bind([]foo, _1, expr, ref(a));
+  [e = expr, &a] (auto&& arg) -> decltype(auto) { return foo(_1, e, std::forwrad<delctype(arg)>(arg)); }
+</pre>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
 
-<p>In case of <code>bind</code> expressions the problem may be mitigatated by introduction of additional cast expression functors that specializes <code>std::is_bind_expressions</code> and preforms explicit cast.
+<p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor and preforms required casting.</p>
 <pre>
 std::bind(&Class::method, _1)(std::ref(clazz));
-std::bind(&Class::method, std::cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
+std::bind(&Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
-But this approach cannot be extended to the other standard library counterparts that uses <code>INVOKE</code>.</p>
+<p>However this approach cannot be used in combination with other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
@@ -253,8 +257,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group "ISO C++ Standard - Future Proposals".</p>
-<p>Mateusz Kwiatkowski, Jonathan Wakely and Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
+<!--p>Mateusz Kwiatkowski, Jonathan Wakely and Daniel Krügler offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">References</a></h2>
 
