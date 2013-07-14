@@ -133,19 +133,19 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>This proposal is to extend the definition of <code>INOVKE</code> to support types convertible to target class in case of member pointers.</p>
+<p>This proposal is to extend the definition of <code>INOVKE</code> for class member pointers to cover types convertible to a target class of the pointer, like <code>std::reference_wrapper</code>.</p>
 
-<p>The proposal also address <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-active.html#2219">LWG issue #2219</a></p>
+<p>Proposal also resolves <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-active.html#2219">LWG issue #2219</a></p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard definition of <code>INOVKE</code> expression allow to treat member pointers in a way similiar to free standing function that takes as the first argument reference to the target class or pointer (including smart pointer). While user definied conversions are allowed in invocation of free standing functions, the <code>INOVKE</code> expression does not allow such conversions.</p>
+<p>The standard <code>INOVKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semnatics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching first agument.</p>
 
-<p>This behaviour diffrence causes problem with usage of standard library functions (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>) with types that has defines such conversions. The most notable example is <code>std::reference_wrapper</code>, but other classes, such as <code>boost::flyweight</code> and <code>std::chrono::duration</code> specializations will benefit for this change.
+<p>This behavior difference prohibit usage of wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) with the standard library functions that are modeled using <code>INVOKE</code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is fix that usablity problem via extending defintion of <code>INVOKE</code> to allow conversions.</p>
 
-<p>This proposal addresses the problem by changing the definition of <code>INOVKE</code> to allow conversions.</p>
+<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (ex .std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&std::chrono<double>::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
 
 <h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
 
@@ -217,7 +217,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>Change the paragraph 20.10.2 Requiremenets [negators].</p>
+<p>Change the paragraph 20.10.2 Requiremenets [func.require].</p>
   
 <blockquote class="std">
   <dl class="attribute">
