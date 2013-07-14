@@ -141,30 +141,30 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard <code>INOVKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semnatics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching first agument.</p>
+<p>The standard <code>INOVKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semnatics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first agument.</p>
 
-<p>This behavior difference prohibit usage of wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) with the standard library functions that are modeled using <code>INVOKE</code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is fix that usablity problem via extending defintion of <code>INVOKE</code> to allow conversions.</p>
+<p>This behavior difference prohibit uses wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code>INVOKE</code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is fix that usablity problem via extending defintion of <code>INVOKE</code> to allow conversions in such situations.</p>
 
-<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (ex .std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&std::chrono<double>::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
+<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (ex. std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
 
 <h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
 
-<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the result as the conversion operator. Firstly this solution is only aplicable for situation where the interface of the class can be changed, so it is not feasible for third-party librarby objects. Secondly it leads to unelengant interface than combines wrapper and pointer semantics.</p>
+<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the same result as the conversion operator. Firstly this solution is only aplicable in situations where the code of the class can be changed, so it is not feasible for third-party library classes. Secondly it leads to unelengant interface than combines wrapper and pointer semantics.</p>
 
 <h3><a name="motivation.lambda">Using lambda</a></h3>
 
-<p>The other workaround of this problem is to use the lambda expression instead of library functions, but in the most examples it leads to the less readable and clear code. Please compare following code snippets:</p>
+<p>The other workaround is to use the lambda expression instead of library functions, but in the most cases it leads to the less readable code. Please compare following code snippets:</p>
 <pre>
   std::bind([]foo, _1, expr, ref(a));
-  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forwrad&lt;delctype(arg)&gt;(arg), e, a); }
+  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forwrad&lt;decltype(arg)&gt;(arg), e, a); }
 </pre>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
 
-<p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor and preforms required casting.</p>
+<p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor that preforms required casting.</p>
 <pre>
-std::bind(&Class::method, _1)(std::ref(clazz));
-std::bind(&Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
+std::bind(&amp;Class::method, _1)(std::ref(clazz));
+std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
 <p>However this approach cannot be used in combination with other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
 
