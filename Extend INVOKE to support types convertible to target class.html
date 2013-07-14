@@ -166,7 +166,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
-<p>However this approach cannot be used in combination with other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
+<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be aplied to other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
