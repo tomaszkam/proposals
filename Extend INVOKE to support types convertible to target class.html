@@ -156,7 +156,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 <p>The other workaround of this problem is to use the lambda expression instead of library functions, but in the most examples it leads to the less readable and clear code. Please compare following code snippets:</p>
 <pre>
   std::bind([]foo, _1, expr, ref(a));
-  [e = expr, &a] (auto&& arg) -> decltype(auto) { return foo(_1, e, std::forwrad<delctype(arg)>(arg)); }
+  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(_1, e, std::forwrad&lt;delctype(arg)&gt;(arg)); }
 </pre>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
