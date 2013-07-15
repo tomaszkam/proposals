@@ -141,15 +141,15 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard <code>INOVKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semnatics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first agument.</p>
+<p>The standard <code>INOVKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
 
-<p>This behavior difference prohibit uses wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code>INVOKE</code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is fix that usablity problem via extending defintion of <code>INVOKE</code> to allow conversions in such situations.</p>
+<p>This behavior difference prohibit uses wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code>INVOKE</code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code>INVOKE</code> to allow conversions in such situations.</p>
 
 <p>Proposed change will also cover cases of set of convertible types that models the same logical entity (ex. std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
 
 <h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
 
-<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the same result as the conversion operator. Firstly this solution is only aplicable in situations where the code of the class can be changed, so it is not feasible for third-party library classes. Secondly it leads to unelengant interface than combines wrapper and pointer semantics.</p>
+<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the same result as the conversion operator. Firstly this solution is only applicable in situations when the definition of the class can be changed, so it is not feasible for third-party library classes. Secondly it leads inelegant interface than combines wrapper and pointer semantics.</p>
 
 <h3><a name="motivation.lambda">Using lambda</a></h3>
 
@@ -166,7 +166,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
-<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be aplied to other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
+<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
@@ -221,14 +221,14 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>Change the paragraph 20.10.2 Requiremenets [func.require].</p>
+<p>Change the paragraph 20.10.2 Requiremnets [func.require].</p>
   
 <blockquote class="std">
   <dl class="attribute">
      
     <dd><p>Viable reference types <code>TR</code> for member pointer <code>p</code> of type <code>M T::*</code> are:
     </p><ul>
-      <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> for all posible cv-qualifiers <code>cv</code> if <code>M</code> is not function type,</li>
+      <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> for all possible cv-qualifiers <code>cv</code> if <code>M</code> is not function type,</li>
       <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> if <code>M</code> is function type without ref-qualifier and with cv-qualifiers <code>cv</code>,</li>
       <li><code>T cv ref</code> if <code>M</code> is function type without ref-qualifier <code>ref</code> and cv-qualifiers <code>cv</code>.</li>
     </ul><p></p></dd>
@@ -240,6 +240,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
           <li><code>(t1.*f)(t2, ..., tN)</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
           <li><code>(static_cast&lt;TR&gt;(*t1).*f)(t2, ..., tN)</code> when <code>t1</code> does not match criteria of any of previous point and <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
           <li><code>(static_cast&lt;TR&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> does not match criteria of any of previous point and <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
+          <li>otherwise exprssion is ill-formed;</li>
         </ul>
       </li>
       <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code> and <code>TR</code> is viable reference type for <code>f</code>:
@@ -247,6 +248,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
           <li><code>t1.*f</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
           <li><code>static_cast&lt;TR&gt;(*t1).*f</code> when <code>t1</code> does not match criteria of any of previous point and <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
           <li><code>static_cast&lt;TR&gt;(t1).*f</code> when <code>t1</code> does not match criteria of any of previous point and <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
+          <li>otherwise exprssion is ill-formed;</li>
         </ul>
       </li>
       <li><code>f(t1, t2, ..., tN)</code> in all other cases.
