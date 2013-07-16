@@ -172,37 +172,34 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <p>Allowing conversion in <code>INVOKE</code> with member pointer may lead to ambiguity in case of entity <code>t</code>, for which both result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
 
-<p>As example, for the following class:
+<p>As example, for the following class:</p>
 <pre>
   struct Clazz { int foo; }
 
   struct Mixed
   {
-    Clazz& operator*();
-    operator Clazz&();
+    Clazz&amp; operator*();
+    operator Clazz&amp;();
   };
   
   Mixed m;
 </pre>
-The expression <code>INOVKE(&Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
+<p>The expression <code>INOVKE(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
 
-<p>There are tree possible behaviors in case of such ambiguity:
+<p>There are tree possible behaviors in case of such ambiguity:</p>
   <ul>
     <li>1. Compilation error</li>
     <li>2. Preference of <code>operator*</code></li>
     <li>3. Preference of conversion</li>
   </ul>
-</p>
 
 <h3><a name="design.error">1. Compilation error</a></h3>
 
-<p>Raising and ambiguity error will unify behaviour <code>INVOKE</code> for member pointers with behaviour of free standing functions and it leads to the simpler wording. However it will break existing code, that uses entities that are both convertible to  and behaves as a pointer to target class.</p>
+<p>Raising and ambiguity error will unify behaviour <code>INVOKE</code> for member pointers with behaviour of free standing functions. However it will break existing code, that uses entities that are both convertible to  and behaves as a pointer to target class.</p>
 
 <h3><a name="design.prefer-dereference">2. Preference of <code>operator*</code></a></h3>
 
-<p>This is the only option that allow extensions of <code>INVOKE</code> definition without breaking or introducing silent behaviour changes in the existing code. The minor is that it leads to more complicated definition of <code>INVOKE</code>.</p>
-
-<p>This proposal recomends to implemented this options.</p>
+<p>This is the only option that allow extensions of <code>INVOKE</code> definition without breaking or introducing silent behaviour changes in the existing code. The minor drawback is that it leads to more complicated definition of <code>INVOKE</code>.</p>
 
 <h3><a name="design.prefer-conversion">3. Preference of conversion</a></h3>
 
