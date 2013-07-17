@@ -275,14 +275,14 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
         <ul>
           <li><code>(static_cast&lt;TR&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
           <li><code>(static_cast&lt;TR&gt;(*t1).*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
-          <li>the expression is ill-formed when <code>t1</code> does not fulfill criteria of exactly one of above points;</li>
+          <li>the expression is ill-formed when neither or both of above points applies;</li>
         </ul>
       </li>
       <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code> and <code>TR</code> is viable reference type for <code>f</code>:
         <ul>
           <li><code>static_cast&lt;TR&gt;(t1).*f</code> when <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
           <li><code>static_cast&lt;TR&gt;(*t1).*f</code> when <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
-          <li>the expression is ill-formed when <code>t1</code> does not fulfill criteria of exactly one of above points;</li>
+          <li>the expression is ill-formed when neither or both of above points applies;</li>
         </ul>
       </li>
       <li><code>f(t1, t2, ..., tN)</code> in all other cases.</li>
@@ -297,7 +297,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<!--p>... offered many useful suggestions and corrections to the proposal.</p-->
+<p>Tomasz Miąsko offered many useful suggestions and corrections to the proposal.</p>
 <p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
 
 <h2><a name="literature">References</a></h2>
