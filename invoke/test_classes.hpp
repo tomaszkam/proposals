@@ -1,6 +1,8 @@
 #ifndef TEST_CLASSES_HPP
 #define TEST_CLASSES_HPP
 
+#include <stdexcept>
+
 namespace test_classes
 {
   struct Base {};
