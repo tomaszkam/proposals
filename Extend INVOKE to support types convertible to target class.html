@@ -228,7 +228,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
     </p><ul>
       <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> for all possible cv-qualifiers <code>cv</code> if <code>M</code> is not function type,</li>
       <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> if <code>M</code> is function type without ref-qualifier and with cv-qualifiers <code>cv</code>,</li>
-      <li><code>T cv ref</code> if <code>M</code> is function type without ref-qualifier <code>ref</code> and cv-qualifiers <code>cv</code>.</li>
+      <li><code>T cv ref</code> if <code>M</code> is function type with ref-qualifier <code>ref</code> and cv-qualifiers <code>cv</code>.</li>
     </ul><p></p></dd>
 
     <dd><p>Define <code>INVOKE(f, t1, t2, ..., tN)</code> as follows:
@@ -266,7 +266,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
     </p><ul>
       <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> for all possible cv-qualifiers <code>cv</code> if <code>M</code> is not function type,</li>
       <li><code>T cv&amp;</code>, <code>T cv&amp;&amp;</code> if <code>M</code> is function type without ref-qualifier and with cv-qualifiers <code>cv</code>,</li>
-      <li><code>T cv ref</code> if <code>M</code> is function type without ref-qualifier <code>ref</code> and cv-qualifiers <code>cv</code>.</li>
+      <li><code>T cv ref</code> if <code>M</code> is function type with ref-qualifier <code>ref</code> and cv-qualifiers <code>cv</code>.</li>
     </ul><p></p></dd>
 
     <dd><p>Define <code>INVOKE(f, t1, t2, ..., tN)</code> as follows:
