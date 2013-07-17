@@ -1,5 +1,5 @@
-#ifndef VIABLE_REF_HPP
-#define VIABLE_REF_HPP
+#ifndef VIABLE_REFERENCE_HPP
+#define VIABLE_REFERENCE_HPP
 
 #include <tuple>
 
@@ -107,4 +107,4 @@ namespace functional
   using viable_references_t = typename viable_references<T>::type;
 }
 
-#endif //VIABLE_REF_HPP
+#endif //VIABLE_REFERENCE_HPP
