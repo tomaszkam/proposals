@@ -9,7 +9,7 @@ namespace functional
   namespace option1
   {
     template<typename Functor, typename Object, typename... Args>
-    inline auto invoke(Functor&& functor, Object&& object, Args&&... args)
+    constexpr auto invoke(Functor&& functor, Object&& object, Args&&... args)
       ->  typename std::enable_if<
             std::is_member_function_pointer<
               typename std::decay<Functor>::type
@@ -25,7 +25,7 @@ namespace functional
     }
 
     template<typename Functor, typename Object, typename... Args>
-    inline auto invoke(Functor&& functor, Object&& object, Args&&... args)
+    constexpr auto invoke(Functor&& functor, Object&& object, Args&&... args)
       ->  typename std::enable_if<
             std::is_member_function_pointer<
               typename std::decay<Functor>::type
@@ -41,7 +41,7 @@ namespace functional
     }
 
     template<typename Functor, typename Object>
-    inline auto invoke(Functor&& functor, Object&& object)
+    constexpr auto invoke(Functor&& functor, Object&& object)
       ->  typename std::enable_if<
             std::is_member_object_pointer<
               typename std::decay<Functor>::type
@@ -57,7 +57,7 @@ namespace functional
     }
 
     template<typename Functor, typename Object>
-    inline auto invoke(Functor&& functor, Object&& object)
+    constexpr auto invoke(Functor&& functor, Object&& object)
       ->  typename std::enable_if<
             std::is_member_object_pointer<
               typename std::decay<Functor>::type
@@ -73,7 +73,7 @@ namespace functional
     }
 
     template<typename Functor, typename... Args>
-    inline auto invoke(Functor&& functor, Args&&... args)
+    constexpr auto invoke(Functor&& functor, Args&&... args)
       ->  typename std::enable_if<
             !std::is_member_pointer<
               typename std::decay<Functor>::type

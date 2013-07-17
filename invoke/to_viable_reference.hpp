@@ -15,7 +15,7 @@ namespace functional
     template<typename T>
     struct to_viable_ref_functor_combiner<T>
     {
-      T operator()(T t) const
+      constexpr T operator()(T t) const
       {
         return std::forward<T>(t);
       }
