@@ -133,7 +133,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>This proposal is to extend the definition of <code>INOVKE</code> for class member pointers to cover types convertible to a target class of the pointer, like <code>std::reference_wrapper</code>.</p>
+<p>This proposal is to extend the definition of <code>INVOKE</code> for class member pointers to cover types convertible to a target class of the pointer, like <code>std::reference_wrapper</code>.</p>
 
 <p>Proposal also resolves <a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a></p>
 
@@ -141,7 +141,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard <code>INOVKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
+<p>The standard <code>INVOKE</code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code>INVOKE</code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
 
 <p>This behavior difference prohibit uses wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code>INVOKE</code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code>INVOKE</code> to allow conversions in such situations.</p>
 
@@ -156,7 +156,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 <p>The other workaround is to use the lambda expression instead of library functions, but in the most cases it leads to the less readable code. Please compare following code snippets:</p>
 <pre>
   std::bind([]foo, _1, expr, ref(a));
-  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forwrad&lt;decltype(arg)&gt;(arg), e, a); }
+  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
 </pre>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
@@ -166,7 +166,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
-<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code>INOVKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
+<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code>INVOKE</code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
@@ -184,7 +184,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
   
   Mixed m;
 </pre>
-<p>The expression <code>INOVKE(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
+<p>The expression <code>INVOKE(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
 
 <p>There are tree possible behaviors in case of such ambiguity:</p>
   <ol>
@@ -217,7 +217,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>Change the paragraph 20.10.2 Requirments [func.require].</p>
+<p>Change the paragraph 20.10.2 Requirements [func.require].</p>
   
 <blockquote class="std">
   <dl class="attribute">
@@ -255,7 +255,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <h2><a name="alternate">Alternate proposal</a></h2>
 
-<p>Change the paragraph 20.10.2 Requirments [func.require].</p>
+<p>Change the paragraph 20.10.2 Requirements [func.require].</p>
   
 <blockquote class="std">
   <dl class="attribute">
@@ -295,7 +295,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Tomasz Miąsko offered many useful suggestions and corrections to the proposal.</p>
+<p>Tomasz Miąsko and Mikhail Semenov offered many useful suggestions and corrections to the proposal.</p>
 <p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
 
 <h2><a name="literature">References</a></h2>
