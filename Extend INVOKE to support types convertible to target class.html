@@ -187,11 +187,11 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 <p>The expression <code>INOVKE(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
 
 <p>There are tree possible behaviors in case of such ambiguity:</p>
-  <ul>
-    <li>1. Compilation error</li>
-    <li>2. Preference of <code>operator*</code></li>
-    <li>3. Preference of conversion</li>
-  </ul>
+  <ol>
+    <li>Compilation error</li>
+    <li>Preference of <code>operator*</code></li>
+    <li>Preference of conversion</li>
+  </ol>
 
 <h3><a name="design.error">1. Compilation error</a></h3>
 
