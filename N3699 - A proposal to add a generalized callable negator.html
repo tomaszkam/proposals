@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>A proposal to add a generalized callable negator</title>
+<script type="text/javascript">$(function() {
+    var next_id = 0
+    function find_id(node) {
+        // Look down the first children of 'node' until we find one
+        // with an id. If we don't find one, give 'node' an id and
+        // return that.
+        var cur = node[0];
+        while (cur) {
+            if (cur.id) return curid;
+            if (cur.tagName == 'A' && cur.name)
+                return cur.name;
+            cur = cur.firstChild;
+        };
+        // No id.
+        node.attr('id', 'gensection-' + next_id++);
+        return node.attr('id');
+    };
+
+    // Put a table of contents in the #toc nav.
+
+    // This is a list of <ol> elements, where toc[N] is the list for
+    // the current sequence of <h(N+2)> tags. When a header of an
+    // existing level is encountered, all higher levels are popped,
+    // and an <li> is appended to the level
+    var toc = [$("<ol/>")];
+    $(':header').not('h1').each(function() {
+        var header = $(this);
+        // For each <hN> tag, add a link to the toc at the appropriate
+        // level.  When toc is one element too short, start a new list
+        var levels = {H2: 0, H3: 1, H4: 2, H5: 3, H6: 4};
+        var level = levels[this.tagName];
+        if (typeof level == 'undefined') {
+            throw 'Unexpected tag: ' + this.tagName;
+        }
+        // Truncate to the new level.
+        toc.splice(level + 1, toc.length);
+        if (toc.length < level) {
+            // Omit TOC entries for skipped header levels.
+            return;
+        }
+        if (toc.length == level) {
+            // Add a <ol> to the previous level's last <li> and push
+            // it into the array.
+            var ol = $('<ol/>')
+            toc[toc.length - 1].children().last().append(ol);
+            toc.push(ol);
+        }
+        var header_text = header.text();
+        toc[toc.length - 1].append(
+            $('<li/>').append($('<a href="#' + find_id(header) + '"/>')
+                              .text(header_text)));
+    });
+    $('#toc').append(toc[0]);
+})
+</script>
+</head>
+
+<body>
+
+<h1><a name="title">A proposal to add a generalized callable negator</a></h1>
+
+
+<p>ISO/IEC JTC1 SC22 WG21 N3699</p> 
+<p>2013-05-27</p>
+
+<address>
+Tomasz Kamiński, tomaszkam@gmail.com
+</address>
+
+
+<h2><a name="intro">Introduction</a></h2>
+
+<p>This proposal is to add function template <code>not_fn</code> that will allow to create negator of any callable object.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="motivation">Motivation and Scope</a></h2>
+
+<p>The standard negators <code>not1</code> and <code>not2</code> accept only unary and binary functors that define <code>argument_type</code> or <code>first_argument_type</code> and <code>second_argument_type</code> respectively, which make them unusable with results of standard library functions such as <code>bind</code> and <code>mem_fn</code>. Furthermore, with relation to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">N3421</a>, they cannot be used with new operator functor specializations.</p>
+
+<p>This proposal addresses the problem by introducing a template function <code>not_fn</code> that returns complement of arbitrary predicate.</p>
+
+<h3><a name="motivation.lambda">Comparison with lambda</a></h3>
+
+<p>While the polymorphic lambda expressions (<a href="http://isocpp.org/files/papers/N3649.html">N3649</a>) may be used to negate arbitrary functor, the proposed function offers more compact syntax:</p>
+<pre>  std::partition(v.begin(), v.end(), [f](auto&amp; p) { return !f(p); });
+  std::partition(v.begin(), v.end(), std::not_fn(f));
+</pre>
+<p>Furthermore, the use of lambda expression requires separate treatment of member pointers:</p>
+<pre>  std::partition(v.begin(), v.end(), [pm](auto&amp; p) { return !std::mem_fn(pm)(p); });
+  std::partition(v.begin(), v.end(), std::not_fn(pm));
+</pre>
+
+<h3><a name="motivation.depraction">Deprecation</a></h3>
+<p>With the incorporation of proposed functionality the old standard negators should be deprecated.</p>
+
+<h2><a name="design">Design Decisions</a></h2>
+
+<h3><a name="design.specializations">New specializations of <code>unary_negate</code>, <code>binary_negate</code></a></h3>
+
+<p>Problem addressed by this paper may be solved by introducing perfect forwarding specializations of <code>unary_negate</code>, <code>binary_negate</code> for types that do not define <code>argument_type</code> and <code>first_argument_type</code>, <code>second_argument_type</code>
+ nested types, respectively, without breaking existing code. Although 
+this solution does not address functions with arbitrary number of 
+arguments and requires additional implementation burden.</p>
+
+<h3><a name="design.return">Return type</a></h3>
+<p>The perfect forwarding of return type was chosen instead of hard-coded <code>bool</code>. Similar argumentation to the one provided in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">N3421</a> applies.</p>
+
+<h3><a name="design.return">Argument typedefs</a></h3>
+<p>The <code>argument_type</code>, <code>first_argument_type</code> and <code>second_argument_type</code>
+ nested types are required by implemenatation to be consistent with most
+ of library functors, that define these types where they are well 
+defined for target callable type. Futhermore it is increasing the amount
+ of existing code that will remain valid after changing <code>not1</code>, <code>not2</code> to <code>not_fn</code>.</p>
+
+<h2><a name="standard">Impact On The Standard</a></h2>
+
+<p>This proposal has no dependencies beyond a C++11 compiler and 
+Standard Library implementation. (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
+
+<p>Nothing depends on this proposal.</p>
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+<p>After paragraph 20.10.8 Negators [negators], insert a new paragraph. (Chapter [bind] (Function template <code>bind</code>) becomes 20.10.?)</p>
+  
+<blockquote class="std"> 
+<h4><a name="optional.general">20.10.9 Function template <code>not_fn</code> <span style="float:right">[not_fn]</span></a></h4>
+
+<pre>  template &lt;class F&gt;
+    <em>unspecified</em> not_fn(F f);
+</pre>
+    <dl class="attribute">
+    <dd><p>In the text that follows, the following names have the following meanings:
+    </p><ul>
+      <li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      <li><code>FN</code> is a type of <code>fn</code>,</li>
+      <li><code>FW</code> is a type of forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
+    </ul><p></p></dd>
+
+    <dt>Requires:</dt> <dd><p><code>F</code> shall be <code>CopyConstructible</code>. <code>f</code> shall be a callable object ([func.require] 20.10.2).</p></dd>
+    <dt>Returns:</dt> <dd><p>A simple call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> is equivalent to <code>!INVOKE(f, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p>
+    </dd><dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code> only if <code>FW</code> would have a nested type <code>result_type</code>; the type <code>R</code> is <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
+    <dd><p>The <code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> only if the type <code>F</code> is any of the following: 
+    </p></dd><dd><ul>
+     <li>a function type or a pointer to function type taking one argument of type <code>T1</code></li> 
+     <li>a pointer to member function <code>R T0::f cv</code> (where <code>cv</code> represents the member function's cv-qualifiers); the type <code>T1</code> is <code>cv T0*</code>
+</li>
+     <li>a class type with a member type <code>argument_type</code>; the type <code>T1</code> is <code>F::argument_type.</code>
+    </li></ul><p></p></dd>
+    <dd><p>The <code>FN</code> shall define two nested types named <code>first_argument_type</code> and <code>second_argument_type</code> as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>F</code> is any of the following:
+    </p></dd><dd><ul>
+     <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
+     <li>a pointer to member function <code>R T0::f(T2) cv</code> (where <code>cv</code> represents the member function's cv-qualifiers); the type <code>T1</code> is <code>cv T0*</code></li>
+     <li>a class type with member types <code>first_argument_type</code> and <code>second_argument_type</code>; the type <code>T1</code> is <code>F::first_argument_type</code> and the type <code>T2</code> is <code>F::second_argument_type.</code>
+   </li></ul><p></p></dd>
+  </dl>
+</blockquote>
+
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
+
+<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group "ISO C++ Standard - Future Proposals".</p>
+<p>Mateusz Kwiatkowski, Jonathan Wakely and Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
+
+<h2><a name="literature">References</a></h2>
+
+<ol>
+
+<li>Stephan T. Lavavej, "Making Operator Functors greater&lt;&gt;" (N3421, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm</a>)</li>
+
+<li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (<a href="https://github.com/akrzemi1/Optional/">https://github.com/akrzemi1/Optional/</a>)</li>
+</ol>
+
+
+</body></html>
