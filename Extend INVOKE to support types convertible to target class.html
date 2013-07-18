@@ -205,8 +205,6 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <p>Preference of the conversion leads to the silent behaviour change of the existing C++11 standard compliant code, so this should not be considered as a feasible solution.</p>
 
-<p>This option is not breaking approach and was considered as the best resultion by the majority of participtians of dicussion on <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> forum. The only drawback is this options is that it leads to more complicated defintion of <code>INVOKE</code>.</p>
-
 <h3><a name="design.summary">Summary</a></h3>
 
 <p>This proposal recommends implementing the second option and provides the wording in the <a href="#wording">Proposed wording</a> section. The wording for the first option may be found in the <a href="#alternate">Alternate proposal</a> section. Third option is not further discussed.</p>
