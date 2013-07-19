@@ -141,10 +141,13 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <p>TODO</p>
 
-
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>Constexpr</p>
+<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation. The main reason is to left it consistent with another function object defined in standard that could have such definition, ex. <code>std::mem_fn</code>, operator wrappers, <code>std::reference_wrapper</code>. Furthermore placing such requirement with block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
+
+<p>This proposal assumes that <code>constexpr</code> addition for the functional object would be applied consistency by a separate proposal.</p>
+
+<p>Both <code>constexpr</code> and library based implementation are presented in <a href="#implementability"/>Implementability</a> section of the proposal.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -170,7 +173,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 <p>After paragraph 20.10.2 Requirements [func.require], insert a new paragraph. (Chapter [refwrap] (Class template <code>reference_wrapper</code>) becomes 20.10.?)</p>
   
 <blockquote class="std"> 
-<h4><a name="optional.general">20.10.9 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
+<h4><a name="invoke">20.10.9 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args&gt;
     typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
@@ -188,14 +191,40 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
  
 </blockquote>
 
+<h2><a name='implementability'>Implementability</a></h2>
+
+<p>Proposed <code>invoke</code> function template may be implemented in terms of existing C++11 standard library components:</p>
+<pre>
+  template&lt;typename Functor, typename... Args&gt;
+  typename std::enable_if&lt;
+    std::is_member_pointer&lt;typename std::decay&lt;Functor&gt;::type&gt;::value,
+    typename std::result_of&lt;Functor&amp;&amp;(Args&amp;&amp;...)&gt;::type
+  &gt;::type invoke(Functor&amp;&amp; f, Args&amp;&amp;... args)
+  { 
+    return std::mem_fn(f)(std::forward&lt;Args&gt;(args)...); 
+  }
+   
+  template&lt;typename Functor, typename... Args&gt;
+  typename std::enable_if&lt;
+    !std::is_member_pointer&lt;typename std::decay&lt;Functor&gt;::type&gt;::value,
+    typename std::result_of&lt;Functor&amp;&amp;(Args&amp;&amp;...)&gt;::type
+  &gt;::type invoke(Functor&amp;&amp; f, Args&amp;&amp;... args)
+  { 
+    return std::forward&lt;Functor&gt;(f)(std::forward&lt;Args&gt;(args)...); 
+  }
+</pre>
+
+<p>Another implemenatation that does not reffer to the existing library components may be found at: <a href="https://github.com/tomaszkam/proposals/blob/master/invoke/invoke_cpp11.hpp">https://github.com/tomaszkam/proposals/blob/master/invoke/invoke_cpp11.hpp</a>.</p>
+
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<!--p>... originally proposed <code>not_fn</code> in discussion group "ISO C++ Standard - Future Proposals".</p-->
 <!--p>... offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">References</a></h2>
 
 <ol>
+
+<li>Tomasz Kamiński, Implementation of invoke function (<a href="https://github.com/tomaszkam/proposals/blob/master/invoke/invoke_cpp11.hpp">https://github.com/tomaszkam/proposals/blob/master/invoke/invoke_cpp11.hpp</a>)</li>
 
 </ol>
 
