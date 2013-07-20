@@ -143,9 +143,9 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation. The main reason is to left it consistent with another function object defined in standard that could have such definition, ex. <code>std::mem_fn</code>, operator wrappers, <code>std::reference_wrapper</code>. Furthermore placing such requirement with block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
+<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation. The main reason is to left it consistent with other function objects defined in standard that could have such definition, like <code>std::mem_fn</code>, operator wrappers, <code>std::reference_wrapper</code>. Furthermore placing such requirement with block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
 
-<p>This proposal assumes that <code>constexpr</code> addition for the functional object would be applied consistency by a separate proposal.</p>
+<p>This proposal assumes that <code>constexpr</code> addition for the functional objects would be applied consistency by a separate proposal.</p>
 
 <p>Both <code>constexpr</code> and library based implementation are presented in <a href="#implementability"/>Implementability</a> section of the proposal.</p>
 
