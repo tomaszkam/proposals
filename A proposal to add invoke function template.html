@@ -143,7 +143,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation. The main reason is to left it consistent with other function objects defined in standard that could have such definition, like <code>std::mem_fn</code>, operator wrappers, <code>std::reference_wrapper</code>. Furthermore placing such requirement with block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
+<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation. The main reason is to left it consistent with existing standard function objects, that could have such definition, like <code>std::mem_fn</code>, operator wrappers, <code>std::reference_wrapper</code>. Furthermore placing such requirement will block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
 
 <p>This proposal assumes that <code>constexpr</code> addition for the functional objects would be applied consistency by a separate proposal.</p>
 
@@ -173,7 +173,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 <p>After paragraph 20.10.2 Requirements [func.require], insert a new paragraph. (Chapter [refwrap] (Class template <code>reference_wrapper</code>) becomes 20.10.?)</p>
   
 <blockquote class="std"> 
-<h4><a name="invoke">20.10.9 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
+<h4><a name="invoke">20.10.3 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args&gt;
     typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
