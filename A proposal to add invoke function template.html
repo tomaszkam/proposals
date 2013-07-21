@@ -169,7 +169,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <p>Add the begining of the section 20.10 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 
-<blockquote class="std"> 
+<blockquote class="stdins"> 
 <pre>  // 20.10.3, <em>invoke</em>
   template &lt;class F, class... Args&gt;
     typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
@@ -181,21 +181,21 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <p>After paragraph 20.10.2 Requirements [func.require], insert a new paragraph. (Chapter [refwrap] (Class template <code>reference_wrapper</code>) becomes 20.10.?)</p>
   
-<blockquote class="std"> 
+<blockquote class="stdins"> 
 <h4><a name="invoke">20.10.3 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args&gt;
     typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
 </pre>
   <dl class="attribute">
-    <dt>Returns:</dt> <dd><p><code>INVOKE(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.10.2).</p> </dd>
+    <dt>Returns:</dt> <dd><p><code><em>INVOKE</em>(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.10.2).</p> </dd>
   </dl>
 
 <pre>  template &lt;class R, class F, class... Args&gt;
     R invoke(F&& f, Args&&... args);
 </pre>
   <dl class="attribute">
-    <dt>Returns:</dt> <dd><p><code>INVOKE(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)..., R)</code> ([func.require] 20.10.2).</p> </dd>
+    <dt>Returns:</dt> <dd><p><code><em>INVOKE</em>(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)..., R)</code> ([func.require] 20.10.2).</p> </dd>
   </dl>
  
 </blockquote>
