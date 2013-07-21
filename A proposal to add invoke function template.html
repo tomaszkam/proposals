@@ -167,14 +167,12 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>Add the begining of the section 20.10 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
+<p>After the declaration of <code>binary_function</code> in the section 20.10 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 
 <blockquote class="stdins"> 
 <pre>  // 20.10.3, <em>invoke</em>
-  template &lt;class F, class... Args&gt;
-    typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
-  template &lt;class R, class F, class... Args&gt;
-    R invoke(F&& f, Args&&... args);
+  template &lt;class F, class... Args&gt; typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
+  template &lt;class R, class F, class... Args&gt; R invoke(F&& f, Args&&... args);
 </pre>
  
 </blockquote>
