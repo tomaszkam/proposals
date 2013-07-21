@@ -50,6 +50,9 @@ blockquote.stdins { text-decoration: underline;
   color: #000000; background-color: #C8FFC8;
   border: 1px solid #B3EBB3; padding: 0.5em; }
 
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
 table { border: 1px solid black; border-spacing: 0px;
   margin-left: auto; margin-right: auto; }
 th { text-align: left; vertical-align: top;
@@ -120,16 +123,22 @@ td { text-align: left; vertical-align: top;
 
 <body>
 
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;<th> <td>2013-07-21</td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
 <h1><a name="title">A proposal to add invoke function template</a></h1>
-
-
-<!--p>ISO/IEC JTC1 SC22 WG21 N????</p--> 
-<p>2013-07-19</p>
-
-<address>
-Tomasz Kamiński, tomaszkam@gmail.com
-</address>
-
 
 <h2><a name="intro">Introduction</a></h2>
 
