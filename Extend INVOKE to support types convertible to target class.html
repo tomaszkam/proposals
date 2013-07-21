@@ -155,7 +155,7 @@ Tomasz Kamiński, tomaszkam@gmail.com
 
 <p>The other workaround is to use the lambda expression instead of library functions, but in the most cases it leads to the less readable code. Please compare following code snippets:</p>
 <pre>
-  std::bind([]foo, _1, expr, ref(a));
+  std::bind(&foo, _1, expr, ref(a));
   [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
 </pre>
 
