@@ -128,7 +128,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td><!--date-->2013-07-21<!--date--></td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2013-07-21</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
@@ -156,7 +156,7 @@ td { text-align: left; vertical-align: top;
 
 <p>This proposal assumes that <code>constexpr</code> addition for the functional objects would be applied consistency by a separate proposal.</p>
 
-<p>Both <code>constexpr</code> and library based implementation are presented in <a href="#implementability"/>Implementability</a> section of the proposal.</p>
+<p>Both <code>constexpr</code> and library based implementation are presented in <a href="#implementability">Implementability</a> section of the proposal.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -218,6 +218,13 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
   &gt;::type invoke(Functor&amp;&amp; f, Args&amp;&amp;... args)
   { 
     return std::forward&lt;Functor&gt;(f)(std::forward&lt;Args&gt;(args)...); 
+  }
+
+
+  template&lt;typename Return, typename Functor, typename... Args&gt;
+  Return invoke(Functor&amp;&amp; f, Args&amp;&amp;... args)
+  {
+    return invoke(std::forward&lt;Functor&gt;(f), std::forward&lt;Args&gt;(args)...);
   }
 </pre>
 
