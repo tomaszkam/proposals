@@ -17,6 +17,8 @@ struct printer
   }
 };
 
+void ref(int&) {}
+
 int main() 
 {
   using namespace functional::placeholders;
@@ -27,4 +29,9 @@ int main()
   functional::bind(printer{}, _from<3>())(10, 20, 30, 40);
   functional::bind(printer{}, _from<4>())(10, 20, 30, 40);
   functional::bind(printer{}, _from<5>())(10, 20, 30, 40);
+ 
+  functional::bind(printer{}, 1, 2, _all, 3, 4, _all)(10, 20, 30, 40);
+
+  int a;
+  functional::bind(&ref, std::ref(a))();
 };
