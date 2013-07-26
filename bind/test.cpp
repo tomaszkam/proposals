@@ -17,11 +17,24 @@ struct printer
   }
 };
 
+struct functor
+{
+  template<typename... Ts>
+  int operator()(const Ts&... ts)
+  {
+    std::cout << "call functor" << std::endl;
+    printer{}(ts...);
+    return sizeof...(Ts);
+  }
+};
+
 void inc(int& i) { ++i; }
+
 
 int main() 
 {
   using namespace functional::placeholders;
+  std::cout << std::endl << "Placeholders tests: " << std::endl;
   functional::bind(printer{}, _all)(10);
   functional::bind(printer{}, _all)(10, 20, 30, 40);
   functional::bind(printer{}, _from<1>())(10, 20, 30, 40);
@@ -29,10 +42,14 @@ int main()
   functional::bind(printer{}, _from<3>())(10, 20, 30, 40);
   functional::bind(printer{}, _from<4>())(10, 20, 30, 40);
   functional::bind(printer{}, _from<5>())(10, 20, 30, 40);
- 
-  functional::bind(printer{}, 1, 2, _all, _4, _3, _all)(10, 20, 30, 40);
+  functional::bind(printer{}, 1, 2, _all, _4, _3, _from<2>())(10, 20, 30, 40);
 
+  std::cout << std::endl << "Reference test:" << std::endl;
   int a = 0;
+  std::cout << "before: " << a << std::endl;
   functional::bind(&inc, std::ref(a))();
-  std::cout << a << std::endl;
+  std::cout << "after: " << a << std::endl;
+
+  std::cout << std::endl << "Bind test: " << std::endl;
+  functional::bind(printer{}, std::bind(functor{}, _1, _2), functional::bind(functor{}, _from<3>{}))(10, 20, 30, 40);
 };

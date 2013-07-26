@@ -29,6 +29,7 @@ namespace functional
       using StoredArg = typename std::tuple_element<N, StoredArgsD>::type;
       static constexpr std::integral_constant<bool, is_placeholder<StoredArg>::value> IsPlaceholder{};
       static constexpr std::integral_constant<bool, std::is_bind_expression<StoredArg>::value> IsBindExpression{};       
+      static_assert(!IsPlaceholder || !IsBindExpression, "Type cannot be marked as placehodler and bind expression.");
 
       StoredArgs storedArgs;
       CallArgs   callArgs;
@@ -43,6 +44,13 @@ namespace functional
         -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(callArgs)...))
       {
         return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(callArgs)...);
+      }
+
+      template<typename Functor, std::size_t... Indexes, typename... ActualArgs>
+      auto handle_bind(Functor&& functor, type_traits::integral_sequence<std::size_t, Indexes...>, ActualArgs&&... actualArgs)
+        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(callArgs)...)))
+      {
+        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(callArgs)...));
       }
 
       template<typename CurrentArg, typename... ActualArgs>
@@ -64,6 +72,13 @@ namespace functional
         -> decltype(this->handle_placeholder(placeholder_positions<StoredArg, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...))
       {
         return handle_placeholder(placeholder_positions<StoredArg, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...);
+      }
+
+      template<typename Functor, typename... ActualArgs>
+      auto pass_arg(std::false_type, std::true_type, Functor&& functor, ActualArgs&&... actualArgs)
+        -> decltype(this->handle_bind(std::forward<Functor>(functor), type_traits::make_integral_sequence<std::size_t, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...))
+      {
+        return handle_bind(std::forward<Functor>(functor), type_traits::make_integral_sequence<std::size_t, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...);
       }
 
     public:
@@ -129,7 +144,6 @@ namespace functional
       {
         return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))();
       }
-
     };
   }
 
@@ -141,6 +155,14 @@ namespace functional
   {
     return {std::forward<Function>(f), std::forward<Args>(args)...};
   }
+}
+
+namespace std
+{
+  template<typename... StoredArgs>
+  struct is_bind_expression<functional::detail::bind_functor<StoredArgs...>>
+    : true_type
+  {};
 }
 
 #endif //BIND_HPP
