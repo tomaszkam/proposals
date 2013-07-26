@@ -25,6 +25,9 @@ namespace functional
       static constexpr std::size_t StoredArgsCount = std::tuple_size<StoredArgsD>::value;
       static constexpr std::size_t CallArgsCount = std::tuple_size<CallArgsD>::value;
 
+      template<std::size_t I>
+      using CallArg = typename std::tuple_element<I, CallArgsD>::type;
+
       static constexpr std::size_t N  = StoredArgsCount - RN;
       using StoredArg = typename std::tuple_element<N, StoredArgsD>::type;
       static constexpr std::integral_constant<bool, is_placeholder<StoredArg>::value> IsPlaceholder{};
@@ -41,16 +44,16 @@ namespace functional
 
       template<std::size_t... Positions, typename... ActualArgs>
       auto handle_placeholder(type_traits::integral_sequence<std::size_t, Positions...>, ActualArgs&&... actualArgs)
-        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(callArgs)...))
+        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(std::forward<CallArgs>(callArgs))...))
       {
-        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(callArgs)...);
+        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(std::forward<CallArgs>(callArgs))...);
       }
 
       template<typename Functor, std::size_t... Indexes, typename... ActualArgs>
       auto handle_bind(Functor&& functor, type_traits::integral_sequence<std::size_t, Indexes...>, ActualArgs&&... actualArgs)
-        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(callArgs)...)))
+        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(std::forward<CallArgs>(callArgs))...)))
       {
-        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(callArgs)...));
+        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(std::forward<CallArgs>(callArgs))...));
       }
 
       template<typename CurrentArg, typename... ActualArgs>
@@ -89,10 +92,10 @@ namespace functional
 
       template<typename... ActualArgs>
       auto operator()(ActualArgs&&... actualArgs)
-       -> decltype(this->pass_arg(IsPlaceholder, IsBindExpression, std::get<N>(storedArgs),
+       -> decltype(this->pass_arg(IsPlaceholder, IsBindExpression, std::get<N>(std::forward<StoredArgs>(storedArgs)),
                                   std::forward<ActualArgs>(actualArgs)...))
       {
-        return pass_arg(IsPlaceholder, IsBindExpression, std::get<N>(storedArgs),
+        return pass_arg(IsPlaceholder, IsBindExpression, std::get<N>(std::forward<StoredArgs>(storedArgs)),
                         std::forward<ActualArgs>(actualArgs)...);
       }
     };
@@ -111,9 +114,9 @@ namespace functional
 
       template<typename... ActualArgs>
       auto operator()(ActualArgs&&... actualArgs)
-        -> decltype(INVOKE_MODEL::invoke(std::get<0>(storedArgs), std::forward<ActualArgs>(actualArgs)...))
+        -> decltype(INVOKE_MODEL::invoke(std::get<0>(std::forward<StoredArgs>(storedArgs)), std::forward<ActualArgs>(actualArgs)...))
       {
-        return INVOKE_MODEL::invoke(std::get<0>(storedArgs), std::forward<ActualArgs>(actualArgs)...);
+        return INVOKE_MODEL::invoke(std::get<0>(std::forward<StoredArgs>(storedArgs)), std::forward<ActualArgs>(actualArgs)...);
       }
     };
 

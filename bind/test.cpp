@@ -28,12 +28,32 @@ struct functor
   }
 };
 
+struct forward_tester
+{
+  void operator()(int&)
+  {
+    std::cout << "called operator()(int&)" << std::endl;
+  }
+
+  void operator()(const int&)
+  {
+    std::cout << "called operator()(const int&)" << std::endl;
+  }
+
+  void operator()(int&&)
+  {
+    std::cout << "called operator()(int&&)" << std::endl;
+  }
+};
+
 void inc(int& i) { ++i; }
+
 
 
 int main() 
 {
   using namespace functional::placeholders;
+
   std::cout << std::endl << "Placeholders tests: " << std::endl;
   functional::bind(printer{}, _all)(10);
   functional::bind(printer{}, _all)(10, 20, 30, 40);
@@ -49,6 +69,14 @@ int main()
   std::cout << "before: " << a << std::endl;
   functional::bind(&inc, std::ref(a))();
   std::cout << "after: " << a << std::endl;
+
+  std::cout << std::endl << "Forwarding test:" << std::endl;
+  auto forwardFunctor = functional::bind(forward_tester{}, _1);
+  int i = 0;
+  forwardFunctor(i);
+  const int ci = 0;
+  forwardFunctor(ci);
+  forwardFunctor(1);
 
   std::cout << std::endl << "Bind test: " << std::endl;
   functional::bind(printer{}, std::bind(functor{}, _1, _2), functional::bind(functor{}, _from<3>{}))(10, 20, 30, 40);
