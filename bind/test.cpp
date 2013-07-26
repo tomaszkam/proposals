@@ -17,7 +17,7 @@ struct printer
   }
 };
 
-void ref(int&) {}
+void inc(int& i) { ++i; }
 
 int main() 
 {
@@ -32,6 +32,7 @@ int main()
  
   functional::bind(printer{}, 1, 2, _all, 3, 4, _all)(10, 20, 30, 40);
 
-  int a;
-  functional::bind(&ref, std::ref(a))();
+  int a = 0;
+  functional::bind(&inc, std::ref(a))();
+  std::cout << a << std::endl;
 };
