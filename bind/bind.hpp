@@ -16,110 +16,173 @@ namespace functional
 {
   namespace detail
   {
-    template<std::size_t RN, typename StoredArgs, typename CallArgs>
-    class bind_invoker
+    template<typename Arg,
+             bool = (is_placeholder<Arg>::value > 0),
+             bool = std::is_bind_expression<Arg>::value>
+    class argument_passer;
+
+    template<typename T>
+    class argument_passer<T, false, false>
     {
-      using StoredArgsD = typename std::decay<StoredArgs>::type;
-      using CallArgsD = typename std::decay<CallArgs>::type;
-
-      static constexpr std::size_t StoredArgsCount = std::tuple_size<StoredArgsD>::value;
-      static constexpr std::size_t CallArgsCount = std::tuple_size<CallArgsD>::value;
-
-      template<std::size_t I>
-      using CallArg = typename std::tuple_element<I, CallArgsD>::type;
-
-      static constexpr std::size_t N  = StoredArgsCount - RN;
-      using StoredArg = typename std::tuple_element<N, StoredArgsD>::type;
-      static constexpr std::integral_constant<bool, (is_placeholder<StoredArg>::value > 0)> IsPlaceholder{};
-      static constexpr std::integral_constant<bool, std::is_bind_expression<StoredArg>::value> IsBindExpression{};       
-      static_assert(!IsPlaceholder || !IsBindExpression, "Type cannot be marked as placehodler and bind expression.");
-
-      StoredArgs storedArgs;
-      CallArgs   callArgs;
-
-      bind_invoker<RN-1, StoredArgs, CallArgs> next_invoker() const
+    public:
+      template<typename Invoker, typename Arg, typename... ActualArgs>
+      auto operator()(const Invoker& invoker, Arg&& arg, ActualArgs&&... actualArgs)
+        -> decltype(invoker(std::forward<Arg>(arg), std::forward<ActualArgs>(actualArgs)...))
       {
-        return {std::forward<StoredArgs>(storedArgs), std::forward<CallArgs>(callArgs)};
+        return invoker(std::forward<ActualArgs>(actualArgs)..., std::forward<Arg>(arg)); 
       }
+    };
 
-      template<std::size_t... Positions, typename... ActualArgs>
-      auto handle_placeholder(type_traits::integral_sequence<std::size_t, Positions...>, ActualArgs&&... actualArgs)
-        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(std::forward<CallArgs>(callArgs))...))
+    template<typename T>
+    class argument_passer<std::reference_wrapper<T>, false, false>
+    {
+    public:
+      template<typename Invoker, typename... ActualArgs>
+      auto operator()(const Invoker& invoker, const std::reference_wrapper<T>& ref, ActualArgs&&... actualArgs)
+        -> decltype(invoker(ref.get(), std::forward<ActualArgs>(actualArgs)...))
       {
-        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(std::forward<CallArgs>(callArgs))...);
+        return invoker(std::forward<ActualArgs>(actualArgs)..., ref.get()); 
       }
+    };
 
-      template<typename Functor, std::size_t... Indexes, typename... ActualArgs>
-      auto handle_bind(Functor&& functor, type_traits::integral_sequence<std::size_t, Indexes...>, ActualArgs&&... actualArgs)
-        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(std::forward<CallArgs>(callArgs))...)))
+    template<typename Placeholder>
+    class argument_passer<Placeholder, true, false>
+    {
+      template<typename Invoker, std::size_t... Positions, typename... ActualArgs>
+      auto pass_selected(const Invoker& invoker, type_traits::integral_sequence<std::size_t, Positions...>, ActualArgs&&... actualArgs)
+        -> decltype(invoker(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(invoker.call_args())...))
       {
-        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<Functor>(functor)(std::get<Indexes>(std::forward<CallArgs>(callArgs))...));
-      }
-
-      template<typename CurrentArg, typename... ActualArgs>
-      auto pass_arg(std::false_type, std::false_type, CurrentArg&& currentArg, ActualArgs&&... actualArgs)
-        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<CurrentArg>(currentArg)))
-      {
-        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., std::forward<CurrentArg>(currentArg));
-      }
-
-      template<typename T, typename... ActualArgs>
-      auto pass_arg(std::false_type, std::false_type, std::reference_wrapper<T> ref, ActualArgs&&... actualArgs)
-        -> decltype(this->next_invoker()(std::forward<ActualArgs>(actualArgs)..., ref.get()))
-      {
-        return next_invoker()(std::forward<ActualArgs>(actualArgs)..., ref.get());
-      }
-     
-      template<typename Placeholder, typename... ActualArgs>
-      auto pass_arg(std::true_type, std::false_type, Placeholder&&, ActualArgs&&... actualArgs)
-        -> decltype(this->handle_placeholder(placeholder_positions<StoredArg, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...))
-      {
-        return handle_placeholder(placeholder_positions<StoredArg, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...);
-      }
-
-      template<typename Functor, typename... ActualArgs>
-      auto pass_arg(std::false_type, std::true_type, Functor&& functor, ActualArgs&&... actualArgs)
-        -> decltype(this->handle_bind(std::forward<Functor>(functor), type_traits::make_integral_sequence<std::size_t, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...))
-      {
-        return handle_bind(std::forward<Functor>(functor), type_traits::make_integral_sequence<std::size_t, CallArgsCount>{}, std::forward<ActualArgs>(actualArgs)...);
+        return invoker(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(invoker.call_args())...);
       }
 
     public:
-      bind_invoker(StoredArgs _storedArgs, CallArgs _callArgs)
+      template<typename Invoker, typename... ActualArgs>
+      auto operator()(const Invoker& invoker, const Placeholder&, ActualArgs&&... actualArgs)
+        -> decltype(this->pass_selected(invoker, placeholder_positions<Placeholder, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...))
+      {
+        return pass_selected(invoker, placeholder_positions<Placeholder, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...);
+      }
+    };
+
+    template<typename Bind>
+    class argument_passer<Bind, false, true>
+    {
+      template<typename Invoker, typename Function, std::size_t... Indexes, typename... ActualArgs>
+      auto pass_result(const Invoker& invoker, Function&& function, type_traits::integral_sequence<std::size_t, Indexes...>, ActualArgs&&... actualArgs)
+        -> decltype(invoker(std::forward<ActualArgs>(actualArgs)..., std::forward<Function>(function)(std::get<Indexes>(invoker.call_args())...)))
+      {
+        return invoker(std::forward<ActualArgs>(actualArgs)..., std::forward<Function>(function)(std::get<Indexes>(invoker.call_args())...));
+      }
+
+    public:
+      template<typename Invoker, typename Function, typename... ActualArgs>
+      auto operator()(const Invoker& invoker, Function&& function, ActualArgs&&... actualArgs)
+        -> decltype(this->pass_result(invoker, std::forward<Function>(function), type_traits::make_integral_sequence<std::size_t, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...))
+      {
+        return pass_result(invoker, std::forward<Function>(function), type_traits::make_integral_sequence<std::size_t, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...);
+      }
+    };
+
+    template<typename Invoker, typename Argument, typename... ActualArgs>
+    auto pass_arguments(const Invoker& invoker, Argument&& argument, ActualArgs&&... actualArgs)
+      -> decltype(argument_passer<typename std::decay<Argument>::type>{}(invoker, std::forward<Argument>(argument), std::forward<ActualArgs>(actualArgs)...))
+    {
+      return argument_passer<typename std::decay<Argument>::type>{}(invoker, std::forward<Argument>(argument), std::forward<ActualArgs>(actualArgs)...);
+    } 
+
+    template<typename StoredArgs, typename CallArgs>
+    class bind_invoker_base
+    {
+      using StoredArgsD = typename std::decay<StoredArgs>::type;
+      using CallArgsD = typename std::decay<CallArgs>::type;
+   
+    public:
+
+      static constexpr std::size_t stored_args_size()
+      {
+        return std::tuple_size<StoredArgsD>::value;
+      }
+
+      static constexpr std::size_t call_args_size()
+      {
+        return std::tuple_size<CallArgsD>::value;
+      }
+
+      bind_invoker_base(StoredArgs _storedArgs, CallArgs _callArgs)
         : storedArgs(std::forward<StoredArgs>(_storedArgs)),
           callArgs(std::forward<CallArgs>(_callArgs))
       {}
 
-      template<typename... ActualArgs>
-      auto operator()(ActualArgs&&... actualArgs)
-       -> decltype(this->pass_arg(IsPlaceholder, IsBindExpression, std::get<N>(std::forward<StoredArgs>(storedArgs)),
-                                  std::forward<ActualArgs>(actualArgs)...))
+      StoredArgs stored_args() const
       {
-        return pass_arg(IsPlaceholder, IsBindExpression, std::get<N>(std::forward<StoredArgs>(storedArgs)),
-                        std::forward<ActualArgs>(actualArgs)...);
+        return std::forward<StoredArgs>(storedArgs);
+      }
+
+      CallArgs call_args() const
+      {
+        return std::forward<CallArgs>(callArgs);
+      }
+
+    private:
+      StoredArgs storedArgs;
+      CallArgs   callArgs;
+    };
+
+    template<std::size_t ReversePosition, typename StoredArgs, typename CallArgs>
+    class bind_invoker :
+      public bind_invoker_base<StoredArgs, CallArgs>
+    {
+      using base = bind_invoker_base<StoredArgs, CallArgs>; 
+ 
+      static constexpr std::size_t current_position()
+      {
+        return base::stored_args_size() - ReversePosition;
+      }
+
+      auto current_arg() const
+        -> decltype(std::get<current_position()>(this->stored_args()))
+      {
+        return std::get<current_position()>(this->stored_args());
+      }
+     
+      bind_invoker<ReversePosition-1, StoredArgs, CallArgs> next_invoker() const
+      {
+        return {this->stored_args(), this->call_args()};
+      }
+
+    public:
+      //using base::base;
+      bind_invoker(StoredArgs _storedArgs, CallArgs _callArgs)
+        : base(std::forward<StoredArgs>(_storedArgs), std::forward<CallArgs>(_callArgs))
+      {}
+
+      template<typename... ActualArgs>
+      auto operator()(ActualArgs&&... actualArgs) const
+        -> decltype(pass_arguments(this->next_invoker(), this->current_arg(), std::forward<ActualArgs>(actualArgs)...))
+      {
+        return pass_arguments(next_invoker(), current_arg(), std::forward<ActualArgs>(actualArgs)...);
       }
     };
 
     template<typename StoredArgs, typename CallArgs>
-    class bind_invoker<0, StoredArgs, CallArgs>
+    class bind_invoker<0, StoredArgs, CallArgs> : 
+      public bind_invoker_base<StoredArgs, CallArgs>
     {
-      StoredArgs storedArgs;
-      CallArgs   callArgs;
+      using base = bind_invoker_base<StoredArgs, CallArgs>; 
 
     public:
+      //using base::base;
       bind_invoker(StoredArgs _storedArgs, CallArgs _callArgs)
-        : storedArgs(std::forward<StoredArgs>(_storedArgs)),
-          callArgs(std::forward<CallArgs>(_callArgs))
+        : base(std::forward<StoredArgs>(_storedArgs), std::forward<CallArgs>(_callArgs))
       {}
 
       template<typename... ActualArgs>
-      auto operator()(ActualArgs&&... actualArgs)
-        -> decltype(INVOKE_MODEL::invoke(std::get<0>(std::forward<StoredArgs>(storedArgs)), std::forward<ActualArgs>(actualArgs)...))
+      auto operator()(ActualArgs&&... actualArgs) const
+        -> decltype(INVOKE_MODEL::invoke(std::get<0>(this->stored_args()), std::forward<ActualArgs>(actualArgs)...))
       {
-        return INVOKE_MODEL::invoke(std::get<0>(std::forward<StoredArgs>(storedArgs)), std::forward<ActualArgs>(actualArgs)...);
+        return INVOKE_MODEL::invoke(std::get<0>(this->stored_args()), std::forward<ActualArgs>(actualArgs)...);
       }
     };
-
 
     template<typename StoredArgs, typename CallArgs>
     inline bind_invoker<

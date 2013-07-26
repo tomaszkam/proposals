@@ -48,8 +48,6 @@ struct forward_tester
 
 void inc(int& i) { ++i; }
 
-
-
 int main() 
 {
   using namespace functional::placeholders;
