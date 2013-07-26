@@ -30,7 +30,7 @@ int main()
   functional::bind(printer{}, _from<4>())(10, 20, 30, 40);
   functional::bind(printer{}, _from<5>())(10, 20, 30, 40);
  
-  functional::bind(printer{}, 1, 2, _all, 3, 4, _all)(10, 20, 30, 40);
+  functional::bind(printer{}, 1, 2, _all, _4, _3, _all)(10, 20, 30, 40);
 
   int a = 0;
   functional::bind(&inc, std::ref(a))();
