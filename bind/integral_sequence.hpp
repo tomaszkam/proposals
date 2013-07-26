@@ -55,7 +55,7 @@ namespace type_traits
     {
       using type = integral_sequence<T>;
     };
-  }; 
+  } 
 
   template<typename T, T begin, T end>
   using make_integral_range = typename detail::make_integral_range_impl<T, begin, end>::type;

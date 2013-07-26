@@ -30,7 +30,7 @@ namespace functional
 
       static constexpr std::size_t N  = StoredArgsCount - RN;
       using StoredArg = typename std::tuple_element<N, StoredArgsD>::type;
-      static constexpr std::integral_constant<bool, is_placeholder<StoredArg>::value> IsPlaceholder{};
+      static constexpr std::integral_constant<bool, (is_placeholder<StoredArg>::value > 0)> IsPlaceholder{};
       static constexpr std::integral_constant<bool, std::is_bind_expression<StoredArg>::value> IsBindExpression{};       
       static_assert(!IsPlaceholder || !IsBindExpression, "Type cannot be marked as placehodler and bind expression.");
 

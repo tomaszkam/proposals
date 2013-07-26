@@ -80,4 +80,4 @@ int main()
 
   std::cout << std::endl << "Bind test: " << std::endl;
   functional::bind(printer{}, std::bind(functor{}, _1, _2), functional::bind(functor{}, _from<3>{}))(10, 20, 30, 40);
-};
+}

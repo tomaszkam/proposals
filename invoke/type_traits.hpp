@@ -40,13 +40,13 @@ namespace type_traits
     constexpr bool predicate_or()
     {
       return false;
-    };
+    }
 
     template<typename Pred, typename... Preds>
     constexpr bool predicate_or(Pred&& pred, Preds&&... preds)
     {
       return pred || predicate_or(std::forward<Preds>(preds)...);
-    };
+    }
 
     //Predicate checking
     template<typename Object, typename Type>
