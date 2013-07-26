@@ -44,6 +44,16 @@ struct forward_tester
   {
     std::cout << "called operator()(int&&)" << std::endl;
   }
+
+  void operator()(int&) const
+  {
+    std::cout << "called operator()(int&) const" << std::endl;
+  }
+
+  void operator()(const int&) const
+  {
+    std::cout << "called operator()(const int&) const" << std::endl;
+  }
 };
 
 void inc(int& i) { ++i; }
@@ -78,4 +88,10 @@ int main()
 
   std::cout << std::endl << "Bind test: " << std::endl;
   functional::bind(printer{}, std::bind(functor{}, _1, _2), functional::bind(functor{}, _from<3>{}))(10, 20, 30, 40);
+
+  std::cout << std::endl << "Test consti functor" << std::endl;
+  auto normalFunctor = functional::bind(forward_tester{}, 1);
+  normalFunctor();
+  const auto& constFunctor = normalFunctor;
+  constFunctor();
 }

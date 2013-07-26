@@ -210,6 +210,14 @@ namespace functional
       {
         return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))();
       }
+
+      template<typename... Args>
+      auto operator()(Args&&... args) const
+        -> decltype(make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))())
+      {
+        return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))();
+      }
+
     };
   }
 
