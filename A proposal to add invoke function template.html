@@ -150,7 +150,11 @@ td { text-align: left; vertical-align: top;
 
 <p>Altrought the behvaviour of the <code><em>INVOKE</em></code> expression may be reprudoced using combination of the existing standard library components, separate threatment of the functors and member pointers is required in such situations.</p>
 
-<p>Please consider the example of the <code>deref_fn</code> wrapper, that should accept any callable object <code>f</code> and returns a functor that when invoked with arguments <code>t1, t2, ..., tN</code> returns <code>*<em>INVOKE</em>(f, t1, t2, ..., tN)</code>. Using existing C++14 standard facilities this functor may be implemented as:</p>
+<h3><a name="motivation.deref-example"><code>deref_fn</code> example</a></h3>
+
+<p>Please consider the  <code>deref_fn</code> wrapper, that should accept any callable object <code>f</code> and returns a functor that when invoked with arguments <code>t1, t2, ..., tN</code> returns <code>*<em>INVOKE</em>(f, t1, t2, ..., tN)</code>.</p>
+
+<p>Using existing C++14 standard facilities this functor may be implemented as:</p>
 <pre>
   template&lt;typename F, std::enable_if_t&lt;!std::is_member_pointer&lt;F&gt;{}, int&gt; == 0&gt;
   auto deref_fn(F f) { return [f](auto&amp;&amp;... args) { return *f(std::forward&lt;decltype(args)&gt;(args)...); } 
