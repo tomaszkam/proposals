@@ -142,7 +142,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>TODO</p>
+<p>The aim of this proposal is to introduce the function template <code>invoke</code> that will meet requirements of <code><em>INVOKE</em></code> expression.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -219,7 +219,6 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
   { 
     return std::forward&lt;Functor&gt;(f)(std::forward&lt;Args&gt;(args)...); 
   }
-
 
   template&lt;typename Return, typename Functor, typename... Args&gt;
   Return invoke(Functor&amp;&amp; f, Args&amp;&amp;... args)
