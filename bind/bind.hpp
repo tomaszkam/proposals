@@ -193,29 +193,29 @@ namespace functional
       return {std::forward<StoredArgs>(storedArgs), std::forward<CallArgs>(callArgs)};
     }
 
-    template<typename... StoredArgs>
+    template<typename Function, typename... Args>
     class bind_functor
     {
-      std::tuple<StoredArgs...> storedArgs;
+      std::tuple<Function, Args...> storedArgs;
 
     public:
-      template<typename... Args>
-      bind_functor(Args&&... args)
-       : storedArgs(std::forward<Args>(args)...)
+      template<typename F, typename... As>
+      bind_functor(F&& f, As&&... as)
+       : storedArgs(std::forward<F>(f), std::forward<As>(as)...)
       {}
 
-      template<typename... Args>
-      auto operator()(Args&&... args)
-        -> decltype(make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))())
+      template<typename... CallArgs>
+      auto operator()(CallArgs&&... callArgs)
+        -> decltype(make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...))())
       {
-        return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))();
+        return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...))();
       }
 
-      template<typename... Args>
-      auto operator()(Args&&... args) const
-        -> decltype(make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))())
+      template<typename... CallArgs>
+      auto operator()(CallArgs&&... callArgs) const
+        -> decltype(make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...))())
       {
-        return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<Args>(args)...))();
+        return make_bind_invoker(storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...))();
       }
 
     };
@@ -233,8 +233,8 @@ namespace functional
 
 namespace std
 {
-  template<typename... StoredArgs>
-  struct is_bind_expression<functional::detail::bind_functor<StoredArgs...>>
+  template<typename Function, typename... Args>
+  struct is_bind_expression<functional::detail::bind_functor<Function, Args...>>
     : true_type
   {};
 }
