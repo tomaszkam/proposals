@@ -163,7 +163,7 @@ td { text-align: left; vertical-align: top;
   auto deref_fn(F f) { return [mf = std::mem_fn(f)](auto&amp;&amp;... args) { return *mf(std::forward&lt;decltype(args)&gt;(args)...); } }
 </pre>
 
-<p>While proposed <code>invoke</code> function allow simple implementation without SFINAE tricks:</p>
+<p>While proposed <code>invoke</code> function allow simpler implementation without use of SFINAE function overloading:</p>
 <pre>
   template&lt;typename F&gt;
   auto deref_fn(F f) { return [f](auto&amp;&amp;... args) { return *std::invoke(f, std::forward&lt;decltype(args)&gt;(args)...); } }
