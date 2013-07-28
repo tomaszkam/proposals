@@ -142,13 +142,13 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>The aim of this proposal is to introduce the function template <code>invoke</code> that will meet requirements of <code><em>INVOKE</em></code> expression.</p>
+<p>The aim of this proposal is to introduce the function template <code>invoke</code> that reproduces behaviour of <code><em>INVOKE</em></code> expression.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>Altrought the behvaviour of the <code><em>INVOKE</em></code> expression may be reprudoced using combination of the existing standard library components, separate threatment of the functors and member pointers is required in such situations.</p>
+<p>Altrougth the behaviour of the <code><em>INVOKE</em></code> expression may be reproduced using combination of the existing standard library components, separate treatment of the functors and member pointers is required in such situations.</p>
 
 <h3><a name="motivation.deref-example"><code>deref_fn</code> example</a></h3>
 
@@ -259,6 +259,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
+<p>Joe Gottman originally proposed <code>invoke</code> function in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/InJClAiLXcI">ISO C++ Standard - Future Proposals</a>.</p>
 <!--p>... offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">References</a></h2>
