@@ -156,17 +156,26 @@ td { text-align: left; vertical-align: top;
 
 <p>Using existing C++14 standard facilities this functor may be implemented as:</p>
 <pre>
-  template&lt;typename F, std::enable_if_t&lt;!std::is_member_pointer&lt;F&gt;{}, int&gt; == 0&gt;
-  auto deref_fn(F f) { return [f](auto&amp;&amp;... args) { return *f(std::forward&lt;decltype(args)&gt;(args)...); } } 
+  template&lt;typename F, std::enable_if_t&lt;!std::is_member_pointer&lt;std::decay_t&lt;F&gt;&gt;{}, int&gt; == 0&gt;
+  auto deref_fn(F&amp;&amp; f) 
+  { 
+    return [f](auto&amp;&amp;... args) { return *f(std::forward&lt;decltype(args)&gt;(args)...); };
+  } 
 
-  template&lt;typename F, std::enable_if_t&lt;std::is_member_pointer&lt;F&gt;{}, int&gt; == 0&gt;
-  auto deref_fn(F f) { return [mf = std::mem_fn(f)](auto&amp;&amp;... args) { return *mf(std::forward&lt;decltype(args)&gt;(args)...); } }
+  template&lt;typename F, std::enable_if_t&lt;std::is_member_pointer&lt;std::decay_t&lt;F&gt;&gt;{}, int&gt; == 0&gt;
+  auto deref_fn(F&amp;&amp; f)
+  { 
+    return [mf = std::mem_fn(f)](auto&amp;&amp;... args) { return *mf(std::forward&lt;decltype(args)&gt;(args)...); };
+  }
 </pre>
 
 <p>While proposed <code>invoke</code> function allow simpler implementation without use of SFINAE function overloading:</p>
 <pre>
   template&lt;typename F&gt;
-  auto deref_fn(F f) { return [f](auto&amp;&amp;... args) { return *std::invoke(f, std::forward&lt;decltype(args)&gt;(args)...); } }
+  auto deref_fn(F&amp;&amp; f) 
+  { 
+    return [f](auto&amp;&amp;... args) { return *std::invoke(f, std::forward&lt;decltype(args)&gt;(args)...); };
+  }
 </pre>
 
 <h2><a name="design">Design Decisions</a></h2>
@@ -190,8 +199,8 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <blockquote class="stdins"> 
 <pre>  // 20.10.3, <em>invoke</em>
-  template &lt;class F, class... Args&gt; typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
-  template &lt;class R, class F, class... Args&gt; R invoke(F&& f, Args&&... args);
+  template &lt;class F, class... Args&gt; typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
+  template &lt;class R, class F, class... Args&gt; R invoke(F&amp;&amp; f, Args&amp;&amp;... args);
 </pre>
  
 </blockquote>
@@ -202,14 +211,14 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 <h4><a name="invoke">20.10.3 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args&gt;
-    typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&& f, Args&&... args);
+    typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
 </pre>
   <dl class="attribute">
     <dt>Returns:</dt> <dd><p><code><em>INVOKE</em>(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.10.2).</p> </dd>
   </dl>
 
 <pre>  template &lt;class R, class F, class... Args&gt;
-    R invoke(F&& f, Args&&... args);
+    R invoke(F&amp;&amp; f, Args&amp;&amp;... args);
 </pre>
   <dl class="attribute">
     <dt>Returns:</dt> <dd><p><code><em>INVOKE</em>(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)..., R)</code> ([func.require] 20.10.2).</p> </dd>
