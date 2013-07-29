@@ -142,19 +142,19 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>The aim of this proposal is to introduce the function template <code>invoke</code> that reproduces behaviour of <code><em>INVOKE</em></code> expression.</p>
+<p>The aim of this proposal is to introduce the function template <code>invoke</code> that models <code><em>INVOKE</em></code> expression.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>Altrougth the behaviour of the <code><em>INVOKE</em></code> expression may be reproduced using combination of the existing standard library components, separate treatment of the functors and member pointers is required in such situations.</p>
+<p>Although the behaviour of the <code><em>INVOKE</em></code> expression may be reproduced by combination of the existing standard library components, separate treatment of the functors and member pointers is required in such solutions.</p>
 
 <h3><a name="motivation.deref-example"><code>deref_fn</code> example</a></h3>
 
-<p>Please consider the  <code>deref_fn</code> wrapper, that should accept any callable object <code>f</code> and returns a functor that when invoked with arguments <code>t1, t2, ..., tN</code> returns <code>*<em>INVOKE</em>(f, t1, t2, ..., tN)</code>.</p>
+<p>As example, please consider the <code>deref_fn</code> wrapper, that should accept any callable object <code>f</code> and returns a functor that invokes provided callable and dereferences the result.</p>
 
-<p>Using existing C++14 standard facilities this functor may be implemented as:</p>
+<p>Using existing C++14 standard facilities <code>deref_fn</code> function may be implemented as:</p>
 <pre>
   template&lt;typename F, std::enable_if_t&lt;!std::is_member_pointer&lt;std::decay_t&lt;F&gt;&gt;{}, int&gt; == 0&gt;
   auto deref_fn(F&amp;&amp; f) 
@@ -169,7 +169,7 @@ td { text-align: left; vertical-align: top;
   }
 </pre>
 
-<p>While proposed <code>invoke</code> function allow simpler implementation without use of SFINAE function overloading:</p>
+<p>Proposed <code>invoke</code> function allow simpler implementation, that does not resort to use of SFINAE function overloading:</p>
 <pre>
   template&lt;typename F&gt;
   auto deref_fn(F&amp;&amp; f) 
@@ -180,16 +180,17 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation. The main reason is to left it consistent with existing standard function objects, that could have such definition, like <code>std::mem_fn</code>, operator wrappers, <code>std::reference_wrapper</code>. Furthermore placing such requirement will block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
+<p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation.
+The main reason is to left it consistent with existing standard function objects, that could have such definition, like <code>std::mem_fn</code>, <code>std::reference_wrapper</code> and operator wrappers. 
+Furthermore imposing such requirement will block the implementation of <code>invoke</code> that refers to <code>std::mem_fn</code>.</p>
 
-<p>This proposal assumes that <code>constexpr</code> addition for the functional objects would be applied consistency by a separate proposal.</p>
+<p>This proposal assumes that <code>constexpr</code> addition to the <code>&lt;functional&gt;</code> header would be applied consistently by a separate proposal.</p>
 
 <p>Both <code>constexpr</code> and library based implementation are presented in <a href="#implementability">Implementability</a> section of the proposal.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and 
-Standard Library implementation. (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
+<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
 
 <p>Nothing depends on this proposal.</p>
 
