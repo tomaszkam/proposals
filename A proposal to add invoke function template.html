@@ -212,7 +212,7 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 <h4><a name="invoke">20.10.3 Function template <code>invoke</code> <span style="float:right">[invoke]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args&gt;
-    typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
+    typename result_of&lt;F&amp;&amp;(Args&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
 </pre>
   <dl class="attribute">
     <dt>Returns:</dt> <dd><p><code><em>INVOKE</em>(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.10.2).</p> </dd>
