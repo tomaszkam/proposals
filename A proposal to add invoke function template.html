@@ -128,7 +128,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2013-07-21</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2013-07-30</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
@@ -200,7 +200,7 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 
 <blockquote class="stdins"> 
 <pre>  // 20.10.3, <em>invoke</em>
-  template &lt;class F, class... Args&gt; typename result_of&lt;F&amp;&amp;(ArgTypes&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
+  template &lt;class F, class... Args&gt; typename result_of&lt;F&amp;&amp;(Args&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
   template &lt;class R, class F, class... Args&gt; R invoke(F&amp;&amp; f, Args&amp;&amp;... args);
 </pre>
  
@@ -261,7 +261,7 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
 <p>Joe Gottman originally proposed <code>invoke</code> function in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/InJClAiLXcI">ISO C++ Standard - Future Proposals</a>.</p>
-<!--p>... offered many useful suggestions and corrections to the proposal.</p-->
+<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">References</a></h2>
 
