@@ -180,7 +180,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<h3><a name="motivation.constexpr"><code>constexpr</code> implementation</a></h3>
+<h3><a name="design.constexpr"><code>constexpr</code> implementation</a></h3>
 
 <p>Although there is possibility to implement standard conforming <code>invoke</code> function template as a <code>constexpr</code> function, the proposed wording does not require such implementation.
 The main reason is to left it consistent with existing standard function objects, that could have such definition, like <code>std::mem_fn</code>, <code>std::reference_wrapper</code> and operator wrappers. 
@@ -191,7 +191,7 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 <p>Both <code>constexpr</code> and standard library based implementation are presented in <a href="#implementability">Implementability</a> section of the proposal.</p>
 
 
-<h3><a name="motivation.constexpr">Remove of <code><em>INVOKE</em></code> expression</a></h3>
+<h3><a name="design.remove_invoke">Remove <code><em>INVOKE</em></code> expression</a></h3>
 
 <p>The wording of this proposal may also be specified by moving the requirements of the <code><em>INVOKE</em></code> expression to definition of the <code>invoke</code> function template and replacing all existing references to the <code><em>INVOKE</em></code> expression by corresponding <code>invoke</code> function invocation.</p>
 
