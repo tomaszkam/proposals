@@ -169,7 +169,7 @@ td { text-align: left; vertical-align: top;
   }
 </pre>
 
-<p>Proposed <code>invoke</code> function allow simpler implementation, that does not resort to use of SFINAE function overloading:</p>
+<p>Proposed <code>invoke</code> function allows simpler implementation, that does not resort to use of SFINAE function overloading:</p>
 <pre>
   template&lt;typename F&gt;
   auto deref_fn(F&amp;&amp; f) 
@@ -195,12 +195,12 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 
 <p>The wording of this proposal may also be specified by moving the requirements of the <code><em>INVOKE</em></code> expression to definition of the <code>invoke</code> function template and replacing all existing references to the <code><em>INVOKE</em></code> expression by corresponding <code>invoke</code> function invocation.</p>
 
-<p>The approach described above is not used in this proposal to give implementation freedom to the standard library providers (ex. whether <code>invoke</code> should be defined in terms of <code>mem_fn</code> or vice versa).
+<p>The approach described above is not used in this proposal, primary to give implementation freedom to the standard library providers (ex. whether <code>invoke</code> should be defined in terms of <code>mem_fn</code> or vice versa).
 In addition such approach will require changes in existing implementations of standard function objects, without providing any real benefit from the library user perspective.</p> 
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
+<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, varidatic templates, <code>decltype</code> and trailing return types.)</p>
 
 <p>Nothing depends on this proposal.</p>
 
