@@ -128,7 +128,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2013-07-21</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-01</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
@@ -152,9 +152,9 @@ td { text-align: left; vertical-align: top;
 
 <p>The standard <code><em>INVOKE</em></code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code><em>INVOKE</em></code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
 
-<p>This behavior difference prohibit uses wrapper types (ex. <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code><em>INVOKE</em></code> (ex. <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code><em>INVOKE</em></code> to allow implicit conversions in such situations.</p>
+<p>This behavior difference prohibit uses wrapper types (e.g., <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code><em>INVOKE</em></code> (e.g., <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code><em>INVOKE</em></code> to allow implicit conversions in such situations.</p>
 
-<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (ex. std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
+<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (e.g., std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
 
 <h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
 
@@ -175,7 +175,7 @@ td { text-align: left; vertical-align: top;
 std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
-<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code><em>INVOKE</em></code> (ex. <code>std::async</code>, <code>std::call_once</code>).</p>
+<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code><em>INVOKE</em></code> (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
