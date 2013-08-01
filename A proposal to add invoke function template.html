@@ -195,7 +195,7 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 
 <p>The wording of this proposal may also be specified by moving the requirements of the <code><em>INVOKE</em></code> expression to definition of the <code>invoke</code> function template and replacing all existing references to the <code><em>INVOKE</em></code> expression by corresponding <code>invoke</code> function invocation.</p>
 
-<p>The approach described above is not used in this proposal, primary to give implementation freedom to the standard library providers (ex. whether <code>invoke</code> should be defined in terms of <code>mem_fn</code> or vice versa).
+<p>The approach described above is not used in this proposal, primarily to give implementation freedom to the standard library providers (e.g. whether <code>invoke</code> should be defined in terms of <code>mem_fn</code> or vice versa).
 In addition such approach will require changes in existing implementations of standard function objects, without providing any real benefit from the library user perspective.</p> 
 
 <h2><a name="standard">Impact On The Standard</a></h2>
