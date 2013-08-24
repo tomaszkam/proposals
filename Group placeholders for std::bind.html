@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Agrument group placeholders for std::bind</title>
+<script type="text/javascript">$(function() {
+    var next_id = 0
+    function find_id(node) {
+        // Look down the first children of 'node' until we find one
+        // with an id. If we don't find one, give 'node' an id and
+        // return that.
+        var cur = node[0];
+        while (cur) {
+            if (cur.id) return curid;
+            if (cur.tagName == 'A' && cur.name)
+                return cur.name;
+            cur = cur.firstChild;
+        };
+        // No id.
+        node.attr('id', 'gensection-' + next_id++);
+        return node.attr('id');
+    };
+
+    // Put a table of contents in the #toc nav.
+
+    // This is a list of <ol> elements, where toc[N] is the list for
+    // the current sequence of <h(N+2)> tags. When a header of an
+    // existing level is encountered, all higher levels are popped,
+    // and an <li> is appended to the level
+    var toc = [$("<ol/>")];
+    $(':header').not('h1').each(function() {
+        var header = $(this);
+        // For each <hN> tag, add a link to the toc at the appropriate
+        // level.  When toc is one element too short, start a new list
+        var levels = {H2: 0, H3: 1, H4: 2, H5: 3, H6: 4};
+        var level = levels[this.tagName];
+        if (typeof level == 'undefined') {
+            throw 'Unexpected tag: ' + this.tagName;
+        }
+        // Truncate to the new level.
+        toc.splice(level + 1, toc.length);
+        if (toc.length < level) {
+            // Omit TOC entries for skipped header levels.
+            return;
+        }
+        if (toc.length == level) {
+            // Add a <ol> to the previous level's last <li> and push
+            // it into the array.
+            var ol = $('<ol/>')
+            toc[toc.length - 1].children().last().append(ol);
+            toc.push(ol);
+        }
+        var header_text = header.text();
+        toc[toc.length - 1].append(
+            $('<li/>').append($('<a href="#' + find_id(header) + '"/>')
+                              .text(header_text)));
+    });
+    $('#toc').append(toc[0]);
+})
+</script>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-17</td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Agrument group placeholders for std::bind</a></h1>
+
+<h2><a name="intro">Introduction</a></h2>
+
+<p>This proposal is to extend the definition of <code><em>INVOKE</em></code> for class member pointers to cover types convertible to a target class of the pointer, like <code>std::reference_wrapper</code>.</p>
+
+<p>Proposal also resolves <a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a></p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="motivation">Motivation and Scope</a></h2>
+
+<p>The standard <code><em>INVOKE</em></code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code><em>INVOKE</em></code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
+
+<p>This behavior difference prohibit uses wrapper types (e.g., <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code><em>INVOKE</em></code> (e.g., <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code><em>INVOKE</em></code> to allow implicit conversions in such situations.</p>
+
+<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (e.g., std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
+
+<h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
+
+<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the same result as the conversion operator. Firstly this solution is only applicable in situations when the definition of the class can be changed, so it is not feasible for third-party library classes. Secondly it leads inelegant interface than combines wrapper and pointer semantics.</p>
+
+<h3><a name="motivation.lambda">Using lambda</a></h3>
+
+<p>The other workaround is to use the lambda expression instead of library functions, but in the most cases it leads to the less readable code. Please compare following code snippets:</p>
+<pre>
+  std::bind(&amp;foo, _1, expr, ref(a));
+  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
+</pre>
+
+<h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
+
+<p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor that preforms required casting.</p>
+<pre>
+std::bind(&amp;Class::method, _1)(std::ref(clazz));
+std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
+</pre>
+<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code><em>INVOKE</em></code> (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
+
+<h2><a name="design">Design Decisions</a></h2>
+
+<p>Allowing conversion in <code><em>INVOKE</em></code> with member pointer may lead to ambiguity in case of entity <code>t</code>, for which both result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
+
+<p>As example, for the following class:</p>
+<pre>
+  struct Clazz { int foo; }
+
+  struct Mixed
+  {
+    Clazz&amp; operator*();
+    operator Clazz&amp;();
+  };
+  
+  Mixed m;
+</pre>
+<p>The expression <code><em>INVOKE</em>(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
+
+<p>There are tree possible behaviors in case of such ambiguity:</p>
+  <ol>
+    <li>Compilation error</li>
+    <li>Preference of <code>operator*</code></li>
+    <li>Preference of conversion</li>
+  </ol>
+
+<h3><a name="design.error">1. Compilation error</a></h3>
+
+<p>Raising and ambiguity error will make behaviour of <code><em>INVOKE</em></code> for member pointers more uniform with behaviour of free standing functions. However it will break existing code, that uses entities that are both convertible to and behaves as a pointer to target class.</p>
+
+<h3><a name="design.prefer-dereference">2. Preference of <code>operator*</code></a></h3>
+
+<p>This is the only option that allow extensions of <code><em>INVOKE</em></code> definition without breaking or introducing silent behaviour changes in the existing code. The minor drawback is that it leads to more complicated definition of <code><em>INVOKE</em></code>.</p>
+
+<h3><a name="design.prefer-conversion">3. Preference of conversion</a></h3>
+
+<p>Preference of the conversion leads to the silent behaviour change of the existing C++11 standard compliant code, so this option should not be considered as a feasible solution.</p>
+
+<h3><a name="design.summary">Summary</a></h3>
+
+<p>This proposal recommends implementing the second option and provides the wording in the <a href="#wording">Proposed wording</a> section. The wording for the first option may be found in the <a href="#alternate">Alternate proposal</a> section. Third option is not further discussed.</p>
+
+<h2><a name="standard">Impact On The Standard</a></h2>
+
+<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, varidatic templates, <code>decltype</code> and trailing return types.)</p>
+
+<p>Nothing depends on this proposal.</p>
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+<p>Change the section 20.10 [function.objects]/2 and paragraph 20.10.9.1.4 [Placeholders].</p>
+
+<blockquote class="stddel"> 
+<pre>
+namespace placeholders {
+  // <em>M is the implementation-defined number of placeholders</em>
+  extern <code><em>unspecified</em></code> _1;
+  extern <code><em>unspecified</em></code> _2;
+  .
+  .
+  .
+  extern <code><em>unspecified</em></code> _M;
+}
+</pre>
+</blockquote>
+
+<blockquote class="stdins"> 
+<pre>
+namespace placeholders {
+  extern <code><em>unspecified</em></code> _all;
+
+  template<int N>
+  <code><em>unspecified</em></code> _from;
+
+  // <em>M is the implementation-defined number of placeholders</em>
+  extern <code><em>unspecified</em></code> _1;
+  extern <code><em>unspecified</em></code> _2;
+  .
+  .
+  .
+  extern <code><em>unspecified</em></code> _M;
+}
+</pre>
+</blockquote>
+
+<p>Change the paragraph 20.10.9.1.2 [func.bind.isplace].</p>
+
+<blockquote class="stddel">
+  <dl class="attribute">
+
+    <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <code>_1</code>, <code>_2</code>, and so on.
+           <code>bind</code> uses <code>is_placeholder</code> to detect placeholders.</p></dd>
+     
+    <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
+           The implementation shall provide a definition that has the BaseCharacteristic of <code>integral_constant&lt;int, J&gt;</code>
+           if <code>T</code> is the type of <code>std::placeholders::_J</code>, otherwise it shall have a BaseCharacteristic of
+           <code>integral_constant&lt;int, 0&gt;</code>. A program may specialize this template for a user-defined type <code>T</code> to
+           have a BaseCharacteristic of <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code>
+           should be treated as a placeholder type.</p></dd>
+
+  </dl>
+</blockquote>
+  
+<blockquote class="stdins">
+  <dl class="attribute">
+
+    <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <code>_all</code>, <code>_from&lt;N&gt;</code>, <code>_1</code>, <code>_2</code>, and so on.
+           <code>bind</code> uses <code>is_placeholder</code> to detect placeholders.</p></dd>
+
+    <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1 [meta.rqmts]).</p></dd>
+
+    <dd><p>The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
+    </p><ul>
+      <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
+      <li><code>true_type</code> if <code>T</code> is the type of <code>std::placeholders::_all</code> or <code>std::placeholders::_from&lt;N&gt;</code>,</li>
+      <li><code>false_type</code> otherwise.</li>
+    </ul><p></p></dd>
+
+    <dd><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of <code>true_type</code>
+           or <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></dd>
+ 
+  </dl>
+</blockquote>
+
+<h2><a name='implementability'>Implementability</a></h2>
+
+<p>Proposed change can be implemented as pure library extension in C++11. Implementation of <code>invoke</code> function that conforms proposed wording can be found <a href="https://github.com/tomaszkam/proposals/tree/master/invoke">https://github.com/tomaszkam/proposals/tree/master/invoke</a>.</p>
+
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
+
+<p>Tomasz Miąsko and Mikhail Semenov offered many useful suggestions and corrections to the proposal.</p>
+<p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
+
+<h2><a name="literature">References</a></h2>
+
+<ol>
+
+<li>Alisdair Meredith, "C++ Standard Library Active Issues List (Revision R82)" (N3522, <a href="http://isocpp.org/files/papers/n3522.html">http://isocpp.org/files/papers/n3522.html</a>)</li>
+<li>Tomasz Kamiński, Implementation of invoke function (<a href="https://github.com/tomaszkam/proposals/tree/master/invoke">https://github.com/tomaszkam/proposals/tree/master/invoke</a>)</li>
+
+</ol>
+
+</body></html>
