@@ -255,16 +255,16 @@ namespace placeholders {
     <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <ins><code>_all</code>, <code>_from&lt;N&gt;</code>,</ins> <code>_1</code>, <code>_2</code>, and so on.
            <code>bind</code> uses <code>is_placeholder</code> to detect placeholders.</p></dd>
 
-    <ins>    
+    <del>    
     <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
            The implementation shall provide a definition that has the BaseCharacteristic of <code>integral_constant&lt;int, J&gt;</code>
            if <code>T</code> is the type of <code>std::placeholders::_J</code>, otherwise it shall have a BaseCharacteristic of
            <code>integral_constant&lt;int, 0&gt;</code>. A program may specialize this template for a user-defined type <code>T</code> to
            have a BaseCharacteristic of <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code>
            should be treated as a placeholder type.</p></dd>
-    </ins>
+    </del>
 
-    <del>
+    <ins>
     <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1 [meta.rqmts]).</p></dd>
 
     <dd><p>The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
@@ -276,7 +276,7 @@ namespace placeholders {
 
     <dd><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of <code>true_type</code>
            or <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></dd>
-    </del>
+    </ins>
  
   </dl>
 </blockquote>
