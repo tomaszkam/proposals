@@ -63,7 +63,7 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>Agrument group placeholders for std::bind</title>
+<title>Parameters group placeholders for bind</title>
 <script type="text/javascript">$(function() {
     var next_id = 0
     function find_id(node) {
@@ -138,7 +138,7 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">Agrument group placeholders for std::bind</a></h1>
+<h1><a name="title">Parameters group placeholders for bind</a></h1>
 
 <h2><a name="intro">Introduction</a></h2>
 
@@ -231,18 +231,18 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 <blockquote class="std"> 
 <pre>
 namespace placeholders {
-<ins>  extern <code><em>unspecified</em></code> _all;
+<ins>  extern <em>unspecified</em> _all;
 
   template&lt;int N&gt;
-  <code><em>unspecified</em></code> _from;</ins>
+  <em>unspecified</em> _from;</ins>
 
   // <em>M is the implementation-defined number of placeholders</em>
-  extern <code><em>unspecified</em></code> _1;
-  extern <code><em>unspecified</em></code> _2;
+  extern <em>unspecified</em> _1;
+  extern <em>unspecified</em> _2;
   .
   .
   .
-  extern <code><em>unspecified</em></code> _M;
+  extern <em>unspecified</em> _M;
 }
 </pre>
 </blockquote>
@@ -270,16 +270,134 @@ namespace placeholders {
     <dd><p>The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
     </p><ul>
       <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
-      <li><code>true_type</code> if <code>T</code> is the type of <code>std::placeholders::_all</code> or <code>std::placeholders::_from&lt;N&gt;</code>,</li>
-      <li><code>false_type</code> otherwise.</li>
+      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code> or <code>std::placeholders::_from&lt;N&gt;</code>,</li>
+      <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
     </ul><p></p></dd>
 
-    <dd><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of <code>true_type</code>
-           or <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></dd>
+    <dd><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of
+           <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></dd>
     </ins>
  
   </dl>
 </blockquote>
+
+<p>20.10.9.1.3 Function template bind [func.bind.bind].</p>
+
+<blockquote class="std">
+<pre>
+template&lt;class F, class... BoundArgs&gt;
+  <em>unspecified</em> bind(F&& f, BoundArgs&&... bound_args);
+</pre>
+
+  <dl class="attribute">
+
+    <dt>Requires:</dt>
+    <dd><p><code>is_constructible&lt;FD, F&gt;::value</code> shall be true.
+           For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true. 
+           <code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be avalid expression for some values <code>w1, w2, ..., <ins>wK</ins><del>wN</del></code>
+           <del>, where <code>N == sizeof...(bound_args)</code></del>.</p></dd>
+
+    <dt>Returns:</dt>
+    <dd><p>A forwarding call wrapper <code>g</code> with a weak result type (20.10.2).
+           The effect of <code>g(u1, u2, ..., uM)</code> shall be 
+           <del><code><em>INVOKE</em> (fd, std::forward&lt;V1&gt;(v1), std::forward&lt;V2&gt;(v2), ..., std::forward&lt;VN&gt;(vN), 
+                                           result_of&lt;FD <em>cv</em> &amp; (V1, V2, ..., VN)&gt;::type)</code></del>
+           <ins><code><em>INVOKE</em> (fd, std::forward&lt;P1&gt;(p1)..., std::forward&lt;P2&gt;(p2)..., ..., std::forward&lt;PN&gt;(pN)...,
+                                           result_of&lt;FD <em>cv</em> &amp; (P1..., P2..., ..., PN...)&gt;::type)</code></ins>
+           , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of the bound arguments
+           <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
+           are determined as specified below.
+           The copy constructor and move constructor of the forwarding call wrapper shall throw an exception if and only if the corresponding
+           constructor of <code>FD</code> or of any of the types <code>TiD</code> throws an exception.
+         </p></dd>
+
+    <dt>Throws:</dt>
+    <dd><p>Nothing unless the construction of <code>fd</code> or of one of the values <code>tid</code> throws an exception.</p></dd>
+
+    <dt>Remarks:</dt>
+    <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
+           If all of <code>FD</code> and <code>TiD</code> satisfy the requirements of <code>CopyConstructible</code>,
+           then the return type shall satisfy the requirements of <code>CopyConstructible</code>.
+           [ <em>Note:</em> This implies that all of FD and TiD are MoveConstructible. <em>— end note</em> ]
+     </p></dd>
+
+  </dl>
+
+<pre>
+template&lt;class R, class F, class... BoundArgs&gt;
+  <em>unspecified</em> bind(F&& f, BoundArgs&&... bound_args);
+</pre>
+
+  <dl class="attribute">
+
+    <dt>Requires:</dt>
+    <dd><p><code>is_constructible&lt;FD, F&gt;::value</code> shall be true.
+           For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true. 
+           <code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be avalid expression for some values <code>w1, w2, ..., <ins>wK</ins><del>wN</del></code>
+           <del>, where <code>N == sizeof...(bound_args)</code></del>.</p></dd>
+
+    <dt>Returns:</dt>
+    <dd><p>A forwarding call wrapper <code>g</code> with a weak result type (20.10.2).
+           The effect of <code>g(u1, u2, ..., uM)</code> shall be 
+           <del><code><em>INVOKE</em> (fd, std::forward&lt;V1&gt;(v1), std::forward&lt;V2&gt;(v2), ..., std::forward&lt;VN&gt;(vN), R)</code></del>
+           <ins><code><em>INVOKE</em> (fd, std::forward&lt;P1&gt;(p1)..., std::forward&lt;P2&gt;(p2)..., ..., std::forward&lt;PN&gt;(pN)..., R)</code></ins>
+           , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of the bound arguments
+           <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
+           are determined as specified below.
+           The copy constructor and move constructor of the forwarding call wrapper shall throw an exception if and only if the corresponding
+           constructor of <code>FD</code> or of any of the types <code>TiD</code> throws an exception.
+         </p></dd>
+
+    <dt>Throws:</dt>
+    <dd><p>Nothing unless the construction of <code>fd</code> or of one of the values <code>tid</code> throws an exception.</p></dd>
+
+    <dt>Remarks:</dt>
+    <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
+           If all of <code>FD</code> and <code>TiD</code> satisfy the requirements of <code>CopyConstructible</code>,
+           then the return type shall satisfy the requirements of <code>CopyConstructible</code>.
+           [ <em>Note:</em> This implies that all of FD and TiD are MoveConstructible. <em>— end note</em> ]
+     </p></dd>
+
+    <del>
+    <dd><p>The values of the <em>bound arguments</em> <code>v1, v2, ..., vN</code> and their corresponding types 
+           <code>V1, V2, ..., VN</code> depend on the types <code>TiD</code> derived from the call to <code>bind</code>
+           and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
+    </p><ul>
+      <li>if <code>TiD</code> is <code>reference_wrapper&lt;T&gt;</code>,
+            the argument is <code>tid.get()</code> and its type <code>Vi</code> is <code>T&amp;</code>;</li>
+      <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
+          the argument is <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
+          and its type <code>Vi</code> is <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
+      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero, the argument is <code>std::forward&lt;Uj&gt;(uj)</code>
+          and its type <code>Vi</code> is <code>Uj&amp;&amp;</code>;</li>
+      <li>otherwise, the value is <code>tid<code/> and its type <code>Vi</code> is <code>TiD <em>cv</em> &amp;</code>.</li>
+    </ul><p></p></dd>
+    </del>
+
+    <ins>
+    <dd><p>The values of the elements of each <em>bound arguments pack</em> <code>pi</code> 
+           and their corresponding types depend on 
+           the types <code>TiD</code> derived from the call to <code>bind</code>,
+           number of parameter of the forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code>
+           and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
+    </p><ul>
+      <li>if <code>TiD</code> is <code>reference_wrapper&lt;T&gt;</code>,
+          the pack contains single element with value <code>tid.get()</code> of type <code>T&amp;</code>;</li>
+      <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
+          the pack contains single element with value <code>tid(std::forward&lt;Uj&gt;(uj)...)</code>
+          of type <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
+      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
+          and <code>placeholder_positions&lt;TiD, M&gt; is derived from <code>integral_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
+          the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
+          of types <code>Uj1&&, Uj2&&, ..., UjK&&</code> correspondingly,
+      <li>otherwise, the pack contains single element with value <code>tid<code/> of type <code>TiD <em>cv</em> &amp;</code>.</li>
+    </ul><p></p></dd>
+    </ins>
+
+
+  </dl>
+</blockquote>
+
 
 <h2><a name='implementability'>Implementability</a></h2>
 
