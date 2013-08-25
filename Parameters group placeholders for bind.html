@@ -128,7 +128,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-17</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-25</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
@@ -142,91 +142,28 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>This proposal is to extend the definition of <code><em>INVOKE</em></code> for class member pointers to cover types convertible to a target class of the pointer, like <code>std::reference_wrapper</code>.</p>
-
-<p>Proposal also resolves <a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a></p>
+<p>TODO</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard <code><em>INVOKE</em></code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code><em>INVOKE</em></code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
-
-<p>This behavior difference prohibit uses wrapper types (e.g., <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code><em>INVOKE</em></code> (e.g., <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code><em>INVOKE</em></code> to allow implicit conversions in such situations.</p>
-
-<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (e.g., std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
-
-<h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
-
-<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the same result as the conversion operator. Firstly this solution is only applicable in situations when the definition of the class can be changed, so it is not feasible for third-party library classes. Secondly it leads inelegant interface than combines wrapper and pointer semantics.</p>
-
-<h3><a name="motivation.lambda">Using lambda</a></h3>
-
-<p>The other workaround is to use the lambda expression instead of library functions, but in the most cases it leads to the less readable code. Please compare following code snippets:</p>
-<pre>
-  std::bind(&amp;foo, _1, expr, ref(a));
-  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
-</pre>
-
-<h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
-
-<p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor that preforms required casting.</p>
-<pre>
-std::bind(&amp;Class::method, _1)(std::ref(clazz));
-std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
-</pre>
-<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code><em>INVOKE</em></code> (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
+<p>TODO</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>Allowing conversion in <code><em>INVOKE</em></code> with member pointer may lead to ambiguity in case of entity <code>t</code>, for which both result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
-
-<p>As example, for the following class:</p>
-<pre>
-  struct Clazz { int foo; }
-
-  struct Mixed
-  {
-    Clazz&amp; operator*();
-    operator Clazz&amp;();
-  };
-  
-  Mixed m;
-</pre>
-<p>The expression <code><em>INVOKE</em>(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
-
-<p>There are tree possible behaviors in case of such ambiguity:</p>
-  <ol>
-    <li>Compilation error</li>
-    <li>Preference of <code>operator*</code></li>
-    <li>Preference of conversion</li>
-  </ol>
-
-<h3><a name="design.error">1. Compilation error</a></h3>
-
-<p>Raising and ambiguity error will make behaviour of <code><em>INVOKE</em></code> for member pointers more uniform with behaviour of free standing functions. However it will break existing code, that uses entities that are both convertible to and behaves as a pointer to target class.</p>
-
-<h3><a name="design.prefer-dereference">2. Preference of <code>operator*</code></a></h3>
-
-<p>This is the only option that allow extensions of <code><em>INVOKE</em></code> definition without breaking or introducing silent behaviour changes in the existing code. The minor drawback is that it leads to more complicated definition of <code><em>INVOKE</em></code>.</p>
-
-<h3><a name="design.prefer-conversion">3. Preference of conversion</a></h3>
-
-<p>Preference of the conversion leads to the silent behaviour change of the existing C++11 standard compliant code, so this option should not be considered as a feasible solution.</p>
-
-<h3><a name="design.summary">Summary</a></h3>
-
-<p>This proposal recommends implementing the second option and provides the wording in the <a href="#wording">Proposed wording</a> section. The wording for the first option may be found in the <a href="#alternate">Alternate proposal</a> section. Third option is not further discussed.</p>
+<p>TODO</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, varidatic templates, <code>decltype</code> and trailing return types.)</p>
+<p>TODO</p>
+<p>This proposal has no dependencies beyond a C++14 compiler and Standard Library implementation. (It depends on perfect forwarding, varidatic templates, varible templates, <code>decltype</code> and trailing return types.)</p>
 
 <p>Nothing depends on this proposal.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>Change the section 20.10 [function.objects]/2 and paragraph 20.10.9.1.4 [Placeholders].</p>
+<p>Change the section 20.10 [function.objects]/2 and paragraph 20.10.9.1.4 Placeholders [func.bind.place].</p>
 
 <blockquote class="std"> 
 <pre>
@@ -247,7 +184,7 @@ namespace placeholders {
 </pre>
 </blockquote>
 
-<p>Change the paragraph 20.10.9.1.2 [func.bind.isplace].</p>
+<p>Change the paragraph 20.10.9.1.2 Class template <code>is_placeholder</code> [func.bind.isplace].</p>
 
 <blockquote class="std">
   <dl class="attribute">
@@ -255,33 +192,64 @@ namespace placeholders {
     <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <ins><code>_all</code>, <code>_from&lt;N&gt;</code>,</ins> <code>_1</code>, <code>_2</code>, and so on.
            <code>bind</code> uses <code>is_placeholder</code> to detect placeholders.</p></dd>
 
-    <del>    
-    <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
+    <dd><del><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
            The implementation shall provide a definition that has the BaseCharacteristic of <code>integral_constant&lt;int, J&gt;</code>
            if <code>T</code> is the type of <code>std::placeholders::_J</code>, otherwise it shall have a BaseCharacteristic of
            <code>integral_constant&lt;int, 0&gt;</code>. A program may specialize this template for a user-defined type <code>T</code> to
            have a BaseCharacteristic of <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code>
-           should be treated as a placeholder type.</p></dd>
-    </del>
+           should be treated as a placeholder type.</p></del></dd>
 
-    <ins>
-    <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1 [meta.rqmts]).</p></dd>
-
-    <dd><p>The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
+    <dd><ins><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1 [meta.rqmts]).
+                The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
     </p><ul>
       <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
       <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code> or <code>std::placeholders::_from&lt;N&gt;</code>,</li>
       <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
-    </ul><p></p></dd>
+    </ul><p></p></ins></dd>
 
-    <dd><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of
-           <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></dd>
-    </ins>
+    <dd><ins><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of
+           <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></ins></dd>
  
   </dl>
 </blockquote>
 
-<p>20.10.9.1.3 Function template bind [func.bind.bind].</p>
+<p>After paragraph 20.10.9.1.2 Class template <code>is_placeholder</code>, insert a new paragraph. (Paragraph 20.10.9.1.3 Function template <code>bind</code> [func.bind.bind] becomes 20.10.9.1.?)</p>
+  
+<blockquote class="stdins"> 
+<h4>20.10.9.1.3 Class template <code>parameter_indexes</code> <span style="float:right">[func.bind.placepos]</span></h4>
+
+<pre>
+namespace std {
+  template&lt;class T, int N&gt; struct parameter_indexes; // see below
+}</pre>
+
+  <dl class="attribute">
+    <dd><p><code>bind</code> uses <code>parameter_indexes</code> to determine indexes of parameters of the forwarding call wrapper
+           to be forwarded to stored function in the invocation process.</p></dd>
+
+    <dd><p>The implementation shall provide a definition of <code>parameter_indexes&lt;T, N&gt;</code> that is publicly derived from:
+    </p><ul>
+      <li><code>integral_sequence&lt;int&gt;</code> 
+          if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N == 0</code>,</li>
+      <li><code>integral_sequence&lt;int, 1, 2, ..., N&gt;</code> 
+          if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N &gt; 0</code>,</li>
+      <li><code>integral_sequence&lt;int&gt;</code>
+          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N == K-1</code>,</li>
+      <li><code>integral_sequence&lt;int, K, K+1, ..., N&gt;</code>
+          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
+      <li><code>integral_sequence&lt;int, j&gt;</code>
+          if <code>T</code> is not one of the types described in the previous item and
+          the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero.</li>
+    </ul><p></p></dd>
+
+    <dd><p>A program may specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly derived from
+           <code>integral_sequence&lt;int, i1, i2, ..., iN&gt;</code> to indicate indexes <code>i1, i2, ..., iN</code> 
+           of arameters of the forwarding call wrapper to be forwarded to stored function in the invocation process.</p></dd>
+  </dl>
+
+</blockquote>
+
+<p>Change the paragraph 20.10.9.1.3 Function template <code>bind</code> [func.bind.bind].</p>
 
 <blockquote class="std">
 <pre>
@@ -358,8 +326,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
            [ <em>Note:</em> This implies that all of FD and TiD are MoveConstructible. <em>— end note</em> ]
      </p></dd>
 
-    <del>
-    <dd><p>The values of the <em>bound arguments</em> <code>v1, v2, ..., vN</code> and their corresponding types 
+    <dd><del><p>The values of the <em>bound arguments</em> <code>v1, v2, ..., vN</code> and their corresponding types 
            <code>V1, V2, ..., VN</code> depend on the types <code>TiD</code> derived from the call to <code>bind</code>
            and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
     </p><ul>
@@ -370,12 +337,10 @@ template&lt;class R, class F, class... BoundArgs&gt;
           and its type <code>Vi</code> is <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
       <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero, the argument is <code>std::forward&lt;Uj&gt;(uj)</code>
           and its type <code>Vi</code> is <code>Uj&amp;&amp;</code>;</li>
-      <li>otherwise, the value is <code>tid<code/> and its type <code>Vi</code> is <code>TiD <em>cv</em> &amp;</code>.</li>
-    </ul><p></p></dd>
-    </del>
+      <li>otherwise, the value is <code>tid</code> and its type <code>Vi</code> is <code>TiD <em>cv</em> &amp;</code>.</li>
+    </ul><p></p></del></dd>
 
-    <ins>
-    <dd><p>The values of the elements of each <em>bound arguments pack</em> <code>pi</code> 
+    <dd><ins><p>The values of the elements of each <em>bound arguments pack</em> <code>pi</code> 
            and their corresponding types depend on 
            the types <code>TiD</code> derived from the call to <code>bind</code>,
            number of parameter of the forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code>
@@ -386,14 +351,12 @@ template&lt;class R, class F, class... BoundArgs&gt;
       <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
           the pack contains single element with value <code>tid(std::forward&lt;Uj&gt;(uj)...)</code>
           of type <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
-      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
-          and <code>placeholder_positions&lt;TiD, M&gt; is derived from <code>integral_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
+      <li>if the value of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
+          and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integral_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
           the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
-          of types <code>Uj1&&, Uj2&&, ..., UjK&&</code> correspondingly,
-      <li>otherwise, the pack contains single element with value <code>tid<code/> of type <code>TiD <em>cv</em> &amp;</code>.</li>
-    </ul><p></p></dd>
-    </ins>
-
+          of types <code>Uj1&&, Uj2&&, ..., UjK&&</code> correspondingly;</li>
+      <li>otherwise, the pack contains single element with value <code>tid</code> of type <code>TiD <em>cv</em> &amp;</code>.</li>
+    </ul><p></p></ins></dd>
 
   </dl>
 </blockquote>
@@ -405,15 +368,13 @@ template&lt;class R, class F, class... BoundArgs&gt;
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Tomasz Miąsko and Mikhail Semenov offered many useful suggestions and corrections to the proposal.</p>
-<p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
+<p>TODO</p>
+<!--p>.... offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">References</a></h2>
 
+<p>TODO</p>
 <ol>
-
-<li>Alisdair Meredith, "C++ Standard Library Active Issues List (Revision R82)" (N3522, <a href="http://isocpp.org/files/papers/n3522.html">http://isocpp.org/files/papers/n3522.html</a>)</li>
-<li>Tomasz Kamiński, Implementation of invoke function (<a href="https://github.com/tomaszkam/proposals/tree/master/invoke">https://github.com/tomaszkam/proposals/tree/master/invoke</a>)</li>
 
 </ol>
 
