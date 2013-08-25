@@ -58,9 +58,9 @@ namespace functional
     public:
       template<typename Invoker, typename... ActualArgs>
       auto operator()(const Invoker& invoker, const Placeholder&, ActualArgs&&... actualArgs)
-        -> decltype(this->pass_selected(invoker, placeholder_positions<Placeholder, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...))
+        -> decltype(this->pass_selected(invoker, parameter_indexes<Placeholder, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...))
       {
-        return pass_selected(invoker, placeholder_positions<Placeholder, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...);
+        return pass_selected(invoker, parameter_indexes<Placeholder, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...);
       }
     };
 

@@ -12,7 +12,7 @@ namespace functional
   {};
 
   template<typename Placeholder, std::size_t ArgCount>
-  struct placeholder_positions
+  struct parameter_indexes
     : type_traits::integral_sequence<std::size_t, is_placeholder<Placeholder>::value>
   {
     static_assert(is_placeholder<Placeholder>::value > 0, "Provided type must be an placeholder.");

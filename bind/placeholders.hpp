@@ -30,7 +30,7 @@ namespace functional
   {};
 
   template<std::size_t ArgCount>
-  struct placeholder_positions<all_placeholder, ArgCount>
+  struct parameter_indexes<all_placeholder, ArgCount>
     : type_traits::make_integral_range<std::size_t, 1, ArgCount + 1>
   {};
 
@@ -40,7 +40,7 @@ namespace functional
   {};
 
   template<std::size_t N, std::size_t ArgCount>
-  struct placeholder_positions<from_placeholder<N>, ArgCount>
+  struct parameter_indexes<from_placeholder<N>, ArgCount>
     : type_traits::make_integral_range<std::size_t, N, ArgCount + 1>
   {
     static_assert(N <= ArgCount + 1, "To few argument provided.");
