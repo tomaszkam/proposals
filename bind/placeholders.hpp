@@ -26,7 +26,7 @@ namespace functional
 
   template<>
   struct is_placeholder<all_placeholder>
-   : std::true_type
+   : std::integral_constant<int, 1>
   {};
 
   template<std::size_t ArgCount>
@@ -36,7 +36,7 @@ namespace functional
 
   template<std::size_t N>
   struct is_placeholder<from_placeholder<N>>
-    : std::true_type
+    : std::integral_constant<int, 1>
   {};
 
   template<std::size_t N, std::size_t ArgCount>
