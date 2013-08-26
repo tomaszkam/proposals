@@ -213,7 +213,8 @@ namespace placeholders {
                 The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
     </p><ul>
       <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
-      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code> or <code>std::placeholders::_from&lt;N&gt;</code>,</li>
+      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
+      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code> and <code>N &gt; 0</code>,</li>
       <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
     </ul><p></p></ins></dd>
 
@@ -244,9 +245,9 @@ namespace std {
       <li><code>integer_sequence&lt;int, 1, 2, ..., N&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N &gt; 0</code>,</li>
       <li><code>integer_sequence&lt;int&gt;</code>
-          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N == K-1</code>,</li>
+          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>K &gt; 0</code> and <code>N == K-1</code>,</li>
       <li><code>integer_sequence&lt;int, K, K+1, ..., N&gt;</code>
-          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
+          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>K &gt; 0</code> and <code>N &gt;= K</code>,</li>
       <li><code>integer_sequence&lt;int, j&gt;</code>
           if <code>T</code> is not one of the types described in the previous item and
           the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero.</li>
