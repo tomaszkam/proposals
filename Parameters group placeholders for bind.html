@@ -229,21 +229,21 @@ namespace std {
 
     <dd><p>The implementation shall provide a definition of <code>parameter_indexes&lt;T, N&gt;</code> that is publicly derived from:
     </p><ul>
-      <li><code>integral_sequence&lt;int&gt;</code> 
+      <li><code>integer_sequence&lt;int&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N == 0</code>,</li>
-      <li><code>integral_sequence&lt;int, 1, 2, ..., N&gt;</code> 
+      <li><code>integer_sequence&lt;int, 1, 2, ..., N&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N &gt; 0</code>,</li>
-      <li><code>integral_sequence&lt;int&gt;</code>
+      <li><code>integer_sequence&lt;int&gt;</code>
           if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N == K-1</code>,</li>
-      <li><code>integral_sequence&lt;int, K, K+1, ..., N&gt;</code>
+      <li><code>integer_sequence&lt;int, K, K+1, ..., N&gt;</code>
           if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
-      <li><code>integral_sequence&lt;int, j&gt;</code>
+      <li><code>integer_sequence&lt;int, j&gt;</code>
           if <code>T</code> is not one of the types described in the previous item and
           the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero.</li>
     </ul><p></p></dd>
 
-    <dd><p>A program may specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly derived from
-           <code>integral_sequence&lt;int, i1, i2, ..., iN&gt;</code> to indicate indexes <code>i1, i2, ..., iN</code> 
+    <dd><p>A program may partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly derived from
+           <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> to indicate indexes <code>i1, i2, ..., iN</code> 
            of parameters of the forwarding call wrapper to be forwarded to stored function in the invocation process.</p></dd>
   </dl>
 
@@ -342,7 +342,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
 
     <dd><ins><p>The values of the elements of each <em>bound arguments pack</em> <code>pi</code> 
            and their corresponding types depend on 
-           the types <code>TiD</code> derived from the call to <code>bind</code>,
+           the type <code>TiD</code> derived from the call to <code>bind</code>,
            number of parameter of the forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code>
            and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
     </p><ul>
@@ -352,7 +352,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
           the pack contains single element with value <code>tid(std::forward&lt;Uj&gt;(uj)...)</code>
           of type <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
       <li>if the value of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
-          and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integral_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
+          and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
           the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
           of types <code>Uj1&&, Uj2&&, ..., UjK&&</code> correspondingly;</li>
       <li>otherwise, the pack contains single element with value <code>tid</code> of type <code>TiD <em>cv</em> &amp;</code>.</li>

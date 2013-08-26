@@ -48,11 +48,11 @@ namespace functional
     template<typename Placeholder>
     class argument_passer<Placeholder, true, false>
     {
-      template<typename Invoker, std::size_t... Positions, typename... ActualArgs>
-      auto pass_selected(const Invoker& invoker, type_traits::integral_sequence<std::size_t, Positions...>, ActualArgs&&... actualArgs)
-        -> decltype(invoker(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(invoker.call_args())...))
+      template<typename Invoker, int... Indexes, typename... ActualArgs>
+      auto pass_selected(const Invoker& invoker, type_traits::integer_sequence<int, Indexes...>, ActualArgs&&... actualArgs)
+        -> decltype(invoker(std::forward<ActualArgs>(actualArgs)..., std::get<Indexes-1>(invoker.call_args())...))
       {
-        return invoker(std::forward<ActualArgs>(actualArgs)..., std::get<Positions-1>(invoker.call_args())...);
+        return invoker(std::forward<ActualArgs>(actualArgs)..., std::get<Indexes-1>(invoker.call_args())...);
       }
 
     public:
@@ -67,8 +67,8 @@ namespace functional
     template<typename Bind>
     class argument_passer<Bind, false, true>
     {
-      template<typename Invoker, typename Function, std::size_t... Indexes, typename... ActualArgs>
-      auto pass_result(const Invoker& invoker, Function&& function, type_traits::integral_sequence<std::size_t, Indexes...>, ActualArgs&&... actualArgs)
+      template<typename Invoker, typename Function, int... Indexes, typename... ActualArgs>
+      auto pass_result(const Invoker& invoker, Function&& function, type_traits::integer_sequence<int, Indexes...>, ActualArgs&&... actualArgs)
         -> decltype(invoker(std::forward<ActualArgs>(actualArgs)..., std::forward<Function>(function)(std::get<Indexes>(invoker.call_args())...)))
       {
         return invoker(std::forward<ActualArgs>(actualArgs)..., std::forward<Function>(function)(std::get<Indexes>(invoker.call_args())...));
@@ -77,9 +77,9 @@ namespace functional
     public:
       template<typename Invoker, typename Function, typename... ActualArgs>
       auto operator()(const Invoker& invoker, Function&& function, ActualArgs&&... actualArgs)
-        -> decltype(this->pass_result(invoker, std::forward<Function>(function), type_traits::make_integral_sequence<std::size_t, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...))
+        -> decltype(this->pass_result(invoker, std::forward<Function>(function), type_traits::make_integer_sequence<int, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...))
       {
-        return pass_result(invoker, std::forward<Function>(function), type_traits::make_integral_sequence<std::size_t, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...);
+        return pass_result(invoker, std::forward<Function>(function), type_traits::make_integer_sequence<int, Invoker::call_args_size()>{}, std::forward<ActualArgs>(actualArgs)...);
       }
     };
 
