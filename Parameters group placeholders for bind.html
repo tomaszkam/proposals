@@ -254,7 +254,7 @@ namespace std {
 <blockquote class="std">
 <pre>
 template&lt;class F, class... BoundArgs&gt;
-  <em>unspecified</em> bind(F&& f, BoundArgs&&... bound_args);
+  <em>unspecified</em> bind(F&amp;&amp; f, BoundArgs&amp;&amp;... bound_args);
 </pre>
 
   <dl class="attribute">
@@ -293,7 +293,7 @@ template&lt;class F, class... BoundArgs&gt;
 
 <pre>
 template&lt;class R, class F, class... BoundArgs&gt;
-  <em>unspecified</em> bind(F&& f, BoundArgs&&... bound_args);
+  <em>unspecified</em> bind(F&amp;&amp; f, BoundArgs&amp;&amp;... bound_args);
 </pre>
 
   <dl class="attribute">
@@ -334,7 +334,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
             the argument is <code>tid.get()</code> and its type <code>Vi</code> is <code>T&amp;</code>;</li>
       <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
           the argument is <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
-          and its type <code>Vi</code> is <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
+          and its type <code>Vi</code> is <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&amp;&amp;...)&gt;::type&amp&amp</code>;</li>
       <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero, the argument is <code>std::forward&lt;Uj&gt;(uj)</code>
           and its type <code>Vi</code> is <code>Uj&amp;&amp;</code>;</li>
       <li>otherwise, the value is <code>tid</code> and its type <code>Vi</code> is <code>TiD <em>cv</em> &amp;</code>.</li>
