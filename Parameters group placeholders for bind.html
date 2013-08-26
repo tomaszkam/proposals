@@ -354,7 +354,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
       <li>if the value of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
           and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
           the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
-          of types <code>Uj1&&, Uj2&&, ..., UjK&&</code> correspondingly;</li>
+          of types <code>Uj1&amp;&amp;, Uj2&amp;&amp;, ..., UjK&amp;&amp;</code> correspondingly;</li>
       <li>otherwise, the pack contains single element with value <code>tid</code> of type <code>TiD <em>cv</em> &amp;</code>.</li>
     </ul><p></p></ins></dd>
 
