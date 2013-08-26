@@ -148,11 +148,11 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>TODO</p>
+<p>TODO: proposal from M. Semenov, motivation for _from bind(f, _1, _2, _from&lt;3&gt;)</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>TODO</p>
+<p>TODO: naming (_all, _from), from&lt;N&gt; works for N-1 parameters, int as template argument instead of unsigned</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -254,7 +254,7 @@ namespace std {
           and <code>N &gt;= j</code>.</li>
     </ul><p></p></dd>
 
-    <dd><p>A program may partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly derived 
+    <dd><p>A program may partially specialize <code>parameter_indexes</code> template for a user-defined placeholdertype to be publicly derived 
            from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code>, where values of <code>i1, i2, ..., iN</code> are greater than zero, 
            to indicate indexes of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
   </dl>
@@ -401,12 +401,12 @@ namespace placeholders {
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>TODO</p>
+<p>TODO: Andrzej - suggestions, Jonathan - original sugestion</p>
 <!--p>.... offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">References</a></h2>
 
-<p>TODO</p>
+<p>TODO: implementation, proposal from M. Semenov</p>
 <ol>
 
 </ol>
