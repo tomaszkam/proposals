@@ -163,10 +163,20 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>Change the section 20.10 [function.objects]/2 and paragraph 20.10.9.1.4 Placeholders [func.bind.place].</p>
+<p>Change the section 20.10 [function.objects]/2.</p>
 
 <blockquote class="std"> 
 <pre>
+// 20.10.9, <em>bind</em>:
+template&lt;class T&gt; struct is_bind_expression;
+template&lt;class T&gt; struct is_placeholder;
+<ins>template&lt;class T, int N&gt; struct parameter_indexes;</ins>
+
+template&lt;class F, class... BoundArgs&gt;
+  <em>unspecified</em> bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
+template&lt;class R, class F, class... BoundArgs&gt;
+  <em>unspecified</em> bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
+
 namespace placeholders {
 <ins>  extern <em>unspecified</em> _all;
 
@@ -261,9 +271,9 @@ template&lt;class F, class... BoundArgs&gt;
 
     <dt>Requires:</dt>
     <dd><p><code>is_constructible&lt;FD, F&gt;::value</code> shall be true.
-           For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true. 
-           <code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be avalid expression for some values <code>w1, w2, ..., <ins>wK</ins><del>wN</del></code>
-           <del>, where <code>N == sizeof...(bound_args)</code></del>.</p></dd>
+           For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true.
+           <del><code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be a valid expression for some values <code>w1, w2, ..., wN</code>, where <code>N == sizeof...(bound_args)</code>.</del>
+           <ins><code>fd</code> shall be a callable object ([func.require] 20.10.2).</ins></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A forwarding call wrapper <code>g</code> with a weak result type (20.10.2).
@@ -300,9 +310,9 @@ template&lt;class R, class F, class... BoundArgs&gt;
 
     <dt>Requires:</dt>
     <dd><p><code>is_constructible&lt;FD, F&gt;::value</code> shall be true.
-           For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true. 
-           <code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be avalid expression for some values <code>w1, w2, ..., <ins>wK</ins><del>wN</del></code>
-           <del>, where <code>N == sizeof...(bound_args)</code></del>.</p></dd>
+           For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true.
+           <del><code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be a valid expression for some values <code>w1, w2, ..., wN</code>, where <code>N == sizeof...(bound_args)</code>.</del>
+           <ins><code>fd</code> shall be a callable object ([func.require] 20.10.2).</ins></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A forwarding call wrapper <code>g</code> with a weak result type (20.10.2).
@@ -359,6 +369,27 @@ template&lt;class R, class F, class... BoundArgs&gt;
     </ul><p></p></ins></dd>
 
   </dl>
+</blockquote>
+
+<p>Change the paragraph 20.10.9.1.4 Placeholders [func.bind.place].</p>
+
+<blockquote class="std"> 
+<pre>
+namespace placeholders {
+<ins>  extern <em>unspecified</em> _all;
+
+  template&lt;int N&gt;
+  <em>unspecified</em> _from;</ins>
+
+  // <em>M is the implementation-defined number of placeholders</em>
+  extern <em>unspecified</em> _1;
+  extern <em>unspecified</em> _2;
+  .
+  .
+  .
+  extern <em>unspecified</em> _M;
+}
+</pre>
 </blockquote>
 
 
