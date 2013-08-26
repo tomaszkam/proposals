@@ -236,7 +236,7 @@ namespace std {
 
   <dl class="attribute">
     <dd><p><code>bind</code> uses <code>parameter_indexes</code> to determine indexes of parameters of the forwarding call wrapper
-           to be forwarded to stored function in the invocation process.</p></dd>
+           to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
     <dd><p>The implementation shall provide a definition of <code>parameter_indexes&lt;T, N&gt;</code> that is publicly derived from:
     </p><ul>
@@ -255,7 +255,7 @@ namespace std {
 
     <dd><p>A program may partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly derived from
            <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> to indicate indexes <code>i1, i2, ..., iN</code> 
-           of parameters of the forwarding call wrapper to be forwarded to stored function in the invocation process.</p></dd>
+           of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
   </dl>
 
 </blockquote>
