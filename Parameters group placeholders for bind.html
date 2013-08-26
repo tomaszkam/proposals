@@ -214,7 +214,7 @@ namespace placeholders {
     </p><ul>
       <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
       <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
-      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code> and <code>N &gt; 0</code>,</li>
+      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code>,</li>
       <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
     </ul><p></p></ins></dd>
 
@@ -245,9 +245,9 @@ namespace std {
       <li><code>integer_sequence&lt;int, 1, 2, ..., N&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N &gt; 0</code>,</li>
       <li><code>integer_sequence&lt;int&gt;</code>
-          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>K &gt; 0</code> and <code>N == K-1</code>,</li>
+          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N == K-1</code>,</li>
       <li><code>integer_sequence&lt;int, K, K+1, ..., N&gt;</code>
-          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>K &gt; 0</code> and <code>N &gt;= K</code>,</li>
+          if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
       <li><code>integer_sequence&lt;int, j&gt;</code>
           if <code>T</code> is not one of the types described in the previous item 
           and the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero
@@ -393,6 +393,18 @@ namespace placeholders {
   extern <em>unspecified</em> _M;
 }
 </pre>
+
+  <dl class="attribute">
+
+    <dd><p>All placeholder types shall be <code>DefaultConstructible</code> and <code>CopyConstructible</code>,
+           and their default constructors and copy/move constructors shall not throw exceptions.
+           It is implementation-defined whether placeholder types are <code>CopyAssignable</code>.
+           <code>CopyAssignable</code> placeholders’ copy assignment operators shall not throw exceptions.</p></dd>
+
+    <dd><p><ins>Instantiation of template variable <code>_from&lt;N&gt;</code> with <code>N &lt= 0</code> shall be ill-formed.</ins></p></dd>
+
+  </dl>
+
 </blockquote>
 
 

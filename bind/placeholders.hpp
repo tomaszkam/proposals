@@ -10,7 +10,10 @@ namespace functional
   struct all_placeholder {};
 
   template<int N>
-  struct from_placeholder {};
+  struct from_placeholder 
+  {
+    static_assert(N > 0, "Stating parameter index must be positve.");
+  };
   
   namespace placeholders
   {
@@ -45,7 +48,6 @@ namespace functional
   struct parameter_indexes<from_placeholder<N>, ArgCount>
     : type_traits::make_integer_range<int, N, ArgCount + 1>
   {
-    static_assert(N > 0, "_from<N> placeholder must have positive index");
     static_assert(ArgCount > 0, "Argument count must be positive");
     static_assert(N <= ArgCount + 1, "To few argument provided.");
   };
