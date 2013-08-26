@@ -15,8 +15,9 @@ namespace functional
   struct parameter_indexes
     : type_traits::integer_sequence<int, is_placeholder<Placeholder>::value>
   {
+    static_assert(ArgCount > 0, "Argument count must be positive");
     static_assert(is_placeholder<Placeholder>::value > 0, "Provided type must be an placeholder.");
-    static_assert(is_placeholder<Placeholder>::value <= ArgCount, "Placeholder position is greater the argument count.");
+    static_assert(is_placeholder<Placeholder>::value <= ArgCount, "Placeholder parameter index is greater the argument count.");
   };
 }
 

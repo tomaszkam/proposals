@@ -251,7 +251,8 @@ namespace std {
       <li><code>integer_sequence&lt;int, j&gt;</code>
           if <code>T</code> is not one of the types described in the previous item 
           and the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero
-          and <code>N &gt;= j</code>.</li>
+          and <code>N &gt;= j</code>,</li>
+      <li>otherwise the type should be ill-formed.</li>
     </ul><p></p></dd>
 
     <dd><p>A program may partially specialize <code>parameter_indexes</code> template for a user-defined placeholdertype to be publicly derived 

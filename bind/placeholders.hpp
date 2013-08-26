@@ -32,17 +32,21 @@ namespace functional
   template<int ArgCount>
   struct parameter_indexes<all_placeholder, ArgCount>
     : type_traits::make_integer_range<int, 1, ArgCount + 1>
-  {};
+  {
+    static_assert(ArgCount > 0, "Argument count must be positive");
+  };
 
   template<int N>
   struct is_placeholder<from_placeholder<N>>
-    : std::integral_constant<int, 1>
+    : std::integral_constant<int, (N > 0)>
   {};
 
   template<int N, int ArgCount>
   struct parameter_indexes<from_placeholder<N>, ArgCount>
     : type_traits::make_integer_range<int, N, ArgCount + 1>
   {
+    static_assert(N > 0, "_from<N> placeholder must have positive index");
+    static_assert(ArgCount > 0, "Argument count must be positive");
     static_assert(N <= ArgCount + 1, "To few argument provided.");
   };
 }
