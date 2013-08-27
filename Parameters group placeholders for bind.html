@@ -202,25 +202,19 @@ namespace placeholders {
     <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <ins><code>_all</code>, <code>_from&lt;N&gt;</code>,</ins> <code>_1</code>, <code>_2</code>, and so on.
            <code>bind</code> uses <code>is_placeholder</code> to detect placeholders.</p></dd>
 
-    <dd><del><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
-           The implementation shall provide a definition that has the BaseCharacteristic of <code>integral_constant&lt;int, J&gt;</code>
+    <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
+           The implementation shall provide a definition that has the BaseCharacteristic of<del> <code>integral_constant&lt;int, J&gt;</code>
            if <code>T</code> is the type of <code>std::placeholders::_J</code>, otherwise it shall have a BaseCharacteristic of
-           <code>integral_constant&lt;int, 0&gt;</code>. A program may specialize this template for a user-defined type <code>T</code> to
+           <code>integral_constant&lt;int, 0&gt;</code>.</del><ins>:</ins>
+        </p><ins><ul>
+           <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
+           <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
+           <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code>,</li>
+           <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
+        </ul></ins>
+        <p>A program may specialize this template for a user-defined type <code>T</code> to
            have a BaseCharacteristic of <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code>
-           should be treated as a placeholder type.</p></del></dd>
-
-    <dd><ins><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1 [meta.rqmts]).
-                The implementation shall provide a definition of <code>is_placeholder&lt;T&gt;</code> that has the BaseCharacteristic of:
-    </p><ul>
-      <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
-      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
-      <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code>,</li>
-      <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
-    </ul><p></p></ins></dd>
-
-    <dd><ins><p>A program may specialize <code>is_placeholder</code> template for a user-defined type <code>T</code> to have a BaseCharacteristic of
-           <code>integral_constant&lt;int, N&gt;</code> with <code>N &gt; 0</code> to indicate that <code>T</code> should be treated as a placeholder type.</p></ins></dd>
- 
+           should be treated as a placeholder type.</p></dd>
   </dl>
 </blockquote>
 
@@ -249,15 +243,16 @@ namespace std {
       <li><code>integer_sequence&lt;int, K, K+1, ..., N&gt;</code>
           if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
       <li><code>integer_sequence&lt;int, j&gt;</code>
-          if <code>T</code> is not one of the types described in the previous item 
+          if <code>T</code> is not one of the types described in the previous items
           and the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero
           and <code>N &gt;= j</code>,</li>
-      <li>otherwise the type should be ill-formed.</li>
-    </ul><p></p></dd>
+    </ul><p>A program that necessitates the instantiation of <code>parameter_indexes&lt;T, N&gt;</code> with type <code>T</code> and value <code>N</code>
+            that do not match criteria of any of above items is ill-formed, unless program defines specialization that match provided set of parameters.</p></dd>
 
-    <dd><p>A program may partially specialize <code>parameter_indexes</code> template for a user-defined placeholdertype to be publicly derived 
-           from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
+    <dd><p>A program may specialize or partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly
+           derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
            to indicate indexes of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
+
   </dl>
 
 </blockquote>
@@ -401,7 +396,7 @@ namespace placeholders {
            It is implementation-defined whether placeholder types are <code>CopyAssignable</code>.
            <code>CopyAssignable</code> placeholders’ copy assignment operators shall not throw exceptions.</p></dd>
 
-    <dd><p><ins>Instantiation of template variable <code>_from&lt;N&gt;</code> with <code>N &lt= 0</code> shall be ill-formed.</ins></p></dd>
+    <dd><p><ins>A program that necessitates the instantiation of <code>_from&lt;N&gt;</code> with <code>N &lt;= 0</code> is ill-formed.</ins></p></dd>
 
   </dl>
 
