@@ -232,7 +232,7 @@ namespace std {
     <dd><p><code>bind</code> uses <code>parameter_indexes</code> to determine indexes of parameters of the forwarding call wrapper
            to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
-    <dd><p>The implementation shall provide a definition of <code>parameter_indexes&lt;T, N&gt;</code> that is publicly derived from:
+    <dd><p>The implementation shall provide a definition of <code>parameter_indexes&lt;T, N&gt;</code> that is publicly and unambiguously derived from:
     </p><ul>
       <li><code>integer_sequence&lt;int&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N == 0</code>,</li>
@@ -249,8 +249,8 @@ namespace std {
     </ul><p>A program that necessitates the instantiation of <code>parameter_indexes&lt;T, N&gt;</code> with type <code>T</code> and value <code>N</code>
             that do not match criteria of any of above items is ill-formed, unless program defines specialization that match provided set of parameters.</p></dd>
 
-    <dd><p>A program may specialize or partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly
-           derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
+    <dd><p>A program may specialize or partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly and 
+           unambiguously derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
            to indicate indexes of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
   </dl>
@@ -271,7 +271,7 @@ template&lt;class F, class... BoundArgs&gt;
     <dd><p><code>is_constructible&lt;FD, F&gt;::value</code> shall be true.
            For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true.
            <del><code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be a valid expression for some values <code>w1, w2, ..., wN</code>, where <code>N == sizeof...(bound_args)</code>.</del>
-           <ins><code>fd</code> shall be a callable object ([func.require] 20.10.2).</ins></p></dd>
+           <ins><code>fd</code> shall be a callable object ([func.def] 20.10.1).</ins></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A forwarding call wrapper <code>g</code> with a weak result type (20.10.2).
@@ -310,7 +310,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
     <dd><p><code>is_constructible&lt;FD, F&gt;::value</code> shall be true.
            For each <code>Ti</code> in <code>BoundArgs</code>, <code>is_constructible&lt;TiD, Ti&gt;::value</code> shall be true.
            <del><code>INVOKE (fd, w1, w2, ..., wN)</code> (20.10.2) shall be a valid expression for some values <code>w1, w2, ..., wN</code>, where <code>N == sizeof...(bound_args)</code>.</del>
-           <ins><code>fd</code> shall be a callable object ([func.require] 20.10.2).</ins></p></dd>
+           <ins><code>fd</code> shall be a callable object ([func.def] 20.10.1).</ins></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A forwarding call wrapper <code>g</code> with a weak result type (20.10.2).
@@ -334,37 +334,27 @@ template&lt;class R, class F, class... BoundArgs&gt;
            [ <em>Note:</em> This implies that all of FD and TiD are MoveConstructible. <em>— end note</em> ]
      </p></dd>
 
-    <dd><del><p>The values of the <em>bound arguments</em> <code>v1, v2, ..., vN</code> and their corresponding types 
-           <code>V1, V2, ..., VN</code> depend on the types <code>TiD</code> derived from the call to <code>bind</code>
+   <dd><p>The values of the <em>bound arguments</em> <del><code>v1, v2, ..., vN</code></del> <ins><em>pack</em> <code>pi</code></ins>
+           and their corresponding types <del><code>V1, V2, ..., VN</code></del> depend on the 
+           type<del>s</del> <code>TiD</code> derived from the call to <code>bind</code>
+           <ins>, number of parameter of the forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code></ins>
            and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
-    </p><ul>
+    </p>
+    <ul>
       <li>if <code>TiD</code> is <code>reference_wrapper&lt;T&gt;</code>,
-            the argument is <code>tid.get()</code> and its type <code>Vi</code> is <code>T&amp;</code>;</li>
+          <del>the argument is</del><ins>the pack contains single element with value</ins> <code>tid.get()</code>
+          <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>T&amp;</code>;</li>
       <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
-          the argument is <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
-          and its type <code>Vi</code> is <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&amp;&amp;...)&gt;::type&amp&amp</code>;</li>
-      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero, the argument is <code>std::forward&lt;Uj&gt;(uj)</code>
-          and its type <code>Vi</code> is <code>Uj&amp;&amp;</code>;</li>
-      <li>otherwise, the value is <code>tid</code> and its type <code>Vi</code> is <code>TiD <em>cv</em> &amp;</code>.</li>
-    </ul><p></p></del></dd>
-
-    <dd><ins><p>The values of the elements of each <em>bound arguments pack</em> <code>pi</code> 
-           and their corresponding types depend on 
-           the type <code>TiD</code> derived from the call to <code>bind</code>,
-           number of parameter of the forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code>
-           and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
-    </p><ul>
-      <li>if <code>TiD</code> is <code>reference_wrapper&lt;T&gt;</code>,
-          the pack contains single element with value <code>tid.get()</code> of type <code>T&amp;</code>;</li>
-      <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
-          the pack contains single element with value <code>tid(std::forward&lt;Uj&gt;(uj)...)</code>
-          of type <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&&...)&gt;::type&amp&amp</code>;</li>
-      <li>if the value of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
-          and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
+          <del>the argument is</del><ins>the pack contains single element with value</ins> <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
+          <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&amp;&amp;...)&gt;::type&amp&amp</code>;</li>
+      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
+          <del>, the argument is <code>std::forward&lt;Uj&gt;(uj)</code>  and its type <code>Vi</code> is <code>Uj&amp;&amp;</code></del>
+          <ins>and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
           the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
-          of types <code>Uj1&amp;&amp;, Uj2&amp;&amp;, ..., UjK&amp;&amp;</code> correspondingly;</li>
-      <li>otherwise, the pack contains single element with value <code>tid</code> of type <code>TiD <em>cv</em> &amp;</code>.</li>
-    </ul><p></p></ins></dd>
+          of types <code>Uj1&amp;&amp;, Uj2&amp;&amp;, ..., UjK&amp;&amp;</code> respectively</ins>;</li>
+      <li>otherwise, <del>the value is</del><ins>the pack contains single element with value</ins> <code>tid</code> 
+          <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>TiD <em>cv</em> &amp;</code>.</li>
+    </ul><p></p></dd>
 
   </dl>
 </blockquote>
