@@ -244,14 +244,16 @@ namespace std {
           if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
       <li><code>integer_sequence&lt;int, j&gt;</code>
           if <code>T</code> is not one of the types described in the previous items
-          and the value <code>j</code> of <code>is_placeholder&lt;T&gt;::value</code> is not zero
+          and the value <code>j</code> defined as <code>is_placeholder&lt;T&gt;::value</code> is not zero
           and <code>N &gt;= j</code>,</li>
-    </ul><p>A program that necessitates the instantiation of <code>parameter_indexes&lt;T, N&gt;</code> with type <code>T</code> and value <code>N</code>
-            that do not match criteria of any of above items is ill-formed, unless program defines specialization that match provided set of parameters.</p></dd>
+    </ul><p></p></dd>
 
     <dd><p>A program may specialize or partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly and 
            unambiguously derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
            to indicate indexes of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
+
+    <dd><p>A program is ill-formed if it necessitates the instantiation of <code>parameter_indexes&lt;T, N&gt;</code> that does not satisfy criteria of any of the bullets in paragraph 1
+           and does not match a specialization or a partial specialization of template <code>parameter_indexes</code> defined in the program.</code>
 
   </dl>
 
