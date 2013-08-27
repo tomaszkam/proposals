@@ -348,9 +348,9 @@ template&lt;class R, class F, class... BoundArgs&gt;
           <del>the argument is</del><ins>the pack contains single element with value</ins> <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
           <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&amp;&amp;...)&gt;::type&amp&amp</code>;</li>
       <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
-          <del>, the argument is <code>std::forward&lt;Uj&gt;(uj)</code>  and its type <code>Vi</code> is <code>Uj&amp;&amp;</code></del>
-          <ins>and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code>,
-          the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
+          <ins>and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code></ins>,
+          <del>the argument is <code>std::forward&lt;Uj&gt;(uj)</code>  and its type <code>Vi</code> is <code>Uj&amp;&amp;</code></del>
+          <ins>the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
           of types <code>Uj1&amp;&amp;, Uj2&amp;&amp;, ..., UjK&amp;&amp;</code> respectively</ins>;</li>
       <li>otherwise, <del>the value is</del><ins>the pack contains single element with value</ins> <code>tid</code> 
           <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>TiD <em>cv</em> &amp;</code>.</li>
