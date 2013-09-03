@@ -64,61 +64,6 @@ td { text-align: left; vertical-align: top;
 </style>
 
 <title>A proposal to add invoke function template</title>
-<script type="text/javascript">$(function() {
-    var next_id = 0
-    function find_id(node) {
-        // Look down the first children of 'node' until we find one
-        // with an id. If we don't find one, give 'node' an id and
-        // return that.
-        var cur = node[0];
-        while (cur) {
-            if (cur.id) return curid;
-            if (cur.tagName == 'A' && cur.name)
-                return cur.name;
-            cur = cur.firstChild;
-        };
-        // No id.
-        node.attr('id', 'gensection-' + next_id++);
-        return node.attr('id');
-    };
-
-    // Put a table of contents in the #toc nav.
-
-    // This is a list of <ol> elements, where toc[N] is the list for
-    // the current sequence of <h(N+2)> tags. When a header of an
-    // existing level is encountered, all higher levels are popped,
-    // and an <li> is appended to the level
-    var toc = [$("<ol/>")];
-    $(':header').not('h1').each(function() {
-        var header = $(this);
-        // For each <hN> tag, add a link to the toc at the appropriate
-        // level.  When toc is one element too short, start a new list
-        var levels = {H2: 0, H3: 1, H4: 2, H5: 3, H6: 4};
-        var level = levels[this.tagName];
-        if (typeof level == 'undefined') {
-            throw 'Unexpected tag: ' + this.tagName;
-        }
-        // Truncate to the new level.
-        toc.splice(level + 1, toc.length);
-        if (toc.length < level) {
-            // Omit TOC entries for skipped header levels.
-            return;
-        }
-        if (toc.length == level) {
-            // Add a <ol> to the previous level's last <li> and push
-            // it into the array.
-            var ol = $('<ol/>')
-            toc[toc.length - 1].children().last().append(ol);
-            toc.push(ol);
-        }
-        var header_text = header.text();
-        toc[toc.length - 1].append(
-            $('<li/>').append($('<a href="#' + find_id(header) + '"/>')
-                              .text(header_text)));
-    });
-    $('#toc').append(toc[0]);
-})
-</script>
 </head>
 
 <body>
