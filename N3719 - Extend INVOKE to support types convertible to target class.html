@@ -70,16 +70,16 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>N3719</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-17</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2013-08-17</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Working Group</td>
   </tr>
   <tr>
-    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -95,29 +95,42 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard <code><em>INVOKE</em></code> expression models the member pointers as pair of free standing functions, that takes a reference and the pointer (including smart pointers) to target class respectively. However there is difference in semantics between the <code><em>INVOKE</em></code> expression for member pointers and functors - for member pointers the conversions are not taken into consideration in matching of first argument.</p>
+<p>The standard <code><em>INVOKE</em></code> expression models the 
+member pointers as pair of free standing functions, that takes a 
+reference and the pointer (including smart pointers) to target class 
+respectively. However there is difference in semantics between the <code><em>INVOKE</em></code>
+ expression for member pointers and functors - for member pointers the 
+conversions are not taken into consideration in matching of first 
+argument.</p>
 
 <p>This behavior difference prohibit uses wrapper types (e.g., <code>std::reference_wrapper</code>, <code>boost::flyweight</code>) in combination with member pointers with the standard library functions that are modeled using <code><em>INVOKE</em></code> (e.g., <code>std::bind</code>, <code>std::mem_fn</code>, <code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of <code><em>INVOKE</em></code> to allow implicit conversions in such situations.</p>
 
-<p>Proposed change will also cover cases of set of convertible types that models the same logical entity (e.g., std::chrono::duration specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
+<p>Proposed change will also cover cases of set of convertible types 
+that models the same logical entity (e.g., std::chrono::duration 
+specializations). With the acceptance of this proposal, the <code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of seconds for any specialization of std::chrono::duration.</p>
 
 <h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
 
-<p>The well know workaround for this problem, is to define the <code>operator*</code> that will return the same result as the conversion operator. Firstly this solution is only applicable in situations when the definition of the class can be changed, so it is not feasible for third-party library classes. Secondly it leads inelegant interface than combines wrapper and pointer semantics.</p>
+<p>The well know workaround for this problem, is to define the <code>operator*</code>
+ that will return the same result as the conversion operator. Firstly 
+this solution is only applicable in situations when the definition of 
+the class can be changed, so it is not feasible for third-party library 
+classes. Secondly it leads inelegant interface than combines wrapper and
+ pointer semantics.</p>
 
 <h3><a name="motivation.lambda">Using lambda</a></h3>
 
-<p>The other workaround is to use the lambda expression instead of library functions, but in the most cases it leads to the less readable code. Please compare following code snippets:</p>
-<pre>
-  std::bind(&amp;foo, _1, expr, ref(a));
-  [e = expr, &amp;a] (auto&amp;&amp; arg) -> decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
+<p>The other workaround is to use the lambda expression instead of 
+library functions, but in the most cases it leads to the less readable 
+code. Please compare following code snippets:</p>
+<pre>  std::bind(&amp;foo, _1, expr, ref(a));
+  [e = expr, &amp;a] (auto&amp;&amp; arg) -&gt; decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
 </pre>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
 
 <p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor that preforms required casting.</p>
-<pre>
-std::bind(&amp;Class::method, _1)(std::ref(clazz));
+<pre>std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
 <p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code><em>INVOKE</em></code> (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
@@ -127,8 +140,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 <p>Allowing conversion in <code><em>INVOKE</em></code> with member pointer may lead to ambiguity in case of entity <code>t</code>, for which both result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
 
 <p>As example, for the following class:</p>
-<pre>
-  struct Clazz { int foo; }
+<pre>  struct Clazz { int foo; }
 
   struct Mixed
   {
@@ -149,15 +161,23 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <h3><a name="design.error">1. Compilation error</a></h3>
 
-<p>Raising and ambiguity error will make behaviour of <code><em>INVOKE</em></code> for member pointers more uniform with behaviour of free standing functions. However it will break existing code, that uses entities that are both convertible to and behaves as a pointer to target class.</p>
+<p>Raising and ambiguity error will make behaviour of <code><em>INVOKE</em></code>
+ for member pointers more uniform with behaviour of free standing 
+functions. However it will break existing code, that uses entities that 
+are both convertible to and behaves as a pointer to target class.</p>
 
 <h3><a name="design.prefer-dereference">2. Preference of <code>operator*</code></a></h3>
 
-<p>This is the only option that allow extensions of <code><em>INVOKE</em></code> definition without breaking or introducing silent behaviour changes in the existing code. The minor drawback is that it leads to more complicated definition of <code><em>INVOKE</em></code>.</p>
+<p>This is the only option that allow extensions of <code><em>INVOKE</em></code>
+ definition without breaking or introducing silent behaviour changes in 
+the existing code. The minor drawback is that it leads to more 
+complicated definition of <code><em>INVOKE</em></code>.</p>
 
 <h3><a name="design.prefer-conversion">3. Preference of conversion</a></h3>
 
-<p>Preference of the conversion leads to the silent behaviour change of the existing C++11 standard compliant code, so this option should not be considered as a feasible solution.</p>
+<p>Preference of the conversion leads to the silent behaviour change of 
+the existing C++11 standard compliant code, so this option should not be
+ considered as a feasible solution.</p>
 
 <h3><a name="design.summary">Summary</a></h3>
 
@@ -165,7 +185,9 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, varidatic templates, <code>decltype</code> and trailing return types.)</p>
+<p>This proposal has no dependencies beyond a C++11 compiler and 
+Standard Library implementation. (It depends on perfect forwarding, 
+varidatic templates, <code>decltype</code> and trailing return types.)</p>
 
 <p>Nothing depends on this proposal.</p>
 
@@ -273,14 +295,14 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
   </dl>
 </blockquote>
 
-<h2><a name='implementability'>Implementability</a></h2>
+<h2><a name="implementability">Implementability</a></h2>
 
 <p>Proposed change can be implemented as pure library extension in C++11. Implementation of <code>invoke</code> function that conforms proposed wording can be found <a href="https://github.com/tomaszkam/proposals/tree/master/invoke">https://github.com/tomaszkam/proposals/tree/master/invoke</a>.</p>
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
 <p>Tomasz Miąsko and Mikhail Semenov offered many useful suggestions and corrections to the proposal.</p>
-<p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
+<p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#%21topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
 
 <h2><a name="literature">References</a></h2>
 
@@ -290,5 +312,6 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 <li>Tomasz Kamiński, Implementation of invoke function (<a href="https://github.com/tomaszkam/proposals/tree/master/invoke">https://github.com/tomaszkam/proposals/tree/master/invoke</a>)</li>
 
 </ol>
+
 
 </body></html>

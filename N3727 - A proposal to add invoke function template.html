@@ -70,16 +70,16 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>N3727</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-01</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2013-08-01</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Working Group</td>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Working Group</td>
   </tr>
   <tr>
-    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -93,15 +93,17 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>Although the behaviour of the <code><em>INVOKE</em></code> expression may be reproduced by combination of the existing standard library components, separate treatment of the functors and member pointers is required in such solutions.</p>
+<p>Although the behaviour of the <code><em>INVOKE</em></code> expression
+ may be reproduced by combination of the existing standard library 
+components, separate treatment of the functors and member pointers is 
+required in such solutions.</p>
 
 <h3><a name="motivation.deref-example"><code>deref_fn</code> example</a></h3>
 
 <p>As example, please consider the <code>deref_fn</code> wrapper, that should accept any callable object <code>f</code> and return a functor that invokes provided callable and dereferences the result.</p>
 
 <p>Using existing C++14 standard facilities <code>deref_fn</code> function may be implemented as:</p>
-<pre>
-  template&lt;typename F, std::enable_if_t&lt;!std::is_member_pointer&lt;std::decay_t&lt;F&gt;&gt;{}, int&gt; == 0&gt;
+<pre>  template&lt;typename F, std::enable_if_t&lt;!std::is_member_pointer&lt;std::decay_t&lt;F&gt;&gt;{}, int&gt; == 0&gt;
   auto deref_fn(F&amp;&amp; f) 
   { 
     return [f](auto&amp;&amp;... args) { return *f(std::forward&lt;decltype(args)&gt;(args)...); };
@@ -115,8 +117,7 @@ td { text-align: left; vertical-align: top;
 </pre>
 
 <p>Proposed <code>invoke</code> function allows simpler implementation, that does not resort to use of SFINAE function overloading:</p>
-<pre>
-  template&lt;typename F&gt;
+<pre>  template&lt;typename F&gt;
   auto deref_fn(F&amp;&amp; f) 
   { 
     return [f](auto&amp;&amp;... args) { return *std::invoke(f, std::forward&lt;decltype(args)&gt;(args)...); };
@@ -140,12 +141,19 @@ Furthermore imposing such requirement will block the implementation of <code>inv
 
 <p>The wording of this proposal may also be specified by moving the requirements of the <code><em>INVOKE</em></code> expression to definition of the <code>invoke</code> function template and replacing all existing references to the <code><em>INVOKE</em></code> expression by corresponding <code>invoke</code> function invocation.</p>
 
-<p>The approach described above is not used in this proposal, primarily to give implementation freedom to the standard library providers (e.g., whether <code>invoke</code> should be defined in terms of <code>mem_fn</code> or vice versa).
-In addition such approach will require changes in existing implementations of standard function objects, without providing any real benefit from the library user perspective.</p> 
+<p>The approach described above is not used in this proposal, primarily 
+to give implementation freedom to the standard library providers (e.g., 
+whether <code>invoke</code> should be defined in terms of <code>mem_fn</code>
+ or vice versa).
+In addition such approach will require changes in existing 
+implementations of standard function objects, without providing any real
+ benefit from the library user perspective.</p> 
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation. (It depends on perfect forwarding, varidatic templates, <code>decltype</code> and trailing return types.)</p>
+<p>This proposal has no dependencies beyond a C++11 compiler and 
+Standard Library implementation. (It depends on perfect forwarding, 
+varidatic templates, <code>decltype</code> and trailing return types.)</p>
 
 <p>Nothing depends on this proposal.</p>
 
@@ -153,7 +161,7 @@ In addition such approach will require changes in existing implementations of st
 
 <p>After the declaration of <code>binary_function</code> in the section 20.10 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 
-<blockquote class="stdins"> 
+</p><blockquote class="stdins"> 
 <pre>  // 20.10.3, <em>invoke</em>
   template &lt;class F, class... Args&gt; typename result_of&lt;F&amp;&amp;(Args&amp;&amp;...)&gt;::type invoke(F&amp;&amp; f, Args&amp;&amp;... args);
   template &lt;class R, class F, class... Args&gt; R invoke(F&amp;&amp; f, Args&amp;&amp;... args);
@@ -182,11 +190,10 @@ In addition such approach will require changes in existing implementations of st
  
 </blockquote>
 
-<h2><a name='implementability'>Implementability</a></h2>
+<h2><a name="implementability">Implementability</a></h2>
 
 <p>Proposed <code>invoke</code> function template may be implemented in terms of existing C++11 standard library components:</p>
-<pre>
-  template&lt;typename Functor, typename... Args&gt;
+<pre>  template&lt;typename Functor, typename... Args&gt;
   typename std::enable_if&lt;
     std::is_member_pointer&lt;typename std::decay&lt;Functor&gt;::type&gt;::value,
     typename std::result_of&lt;Functor&amp;&amp;(Args&amp;&amp;...)&gt;::type
@@ -215,7 +222,7 @@ In addition such approach will require changes in existing implementations of st
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Joe Gottman originally proposed <code>invoke</code> function in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/InJClAiLXcI">ISO C++ Standard - Future Proposals</a>.</p>
+<p>Joe Gottman originally proposed <code>invoke</code> function in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#%21topic/std-proposals/InJClAiLXcI">ISO C++ Standard - Future Proposals</a>.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">References</a></h2>
@@ -225,5 +232,6 @@ In addition such approach will require changes in existing implementations of st
 <li>Tomasz Kamiński, Implementation of invoke function (<a href="https://github.com/tomaszkam/proposals/blob/master/invoke/invoke_cpp11.hpp">https://github.com/tomaszkam/proposals/blob/master/invoke/invoke_cpp11.hpp</a>)</li>
 
 </ol>
+
 
 </body></html>
