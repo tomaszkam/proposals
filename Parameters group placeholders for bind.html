@@ -108,7 +108,24 @@ td { text-align: left; vertical-align: top;
 
 <p>Furthermore the author perceive this names as more consistent with the existing numbered placeholders (<code>_1</code>, <code>_2</code>, ...).</p>
 
-<p>TODO: from&lt;N&gt; works for N-1 parameters, int as template argument instead of unsigned</p>
+
+<h3><a name="design.from">Number of parameters required by <code>_from&lt;N&gt;</code></a></h3>
+
+<p>The addition of the <code>_from&lt;N&gt;</code> placeholder opens the question about its behaviour if the number of parmeters 
+   passed to the forwarding call wrapper produced as a result of <code>bind(&amp;foo, _from&lt;N&gt;)</code> is equal to <code>N-1</code>.</p>
+
+<p>There are two possible approaches:</p>
+<ol>
+  <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used,</li>
+  <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object.</li>
+</ol>
+<p>The second approach can simulate behaviour of the first place by passing <code>_N, _from&lt;N+1&gt;</code> instead of
+   <code>_from&lt;N&gt;</code> as arguments to the <code>bind</code>, while there is no possibility to achieve second
+   behaviour if the first one is chosen as default. These clearly indicates that the second approach is more generic.</p>
+
+<p>Please note that with proposed behaviour of the placeholders <code>_all</code> may be treated as alias for <code>_from&lt;1&gt;</code>.</p>
+   
+<p>TODO: int as template argument instead of unsigned</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -209,7 +226,7 @@ namespace std {
            to indicate indexes of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
     <dd><p>A program is ill-formed if it necessitates the instantiation of <code>parameter_indexes&lt;T, N&gt;</code> that does not satisfy criteria of any of the bullets in paragraph 1
-           and does not match a specialization or a partial specialization of template <code>parameter_indexes</code> defined in the program.</code>
+           and does not match a specialization or a partial specialization of template <code>parameter_indexes</code> defined in the program.</p></dd>
 
   </dl>
 
