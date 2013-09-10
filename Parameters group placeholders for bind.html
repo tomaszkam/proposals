@@ -97,7 +97,18 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>TODO: naming (_all, _from), from&lt;N&gt; works for N-1 parameters, int as template argument instead of unsigned</p>
+<h3><a name="design.names">Names of placeholders</a></h3>
+
+<p>Parameter group placeholder proposed in this paper has names that begins with underscore (<code>_all</code>, <code>_from</code>)
+   instead of the most obvious <code>all</code>, <code>from</code>. These names was chosen to reduce risk name collision in code,
+   that uses <code>bind</code> in combination with using directive for <code>std::placeholders</code> namespace. Example:</p>
+<pre>
+  TODO: find some example
+</pre>
+
+<p>Furthermore the author perceive this names as more consistent with the existing numbered placeholders (<code>_1</code>, <code>_2</code>, ...).</p>
+
+<p>TODO: from&lt;N&gt; works for N-1 parameters, int as template argument instead of unsigned</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
