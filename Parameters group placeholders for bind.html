@@ -119,11 +119,9 @@ td { text-align: left; vertical-align: top;
   <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used,</li>
   <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object.</li>
 </ol>
-<p>The second approach can simulate behaviour of the first place by passing <code>_N, _from&lt;N+1&gt;</code> instead of
-   <code>_from&lt;N&gt;</code> as arguments to the <code>bind</code>, while there is no possibility to achieve second
-   behaviour if the first one is chosen as default. These clearly indicates that the second approach is more generic.</p>
-
-<p>Please note that with proposed behaviour of the placeholders <code>_all</code> may be treated as alias for <code>_from&lt;1&gt;</code>.</p>
+<p>The first behaviour can be simulated by passing <code>_N, _from&lt;N+1&gt;</code> instead of <code>_from&lt;N&gt;</code> as arguments 
+   to the <code>bind</code> if the second approach is chosen. Please note that with proposed behaviour of the placeholders <code>_all</code>
+   may be treated as alias for <code>_from&lt;1&gt;</code> in the second approach.</p>
    
 <p>TODO: int as template argument instead of unsigned</p>
 
