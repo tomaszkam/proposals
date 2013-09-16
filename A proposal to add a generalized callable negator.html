@@ -95,7 +95,8 @@ td { text-align: left; vertical-align: top;
 
 <p>Changes since <a href='http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3699.html'>N3699</a>:</p>
 <ul>
-  <li>Change the requirements of <code>not_fn</code> to allow wrapping move only types.</code>
+  <li>Change the requirements of <code>not_fn</code> to allow wrapping moveable types.</code>
+  <li>Added missing Throws clause.</
   <li>Corrected the link to "Generic (Polymorphic) Lambda Expressions" proposal.</code>
   <li>Changed formating of the document.</li>
 </ul>
@@ -174,7 +175,11 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
     <dt>Returns:</dt>
     <dd><p>A simple call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p>
+           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p></dd>
+
+    <dt>Throws:</dt>
+    <dd><p>Nothing unless the construction of <code>fd</code> throws an exception.</p></dd>
+
 
     </dd><dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code>
                 only if <code>FW</code> would have a nested type <code>result_type</code>; 
