@@ -96,6 +96,7 @@ td { text-align: left; vertical-align: top;
 <p>Changes since <a href='http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3699.html'>N3699</a>:</p>
 <ul>
   <li>Change the requirements of <code>not_fn</code> to allow wrapping move only types.</code>
+  <li>Corrected the link to "Generic (Polymorphic) Lambda Expressions" proposal.</code>
   <li>Changed formating of the document.</li>
 </ul>
 
@@ -173,28 +174,28 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
     <dt>Returns:</dt>
     <dd><p>A simple call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> 
-           is equivalent to <code>!INVOKE(fd, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p>
+           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p>
 
     </dd><dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code>
                 only if <code>FW</code> would have a nested type <code>result_type</code>; 
                 the type <code>R</code> is <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
 
     <dd><p>The <code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> 
-           only if the type <code>F</code> is any of the following: 
-    </p></dd><dd><ul>
+           only if the type <code>F</code> is any of the following:</p></dd>
+    <dd><ul>
        <li>a function type or a pointer to function type taking one argument of type <code>T1</code></li> 
-       <li>a pointer to member function <code>R T0::f cv</code> (where <code>cv</code> represents the member function's cv-qualifiers);
-           the type <code>T1</code> is <code>cv T0*</code></li>
+       <li>a pointer to member function <code>R T0::f() <em>cv</em></code> (where <code><em>cv</em></code> represents the member function's cv-qualifiers);
+           the type <code>T1</code> is <code><em>cv</em> T0*</code></li>
        <li>a class type with a member type <code>argument_type</code>;
            the type <code>T1</code> is <code>F::argument_type.</code>.</li>
     </ul><p></p></dd>
     
     <dd><p>The <code>FN</code> shall define two nested types named <code>first_argument_type</code> and <code>second_argument_type</code> 
-           as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>F</code> is any of the following:
-    </p></dd><dd><ul>
-      <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
-       <li>a pointer to member function <code>R T0::f(T2) cv</code> (where <code>cv</code> represents the member function's cv-qualifiers);
-           the type <code>T1</code> is <code>cv T0*</code></li>
+           as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>F</code> is any of the following:</p></dd>
+    <dd><ul>
+       <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
+       <li>a pointer to member function <code>R T0::f(T2) <em>cv</em></code> (where <code><em>cv</em></code> represents the member function's cv-qualifiers);
+           the type <code>T1</code> is <code><em>cv</em> T0*</code></li>
        <li>a class type with member types <code>first_argument_type</code> and <code>second_argument_type</code>;
            the type <code>T1</code> is <code>F::first_argument_type</code> and the type <code>T2</code> is <code>F::second_argument_type.</code></li>
     </ul><p></p></dd>
@@ -213,7 +214,7 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <li>Stephan T. Lavavej, "Making Operator Functors greater&lt;&gt;" (N3421, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm</a>)</li>
 
-<li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (<a href="https://github.com/akrzemi1/Optional/">https://github.com/akrzemi1/Optional/</a>)</li>
+<li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (N3649, <a href="http://isocpp.org/files/papers/N3649.html">http://isocpp.org/files/papers/N3649.html</a>)</li>
 </ol>
 
 
