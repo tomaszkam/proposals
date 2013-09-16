@@ -95,8 +95,9 @@ td { text-align: left; vertical-align: top;
 
 <p>Changes since <a href='http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3699.html'>N3699</a>:</p>
 <ul>
-  <li>Change the requirements of <code>not_fn</code> to allow wrapping moveable types.</code>
+  <li>Change the requirements of <code>not_fn</code> to allow wrapping move-only types.</code>
   <li>Added missing Throws clause.</li>
+  <li>Included changes for 20.10 [function.objects]/2 section.</code>
   <li>Corrected the link to "Generic (Polymorphic) Lambda Expressions" proposal.</code>
   <li>Changed formating of the document.</li>
 </ul>
@@ -148,6 +149,17 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 <p>Nothing depends on this proposal.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
+
+<p>After the declaration of <code>not2</code> in the section 20.10 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
+
+<blockquote class="stdins"> 
+
+<pre>  // 20.10.9, <em>negators</em>
+  template &lt;class F&gt; <em>unspecified</em> not_fn(F&amp;&amp; f);
+</pre>
+
+</blockquote>
+
 
 <p>After paragraph 20.10.8 Negators [negators], insert a new paragraph. (Chapter [bind] (Function template <code>bind</code>) becomes 20.10.?)</p>
   
@@ -217,17 +229,15 @@ Standard Library implementation. (It depends on perfect forwarding, <code>declty
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group "ISO C++ Standard - Future Proposals".</p>
+<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/ki4-jb5WzhA">ISO C++ Standard - Future Proposals</a>.</p>
 <p>Mateusz Kwiatkowski, Jonathan Wakely and Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">References</a></h2>
 
 <ol>
-
-<li>Stephan T. Lavavej, "Making Operator Functors greater&lt;&gt;" (N3421, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm</a>)</li>
-
-<li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (N3649, <a href="http://isocpp.org/files/papers/N3649.html">http://isocpp.org/files/papers/N3649.html</a>)</li>
+  <li>Stephan T. Lavavej, "Making Operator Functors greater&lt;&gt;" (N3421, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm</a>)</li>
+  <li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (N3649, <a href="http://isocpp.org/files/papers/N3649.html">http://isocpp.org/files/papers/N3649.html</a>)</li>
 </ol>
 
-
-</body></html>
+</body>
+</html>
