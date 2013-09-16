@@ -98,22 +98,28 @@ td { text-align: left; vertical-align: top;
   <li>Change the requirements of <code>not_fn</code> to allow wrapping move-only types.</code>
   <li>Added missing Throws clause.</li>
   <li>Included changes for 20.10 [function.objects]/2 section.</code>
-  <li>Corrected the link to "Generic (Polymorphic) Lambda Expressions" proposal.</code>
+  <li>Corrected link to "Generic (Polymorphic) Lambda Expressions" proposal.</code>
   <li>Changed formating of the document.</li>
 </ul>
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard negators <code>not1</code> and <code>not2</code> accept only unary and binary functors that define <code>argument_type</code> or <code>first_argument_type</code> and <code>second_argument_type</code> respectively, which make them unusable with results of standard library functions such as <code>bind</code> and <code>mem_fn</code>. Furthermore, with relation to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">N3421</a>, they cannot be used with new operator functor specializations.</p>
+<p>The standard negators <code>not1</code> and <code>not2</code> accept only unary and binary functors
+   that define <code>argument_type</code> or <code>first_argument_type</code> and <code>second_argument_type</code> respectively,
+   which make them unusable with results of standard library functions such as <code>bind</code> and <code>mem_fn</code>.
+   Furthermore, with relation to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">N3421</a>,
+   they cannot be used with new operator functor specializations.</p>
 
 <p>This proposal addresses the problem by introducing a template function <code>not_fn</code> that returns complement of arbitrary predicate.</p>
 
 <h3><a name="motivation.lambda">Comparison with lambda</a></h3>
 
-<p>While the polymorphic lambda expressions (<a href="http://isocpp.org/files/papers/N3649.html">N3649</a>) may be used to negate arbitrary functor, the proposed function offers more compact syntax:</p>
+<p>While the polymorphic lambda expressions (<a href="http://isocpp.org/files/papers/N3649.html">N3649</a>) may be used to negate arbitrary functor,
+   the proposed function offers more compact syntax:</p>
 <pre>  std::partition(v.begin(), v.end(), [f](auto&amp; p) { return !f(p); });
   std::partition(v.begin(), v.end(), std::not_fn(f));
 </pre>
+
 <p>Furthermore, the use of lambda expression requires separate treatment of member pointers:</p>
 <pre>  std::partition(v.begin(), v.end(), [pm](auto&amp; p) { return !std::mem_fn(pm)(p); });
   std::partition(v.begin(), v.end(), std::not_fn(pm));
@@ -126,25 +132,28 @@ td { text-align: left; vertical-align: top;
 
 <h3><a name="design.specializations">New specializations of <code>unary_negate</code>, <code>binary_negate</code></a></h3>
 
-<p>Problem addressed by this paper may be solved by introducing perfect forwarding specializations of <code>unary_negate</code>, <code>binary_negate</code> for types that do not define <code>argument_type</code> and <code>first_argument_type</code>, <code>second_argument_type</code>
- nested types, respectively, without breaking existing code. Although 
-this solution does not address functions with arbitrary number of 
-arguments and requires additional implementation burden.</p>
+<p>Problem addressed by this paper may be solved by introducing perfect forwarding specializations of <code>unary_negate</code> and
+   <code>binary_negate</code> for types that do not define <code>argument_type</code> and <code>first_argument_type</code>,
+   <code>second_argument_type</code> nested types respectively, without breaking existing code.
+   Although this solution does not address functions with arbitrary number of arguments and requires additional implementation burden.</p>
 
 <h3><a name="design.return">Return type</a></h3>
-<p>The perfect forwarding of return type was chosen instead of hard-coded <code>bool</code>. Similar argumentation to the one provided in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">N3421</a> applies.</p>
+
+<p>The perfect forwarding of return type was chosen instead of hard-coded <code>bool</code>.
+   Similar argumentation to the one provided in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">N3421</a> applies.</p>
 
 <h3><a name="design.return">Argument typedefs</a></h3>
+
 <p>The <code>argument_type</code>, <code>first_argument_type</code> and <code>second_argument_type</code>
- nested types are required by implemenatation to be consistent with most
- of library functors, that define these types where they are well 
-defined for target callable type. Futhermore it is increasing the amount
- of existing code that will remain valid after changing <code>not1</code>, <code>not2</code> to <code>not_fn</code>.</p>
+   nested types are required by implemenatation to be consistent with most of library functors,
+   that define these types where they are well defined for target callable type.
+   Futhermore it is increasing the amount of existing code that will remain valid after changing <code>not1</code>,
+   <code>not2</code> to <code>not_fn</code>.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and 
-Standard Library implementation. (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
+<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.
+   (It depends on perfect forwarding, <code>decltype</code> and trailing return types.)</p>
 
 <p>Nothing depends on this proposal.</p>
 
