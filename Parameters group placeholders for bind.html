@@ -253,8 +253,8 @@ template&lt;class F, class... BoundArgs&gt;
                                            result_of&lt;FD <em>cv</em> &amp; (V1, V2, ..., VN)&gt;::type)</code></del>
            <ins><code><em>INVOKE</em> (fd, std::forward&lt;P1&gt;(p1)..., std::forward&lt;P2&gt;(p2)..., ..., std::forward&lt;PN&gt;(pN)...,
                                            result_of&lt;FD <em>cv</em> &amp; (P1..., P2..., ..., PN...)&gt;::type)</code></ins>
-           , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of the bound arguments
-           <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
+           , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of <del>the</del>
+           <ins>elements of each of</ins> bound arguments <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
            are determined as specified below.
            The copy constructor and move constructor of the forwarding call wrapper shall throw an exception if and only if the corresponding
            constructor of <code>FD</code> or of any of the types <code>TiD</code> throws an exception.
@@ -290,8 +290,8 @@ template&lt;class R, class F, class... BoundArgs&gt;
            The effect of <code>g(u1, u2, ..., uM)</code> shall be 
            <del><code><em>INVOKE</em> (fd, std::forward&lt;V1&gt;(v1), std::forward&lt;V2&gt;(v2), ..., std::forward&lt;VN&gt;(vN), R)</code></del>
            <ins><code><em>INVOKE</em> (fd, std::forward&lt;P1&gt;(p1)..., std::forward&lt;P2&gt;(p2)..., ..., std::forward&lt;PN&gt;(pN)..., R)</code></ins>
-           , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of the bound arguments
-           <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
+           , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of <del>the</del>
+           <ins>elements of each of</ins> bound arguments <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
            are determined as specified below.
            The copy constructor and move constructor of the forwarding call wrapper shall throw an exception if and only if the corresponding
            constructor of <code>FD</code> or of any of the types <code>TiD</code> throws an exception.
