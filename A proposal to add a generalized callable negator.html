@@ -70,7 +70,7 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>N3800</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2013-09-16</td>
@@ -91,15 +91,15 @@ td { text-align: left; vertical-align: top;
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
-<h2><a name='revision'>Revision history</a></h2>
+<h2><a name="revision">Revision history</a></h2>
 
-<p>Changes since <a href='http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3699.html'>N3699</a>:</p>
+<p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3699.html">N3699</a>:</p>
 <ul>
-  <li>Change the requirements of <code>not_fn</code> to allow wrapping of move-only types.</code>
-  <li>Added missing Throws clause.</li>
-  <li>Included changes to 20.10 [function.objects]/2 section.</code>
-  <li>Corrected link to "Generic (Polymorphic) Lambda Expressions" proposal.</code>
-  <li>Changed formating of the document.</li>
+  <li>Change the requirements of <code>not_fn</code> to allow wrapping of move-only types.
+  </li><li>Added missing Throws clause.</li>
+  <li>Included changes to 20.10 [function.objects]/2 section.
+  </li><li>Corrected link to "Generic (Polymorphic) Lambda Expressions" proposal.
+  </li><li>Changed formating of the document.</li>
 </ul>
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
@@ -134,8 +134,10 @@ td { text-align: left; vertical-align: top;
 
 <p>Problem addressed by this paper may be solved by introducing perfect forwarding specializations of <code>unary_negate</code> and
    <code>binary_negate</code> for types that do not define <code>argument_type</code> and <code>first_argument_type</code>,
-   <code>second_argument_type</code> nested types respectively, without breaking existing code.
-   Although this solution does not address functions with arbitrary number of arguments and requires additional implementation burden.</p>
+   <code>second_argument_type</code> nested types respectively, without 
+breaking existing code.
+   Although this solution does not address functions with arbitrary 
+number of arguments and requires additional implementation burden.</p>
 
 <h3><a name="design.return">Return type</a></h3>
 
@@ -185,14 +187,14 @@ td { text-align: left; vertical-align: top;
     </p><ul>
       <li><code>FD</code> is the type <code>decay&lt;F&gt;::type</code>,</li>
       <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code>
-      <li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      </li><li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
       <li><code>FN</code> is a type of <code>fn</code>,</li>
       <li><code>FW</code> is a type of forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd></code>is_constructible&lt;FD, F&gt;::value</code> shall be <code>true</code>. 
-         <code>f</code> shall be a callable object ([func.require] 20.10.2).</p></dd>
+    <dd>is_constructible&lt;FD, F&gt;::value shall be <code>true</code>. 
+         <code>f</code> shall be a callable object ([func.require] 20.10.2).<p></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A simple call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> 
@@ -205,11 +207,11 @@ td { text-align: left; vertical-align: top;
     <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
         If <code>FD</code> satisfy the requirements of <code>CopyConstructible</code>, then 
         the return type shall satisfy the requirements of <code>CopyConstructible</code>.
-        [ <em>Note:</em> This implies that <code>FD</code> is </code>MoveConstructible.</code>
+        [ <em>Note:</em> This implies that <code>FD</code> is MoveConstructible.
           <em> — end note</em> ]</p></dd>
 
 
-    </dd><dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code>
+    <dd><p>The <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym to <code>R</code>
                 only if <code>FW</code> would have a nested type <code>result_type</code>; 
                 the type <code>R</code> is <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
 
@@ -238,7 +240,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#!topic/std-proposals/ki4-jb5WzhA">ISO C++ Standard - Future Proposals</a>.</p>
+<p>Anna Salwa originally proposed <code>not_fn</code> in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#%21topic/std-proposals/ki4-jb5WzhA">ISO C++ Standard - Future Proposals</a>.</p>
 <p>Mateusz Kwiatkowski, Jonathan Wakely and Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">References</a></h2>
@@ -248,5 +250,6 @@ td { text-align: left; vertical-align: top;
   <li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (N3649, <a href="http://isocpp.org/files/papers/N3649.html">http://isocpp.org/files/papers/N3649.html</a>)</li>
 </ol>
 
-</body>
-</html>
+
+
+</body></html>
