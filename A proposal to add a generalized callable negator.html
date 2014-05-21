@@ -195,7 +195,6 @@ number of arguments and requires additional implementation burden.</p>
       <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code>
       </li><li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
       <li><code>FN</code> is the type of <code>fn</code>,</li>
-      <li><code>FW</code> is the type of a forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
@@ -217,9 +216,9 @@ number of arguments and requires additional implementation burden.</p>
           <em> — end note</em> ]</p></dd>
 
 
-    <dd><p>If <code>FW</code> has a nested type <code>result_type</code>, 
+    <dd><p>If <code>reference_wrapper&lt;FD&gt;</code> has a nested type <code>result_type</code>, 
            <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym for
-           <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
+           <code>decltype(!declval&lt;typename reference_wrapper&lt;FD&gt;::result_type&gt;())</code>.</p></dd>
 
     <dd><p><code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> 
            only if the type <code>F</code> is any of the following:</p></dd>
