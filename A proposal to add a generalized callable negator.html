@@ -195,11 +195,11 @@ number of arguments and requires additional implementation burden.</p>
       <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code>
       </li><li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
       <li><code>FN</code> is the type of <code>fn</code>,</li>
-      <li><code>FW</code> is the type of forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
+      <li><code>FW</code> is the type of a forwarding call wrapper for <code>f</code> with a weak result type ([func.require] 20.10.2).</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd>is_constructible&lt;FD, F&gt;::value shall be <code>true</code>. 
+    <dd><code>is_constructible&lt;FD, F&gt;::value</code> shall be <code>true</code>. 
          <code>f</code> shall be a callable object ([func.require] 20.10.2).<p></p></dd>
 
     <dt>Returns:</dt>
@@ -211,14 +211,14 @@ number of arguments and requires additional implementation burden.</p>
 
     <dt>Remarks:</dt>
     <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
-        If <code>FD</code> satisfy the requirements of <code>CopyConstructible</code>, then 
+        If <code>FD</code> satisfies the requirements of <code>CopyConstructible</code>, then 
         the return type shall satisfy the requirements of <code>CopyConstructible</code>.
         [ <em>Note:</em> This implies that <code>FD</code> is MoveConstructible.
           <em> — end note</em> ]</p></dd>
 
 
-    <dd><p>If the <code>FW</code> has a nested type <code>result_type</code>, 
-           FN</code> shall define a nested type named <code>result_type</code> as a synonym for
+    <dd><p>If <code>FW</code> has a nested type <code>result_type</code>, 
+           <code>FN</code> shall define a nested type named <code>result_type</code> as a synonym for
            <code>decltype(!declval&lt;typename FW::result_type&gt;())</code>.</p></dd>
 
     <dd><p><code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> 
