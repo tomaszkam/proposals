@@ -63,17 +63,17 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>A proposal to add a generalized callable negator (Revision 2)</title>
+<title>A proposal to add a generalized callable negator (Revision 3)</title>
 </head>
 
 <body>
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>N4022</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2014-05-21</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2014-06-09</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Working Group</td>
@@ -83,7 +83,7 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">A proposal to add a generalized callable negator (Revision 2)</a></h1>
+<h1><a name="title">A proposal to add a generalized callable negator (Revision 3)</a></h1>
 
 <h2><a name="intro">Introduction</a></h2>
 
@@ -93,19 +93,28 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="revision">Revision history</a></h2>
 
+<p>Changes since <a href="http://isocpp.org/files/papers/n4022.html">N4022</a>:</p>
+<ul>
+  <li>Changed the paragraph numbers to match newest working draft.</li>
+  <li>Changed the requires clause to apply to constructed functor instead of function argument.</li>
+  <li>Update wording for <code>argument_type</code>, <code>first_argument_type</code> and <code>second_argument_type</code> 
+      to match resolution of <a href="http://cplusplus.github.io/LWG/lwg-active.html#2387">LWG issue #2387</a>.</li>
+  <li>Changed definition of <code>fn</code> to forwarding call wrapper.</li>
+  <li>Corrected spelling mistakes in <a href="#motivation">Motivation and Scope</a> section.</li>
+</ul>
+
 <p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3800.html">N3800</a>:</p>
 <ul>
   <li>Updated proposed wording per LWG guidance.</li>
 </ul>
 
-
 <p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3699.html">N3699</a>:</p>
 <ul>
-  <li>Change the requirements of <code>not_fn</code> to allow wrapping of move-only types.
-  </li><li>Added missing Throws clause.</li>
-  <li>Included changes to 20.10 [function.objects]/2 section.
-  </li><li>Corrected link to "Generic (Polymorphic) Lambda Expressions" proposal.
-  </li><li>Changed formating of the document.</li>
+  <li>Changed the requirements of <code>not_fn</code> to allow wrapping of move-only types.</li>
+  <li>Added missing Throws clause.</li>
+  <li>Included changes to 20.9 [function.objects]/2 section.</li>
+  <li>Corrected link to "Generic (Polymorphic) Lambda Expressions" proposal.</li>
+  <li>Changed formating of the document.</li>
 </ul>
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
@@ -153,9 +162,9 @@ number of arguments and requires additional implementation burden.</p>
 <h3><a name="design.return">Argument typedefs</a></h3>
 
 <p>The <code>argument_type</code>, <code>first_argument_type</code> and <code>second_argument_type</code>
-   nested types are required by implemenatation to be consistent with most of library functors,
+   nested types are required by implementation to be consistent with most of library functors,
    that define these types where they are well defined for target callable type.
-   Futhermore it is increasing the amount of existing code that will remain valid after changing <code>not1</code>,
+   Furthermore it is increasing the amount of existing code that will remain valid after changing <code>not1</code>,
    <code>not2</code> to <code>not_fn</code>.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
@@ -167,21 +176,21 @@ number of arguments and requires additional implementation burden.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>After the declaration of <code>not2</code> in the section 20.10 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
+<p>After the declaration of <code>not2</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
 
 <blockquote class="stdins"> 
 
-<pre>  // 20.10.9, <em>negators</em>
+<pre>  // 20.9.9, <em>negators</em>
   template &lt;class F&gt; <em>unspecified</em> not_fn(F&amp;&amp; f);
 </pre>
 
 </blockquote>
 
 
-<p>After paragraph 20.10.8 Negators [negators], insert a new paragraph. (Chapter [bind] (Function template <code>bind</code>) becomes 20.10.?)</p>
+<p>After paragraph 20.9.8 Negators [negators], insert a new paragraph. (Chapter [bind] (Function template <code>bind</code>) becomes 20.9.?)</p>
   
 <blockquote class="stdins"> 
-<h4><a name="optional.general">20.10.9 Function template <code>not_fn</code> <span style="float:right">[not_fn]</span></a></h4>
+<h4><a name="optional.general">20.9.9 Function template <code>not_fn</code> <span style="float:right">[not_fn]</span></a></h4>
 
 <pre>  template &lt;class F&gt;
     <em>unspecified</em> not_fn(F&amp;&amp; f);
@@ -193,17 +202,17 @@ number of arguments and requires additional implementation burden.</p>
     </p><ul>
       <li><code>FD</code> is the type <code>decay&lt;F&gt;::type</code>,</li>
       <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code>
-      </li><li><code>fn</code> is a simple call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      </li><li><code>fn</code> is a forwarding call wrapper created as a result of <code>not_fn(f)</code>,</li>
       <li><code>FN</code> is the type of <code>fn</code>,</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd><code>is_constructible&lt;FD, F&gt;::value</code> shall be <code>true</code>. 
-         <code>f</code> shall be a callable object ([func.require] 20.10.2).<p></p></dd>
+    <dd><code>is_constructible&lt;FD, F&gt;::value</code> shall be <code>true</code>.
+        <code>fd</code> shall be a callable object ([func.def] 20.9.1).<p></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A forwarding call wrapper <code>fn</code> such that the expression <code>fn(a1, a2, ..., aN)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.10.2).</p></dd>
+           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.9.2).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Nothing unless the construction of <code>fd</code> throws an exception.</p></dd>
@@ -226,7 +235,7 @@ number of arguments and requires additional implementation burden.</p>
        <li>a function type or a pointer to function type taking one argument of type <code>T1</code></li> 
        <li>a pointer to member function <code>R T0::f() <em>cv</em></code> (where <code><em>cv</em></code> represents the member function's cv-qualifiers);
            the type <code>T1</code> is <code><em>cv</em> T0*</code></li>
-       <li>a class type with a member type <code>argument_type</code>;
+       <li>a class type where the qualified-id <code>T::argument_type</code> is valid and denotes a type (14.8.2 [temp.deduct]);
            the type <code>T1</code> is <code>F::argument_type.</code></li>
     </ul><p></p></dd>
     
@@ -236,7 +245,7 @@ number of arguments and requires additional implementation burden.</p>
        <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
        <li>a pointer to member function <code>R T0::f(T2) <em>cv</em></code> (where <code><em>cv</em></code> represents the member function's cv-qualifiers);
            the type <code>T1</code> is <code><em>cv</em> T0*</code></li>
-       <li>a class type with member types <code>first_argument_type</code> and <code>second_argument_type</code>;
+       <li>a class type where the qualified-ids <code>T::first_argument_type</code> and <code>T::second_argument_type</code> are both valid and both denote types (14.8.2 [temp.deduct]);
            the type <code>T1</code> is <code>F::first_argument_type</code> and the type <code>T2</code> is <code>F::second_argument_type.</code></li>
     </ul><p></p></dd>
 
@@ -254,8 +263,5 @@ number of arguments and requires additional implementation burden.</p>
   <li>Stephan T. Lavavej, "Making Operator Functors greater&lt;&gt;" (N3421, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3421.htm</a>)</li>
   <li>Faisal Vali, Herb Sutter, Dave Abrahams, "Generic (Polymorphic) Lambda Expressions (Revision 3) " (N3649, <a href="http://isocpp.org/files/papers/N3649.html">http://isocpp.org/files/papers/N3649.html</a>)</li>
 </ol>
-
-
-
 
 </body></html>
