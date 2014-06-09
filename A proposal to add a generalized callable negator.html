@@ -230,23 +230,23 @@ number of arguments and requires additional implementation burden.</p>
            <code>decltype(!declval&lt;typename reference_wrapper&lt;FD&gt;::result_type&gt;())</code>.</p></dd>
 
     <dd><p><code>FN</code> shall define a nested type named <code>argument_type</code> as a synonym for <code>T1</code> 
-           only if the type <code>F</code> is any of the following:</p></dd>
+           only if the type <code>FD</code> is any of the following:</p></dd>
     <dd><ul>
        <li>a function type or a pointer to function type taking one argument of type <code>T1</code></li> 
        <li>a pointer to member function <code>R T0::f() <em>cv</em></code> (where <code><em>cv</em></code> represents the member function's cv-qualifiers);
            the type <code>T1</code> is <code><em>cv</em> T0*</code></li>
-       <li>a class type where the qualified-id <code>T::argument_type</code> is valid and denotes a type (14.8.2 [temp.deduct]);
-           the type <code>T1</code> is <code>F::argument_type.</code></li>
+       <li>a class type where the qualified-id <code>FD::argument_type</code> is valid and denotes a type (14.8.2 [temp.deduct]);
+           the type <code>T1</code> is <code>FD::argument_type.</code></li>
     </ul><p></p></dd>
     
     <dd><p><code>FN</code> shall define two nested types named <code>first_argument_type</code> and <code>second_argument_type</code> 
-           as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>F</code> is any of the following:</p></dd>
+           as synonyms for <code>T1</code> and <code>T2</code>, respectively, only if the type <code>FD</code> is any of the following:</p></dd>
     <dd><ul>
        <li>a function type or a pointer to function type taking two arguments of types <code>T1</code> and <code>T2</code></li> 
        <li>a pointer to member function <code>R T0::f(T2) <em>cv</em></code> (where <code><em>cv</em></code> represents the member function's cv-qualifiers);
            the type <code>T1</code> is <code><em>cv</em> T0*</code></li>
-       <li>a class type where the qualified-ids <code>T::first_argument_type</code> and <code>T::second_argument_type</code> are both valid and both denote types (14.8.2 [temp.deduct]);
-           the type <code>T1</code> is <code>F::first_argument_type</code> and the type <code>T2</code> is <code>F::second_argument_type.</code></li>
+       <li>a class type where the qualified-ids <code>FD::first_argument_type</code> and <code>FD::second_argument_type</code> are both valid and both denote types (14.8.2 [temp.deduct]);
+           the type <code>T1</code> is <code>FD::first_argument_type</code> and the type <code>T2</code> is <code>FD::second_argument_type.</code></li>
     </ul><p></p></dd>
 
   </dl>
