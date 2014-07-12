@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2013-08-25</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2014-07-12</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
@@ -87,17 +87,17 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>TODO</p>
+<p>TODO: bug report from isocpp</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>TODO: proposal from M. Semenov, motivation for _from bind(f, _1, _2, _from&lt;3&gt;)</p>
+<p>TODO: proposal from M. Semenov, motivation for _from bind(f, _2, _1, _from&lt;3&gt;), </p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<h3><a name="design.names">Names of placeholders</a></h3>
+<h3><a name="design.names">Naming of placeholders</a></h3>
 
 <p>Parameter group placeholder proposed in this paper has names that begins with underscore (<code>_all</code>, <code>_from</code>)
    instead of the most obvious <code>all</code>, <code>from</code>. These names was chosen to reduce risk name collision in code,
@@ -107,7 +107,6 @@ td { text-align: left; vertical-align: top;
 </pre>
 
 <p>Furthermore the author perceive this names as more consistent with the existing numbered placeholders (<code>_1</code>, <code>_2</code>, ...).</p>
-
 
 <h3><a name="design.from">Number of parameters required by <code>_from&lt;N&gt;</code></a></h3>
 
@@ -123,7 +122,11 @@ td { text-align: left; vertical-align: top;
    to the <code>bind</code> if the second approach is chosen. Please note that with proposed behaviour of the placeholders <code>_all</code>
    may be treated as alias for <code>_from&lt;1&gt;</code>.</p>
    
-<p>TODO: int as template argument instead of unsigned</p>
+<h3><a name="design.int-index">Non-type template parameter of type <code>int</code></a></h3>
+
+<p>The template parameters of <code>_from</code>, <code>parameter_indexes</code> has an <code>int</code> type, although they values
+   are required to be non-negative. This design decision was made to keep them consistent with existing <code>is_placeholder</code>
+   trait, that uses <code>int</code> to represent index of forwarder parameter.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
