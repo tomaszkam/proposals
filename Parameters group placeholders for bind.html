@@ -122,9 +122,9 @@ td { text-align: left; vertical-align: top;
    to the <code>bind</code> if the second approach is chosen. Please note that with proposed behaviour of the placeholders <code>_all</code>
    may be treated as alias for <code>_from&lt;1&gt;</code>.</p>
    
-<h3><a name="design.int-index">Non-type template parameter of type <code>int</code></a></h3>
+<h3><a name="design.int-index">Non-type template argument of type <code>int</code></a></h3>
 
-<p>The template parameters of <code>_from</code>, <code>parameter_indexes</code> has an <code>int</code> type, although they values
+<p>The non-type template argument of <code>_from</code>, <code>parameter_indexes</code> has an <code>int</code> type, although they values
    are required to be non-negative. This design decision was made to keep them consistent with existing <code>is_placeholder</code>
    trait, that uses <code>int</code> to represent index of forwarder parameter.</p>
 
