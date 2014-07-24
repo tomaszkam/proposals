@@ -183,7 +183,7 @@ namespace placeholders {
         </p><ins><ul>
            <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
            <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
-           <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code>,</li>
+           <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code> and <code>N &gt; 0</code>,</li>
            <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
         </ul></ins>
         <p>A program may specialize this template for a user-defined type <code>T</code> to
