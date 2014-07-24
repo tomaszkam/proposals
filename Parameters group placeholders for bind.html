@@ -103,7 +103,15 @@ td { text-align: left; vertical-align: top;
    instead of the most obvious <code>all</code>, <code>from</code>. These names was chosen to reduce risk name collision in code,
    that uses <code>bind</code> in combination with using directive for <code>std::placeholders</code> namespace. Example:</p>
 <pre>
-  TODO: find some example
+  std::vector&lt;std::string&gt; erase_empty(std::vector&lt;std::string&gt; v)
+  {
+    using namespace std;
+    using namespace std::placeholders;
+
+    auto from = remove_if(begin(v), end(v), bind(&amp;string::empty, _1));
+    v.erase(from, end(v));
+    return v;
+  }
 </pre>
 
 <p>Furthermore the author perceive this names as more consistent with the existing numbered placeholders (<code>_1</code>, <code>_2</code>, ...).</p>
@@ -115,12 +123,11 @@ td { text-align: left; vertical-align: top;
 
 <p>There are two possible approaches:</p>
 <ol>
-  <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used,</li>
   <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object.</li>
+  <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used,</li>
 </ol>
-<p>The first behaviour can be simulated by passing <code>_N, _from&lt;N+1&gt;</code> instead of <code>_from&lt;N&gt;</code> as arguments 
-   to the <code>bind</code> if the second approach is chosen. Please note that with proposed behaviour of the placeholders <code>_all</code>
-   may be treated as alias for <code>_from&lt;1&gt;</code>.</p>
+<p>The first behaviour was choosen by this proposal, because it allows to easily simulate the second one by passing <code>_N, _from&lt;N+1&gt;</code>
+   insteaf of <code>_from&lt;N&gt;</code> as argument.</p>
    
 <h3><a name="design.int-index">Non-type template argument of type <code>int</code></a></h3>
 
