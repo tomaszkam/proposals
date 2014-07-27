@@ -103,7 +103,8 @@ td { text-align: left; vertical-align: top;
       resolution rules to Design Decisions.</li>
   <li>Changed wording for to make resolution of ambiguity independent
       to method qualification.</li>
-  <li>Removed Alternate Wording section.</li>
+  <li>Removed Alternate Wording section. Linked to previous version
+      instead.</li>
 </ul>
 
 
@@ -202,11 +203,14 @@ complicated definition of <code><em>INVOKE</em></code>.</p>
 
 <p>Preference of the conversion leads to the silent behaviour change of 
 the existing C++11 standard compliant code, so this option should not be
- considered as a feasible solution.</p>
+considered as a feasible solution.</p>
 
 <h4><a name="design.amibiguity.summary">Summary</a></h4>
 
-<p>This proposal recommends implementing the second option and provides the wording in the <a href="#wording">Proposed wording</a> section. The wording for the first option may be found in the <a href="#alternate">Alternate proposal</a> section. Third option is not further discussed.</p>
+<p>This proposal recommends implementing the second option and provides the wording in the <a href="#wording">Proposed wording</a> section.
+The wording for the first option may be found in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3719.html#alternate">Alternate proposal</a>
+ section of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3719.html">N3719</a>.
+Third option is not further discussed.</p>
 
 <h3><a name="design.preference-rules">Preference rules for dereference operator</a></h3>
 
@@ -234,7 +238,7 @@ and add const-qualifier to above method. This will change the meaning of <code>s
 preceives such change as unacetable, because in contrast to pair overloaded funtions, there is
 expect that dereference operator and conversion will have some behaviour.</p>
 
-<p>To avoid described problem current revision of the paper include new rules for selection dereference operator: The deference operator is selected if it return a type that is implicitly convertible to any type of reference to target class of member pointer. This will make above example stay ill-formed, preserving current behaviour standard behaviour.</p>
+<p>To avoid described problem current revision of the paper include new rules for selection dereference operator: The deference operator is selected if it return a type that is implicitly convertible to any type of reference to target class of member pointer. This will make above example stay ill-formed, preserving behaviour definied in current standard.</p>
 
 <p>Proposed resolution simplifies usage of <code><em>INVOKE</em></code> with wrapper types that
 define both conversion and dereference operator, because the expression <code><em>INVOKE</em>(member_pointer, wrapper, args)</code> will always select the same conversion path for same type of target class of member pointer and type of the wrapper.
@@ -301,62 +305,6 @@ struct to_reference
           <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
-        </ul>
-      </li>
-      <li><code>f(t1, t2, ..., tN)</code> in all other cases.</li>
-    </ul><p></p></dd>
-
-  </dl>
-</blockquote>
-
-<h2><a name="alternate">Alternate proposal</a></h2>
-
-<p>Change the paragraph 20.10.2 Requirements [func.require].</p>
-
-<blockquote class="stddel">
-  <dl class="attribute">
- 
-    <dd><p>Define <code><em>INVOKE</em>(f, t1, t2, ..., tN)</code> as follows:
-    </p><ul>
-      <li><code>(t1.*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
-      <li><code>((*t1).*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> is not one of the types described in the previous item;</li>
-      <li><code>t1.*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
-      <li><code>(*t1).*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> is not one of the types described in the previous item;</li>
-      <li><code>f(t1, t2, ..., tN)</code> in all other cases.</li>
-    </ul><p></p></dd>
-
-  </dl>
-</blockquote>
-  
-<blockquote class="stdins">
-  <dl class="attribute">
- 
-    <dd><p>Given the exposition only functor:</p>
-<pre>
-template&lt;typename T&gt;
-struct to_reference
-{
-  T&amp; operator()(T&amp; t) const { return t; }
-  T const&amp; operator()(T const&amp; t) const { return t; }
-  T&amp;&amp; operator()(T&amp;&amp; t) const { return std::move(t); }
-  T const&amp;&amp; operator()(T const&amp;&amp; t) const { return std::move(t); }
-};
-</pre></dd>
-
-    <dd><p>Define <code><em>INVOKE</em>(f, t1, t2, ..., tN)</code> as follows:
-    </p><ul>
-      <li>when <code>f</code> is a pointer to a member function of a class <code>T</code>:
-        <ul>
-          <li><code>(to_reference&lt;T&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
-          <li><code>(to_reference&lt;T&gt;(*t1).*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
-          <li>the expression is ill-formed when neither or both of above points applies;</li>
-        </ul>
-      </li>
-      <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code>:
-        <ul>
-          <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
-          <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
-          <li>the expression is ill-formed when neither or both of above points applies;</li>
         </ul>
       </li>
       <li><code>f(t1, t2, ..., tN)</code> in all other cases.</li>
