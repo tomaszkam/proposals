@@ -103,6 +103,7 @@ td { text-align: left; vertical-align: top;
       resolution rules to Design Decisions.</li>
   <li>Changed wording for to make resolution of ambiguity independent
       to method qualification.</li>
+  <li>Removed Alternate Wording section.</li>
 </ul>
 
 
@@ -131,7 +132,7 @@ seconds for any specialization of std::chrono::duration.</p>
 on the result of dereference operator, which adds support for types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
-<h3><a name="motivation.deference-operator">Defining <code>operator*</code></a></h3>
+<h3><a name="motivation.dereference-operator">Defining <code>operator*</code></a></h3>
 
 <p>The well know workaround for this problem, is to define the <code>operator*</code>
  that will return the same result as the conversion operator. Firstly 
@@ -174,7 +175,7 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
   
   Mixed m;
 </pre>
-<p>The expression <code><em>INVOKE</em>(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.deference-operator">work around</a> presented in the motivation section of this proposal.</p>
+<p>The expression <code><em>INVOKE</em>(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using <a href="#motivation.dereference-operator">work around</a> presented in the motivation section of this proposal.</p>
 
 <p>There are tree possible behaviors in case of such ambiguity:</p>
   <ol>
@@ -207,7 +208,7 @@ the existing C++11 standard compliant code, so this option should not be
 
 <p>This proposal recommends implementing the second option and provides the wording in the <a href="#wording">Proposed wording</a> section. The wording for the first option may be found in the <a href="#alternate">Alternate proposal</a> section. Third option is not further discussed.</p>
 
-<h3><a name="design.preference-rules">Preference rules for deference operator</a></h3>
+<h3><a name="design.preference-rules">Preference rules for dereference operator</a></h3>
 
 <p>According to wording presented in the first version of this proposal dereference
 operator was preferred over conversion if type returned for this function was compatible
@@ -227,14 +228,20 @@ struct Wrapper
 expression <code>std::mem_fn(&A::foo)(Wrapper())</code> will use conversion operator 
 because <code>foo</code> method cannot be invoked on const object.</p>
 
-<p>This behaviour may lead to silent code changes. Lets assume that after some time
-to writer will found that the <code>foo</code> method is not changing the object state
-and add const-qualifier to above method. This will change the meaning of <code>std::mem_fn(&A::foo)(Wrapper())</code> - now deference operator will be used.</p>
+<p>Behaviour descriped abouve, may lead to silent code changes. Lets assume that after some time
+programmer  will found that the <code>foo</code> method is not changing the object state
+and add const-qualifier to above method. This will change the meaning of <code>std::mem_fn(&A::foo)(Wrapper())</code>, that will use dereference operator after this change. The author
+preceives such change as unacetable, because in contrast to pair overloaded funtions, there is
+expect that dereference operator and conversion will have some behaviour.</p>
 
-<p>To avoid described problem current revision of the paper include new rules for selection dereference operator: The deference operator is selected if it return a type that is implicitly convertible to any type of reference to target class of member pointer.</p>
+<p>To avoid described problem current revision of the paper include new rules for selection dereference operator: The deference operator is selected if it return a type that is implicitly convertible to any type of reference to target class of member pointer. This will make above example stay ill-formed, preserving current behaviour standard behaviour.</p>
 
 <p>Proposed resolution simplifies usage of <code><em>INVOKE</em></code> with wrapper types that
-define both conversion and dereference operator, because the expression <code><em>INVOKE</em>(member_pointer, wrapper, args)</code> will always select the same conversion path for same type of target class of member pointer and type of the wrapper.</p>  
+define both conversion and dereference operator, because the expression <code><em>INVOKE</em>(member_pointer, wrapper, args)</code> will always select the same conversion path for same type of target class of member pointer and type of the wrapper.
+In addition the behaviour <code><em>INVOKE</em></code> expression for function member pointer
+consistient with data member pointer.</p>  
+
+<p>Please also note that the wording change is only impacting cases of ambigus wrappers that defines both dereference operator and conversion and the problem would not be present if compilation error approach was selected as resolution in such situations.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
