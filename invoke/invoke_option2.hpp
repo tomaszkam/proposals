@@ -2,7 +2,7 @@
 #define INVOKE_OPTION2_HPP
 
 #include "type_traits.hpp"
-#include "to_viable_reference.hpp"
+#include "to_reference.hpp"
 
 namespace functional
 {
@@ -38,10 +38,10 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype((to_viable_ref<Functor>{}(*std::forward<Object>(object)).*functor)(std::forward<Args>(args)...))
+            decltype((to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor)(std::forward<Args>(args)...))
           >::type
     {
-      return (to_viable_ref<Functor>{}(*std::forward<Object>(object)).*functor)(std::forward<Args>(args)...);
+      return (to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor)(std::forward<Args>(args)...);
     }
 
     template<typename Functor, typename Object, typename... Args>
@@ -62,10 +62,10 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype((to_viable_ref<Functor>{}(std::forward<Object>(object)).*functor)(std::forward<Args>(args)...))
+            decltype((to_target_reference<Functor>{}(std::forward<Object>(object)).*functor)(std::forward<Args>(args)...))
           >::type
     {
-      return (to_viable_ref<Functor>{}(std::forward<Object>(object)).*functor)(std::forward<Args>(args)...);
+      return (to_target_reference<Functor>{}(std::forward<Object>(object)).*functor)(std::forward<Args>(args)...);
     }
 
     template<typename Functor, typename Object>
@@ -98,10 +98,10 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype(to_viable_ref<Functor>{}(*std::forward<Object>(object)).*functor)
+            decltype(to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor)
           >::type
     {
-      return to_viable_ref<Functor>{}(*std::forward<Object>(object)).*functor;
+      return to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor;
     }
 
     template<typename Functor, typename Object>
@@ -122,10 +122,10 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype(to_viable_ref<Functor>{}(std::forward<Object>(object)).*functor)
+            decltype(to_target_reference<Functor>{}(std::forward<Object>(object)).*functor)
           >::type
     {
-      return to_viable_ref<Functor>{}(std::forward<Object>(object)).*functor;
+      return to_target_reference<Functor>{}(std::forward<Object>(object)).*functor;
     }
 
     template<typename Functor, typename... Args>

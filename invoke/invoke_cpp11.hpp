@@ -2,7 +2,6 @@
 #define INVOKE_CPP11_HPP
 
 #include "type_traits.hpp"
-#include "to_viable_reference.hpp"
 
 namespace functional
 {
