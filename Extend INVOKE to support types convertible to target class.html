@@ -237,13 +237,13 @@ varidatic templates, <code>decltype</code> and trailing return types.)</p>
 
     <dd><p>Given the exposition only functor:</p>
 <pre>
-template&lt;typename Type&gt;
+template&lt;typename T&gt;
 struct to_reference
 {
-  Type&amp; operator()(Type&amp; t) const { return t; }
-  Type const&amp; operator()(Type const&amp; t) const { return t; }
-  Type&amp;&amp; operator()(Type&amp;&amp; t) const { return std::move(t); }
-  Type const&amp;&amp; operator()(Type const&amp;&amp; t) const { return std::move(t); }
+  T&amp; operator()(T&amp; t) const { return t; }
+  T const&amp; operator()(T const&amp; t) const { return t; }
+  T&amp;&amp; operator()(T&amp;&amp; t) const { return std::move(t); }
+  T const&amp;&amp; operator()(T const&amp;&amp; t) const { return std::move(t); }
 };
 </pre></dd>
  
@@ -295,13 +295,13 @@ struct to_reference
  
     <dd><p>Given the exposition only functor:</p>
 <pre>
-template&lt;typename Type&gt;
+template&lt;typename T&gt;
 struct to_reference
 {
-  Type&amp; operator()(Type&amp; t) const { return t; }
-  Type const&amp; operator()(Type const&amp; t) const { return t; }
-  Type&amp;&amp; operator()(Type&amp;&amp; t) const { return std::move(t); }
-  Type const&amp;&amp; operator()(Type const&amp;&amp; t) const { return std::move(t); }
+  T&amp; operator()(T&amp; t) const { return t; }
+  T const&amp; operator()(T const&amp; t) const { return t; }
+  T&amp;&amp; operator()(T&amp;&amp; t) const { return std::move(t); }
+  T const&amp;&amp; operator()(T const&amp;&amp; t) const { return std::move(t); }
 };
 </pre></dd>
 
