@@ -235,21 +235,33 @@ varidatic templates, <code>decltype</code> and trailing return types.)</p>
 <blockquote class="stdins">
   <dl class="attribute">
 
+    <dd><p>Given the exposition only functor:</p>
+<pre>
+template&lt;typename Type&gt;
+struct to_reference
+{
+  Type&amp; operator()(Type&amp; t) const { return t; }
+  Type const&amp; operator()(Type const&amp; t) const { return t; }
+  Type&amp;&amp; operator()(Type&amp;&amp; t) const { return std::move(t); }
+  Type const&amp;&amp; operator()(Type const&amp;&amp; t) const { return std::move(t); }
+};
+</pre></dd>
+ 
     <dd><p>Define <code><em>INVOKE</em>(f, t1, t2, ..., tN)</code> as follows:
     </p><ul>
-      <li>when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>TR</code> is a reference to an object of type <code>T</code> unambiguously selected by overload resolution rules in following context:
+      <li>when <code>f</code> is a pointer to a member function of a class <code>T</code>:
         <ul>
           <li><code>(t1.*f)(t2, ..., tN)</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
-          <li><code>(TR{*t1}.*f)(t2, ..., tN)</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
-          <li><code>(TR{t1}.*f)(t2, ..., tN)</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
+          <li><code>(to_reference&lt;T&gt;(*t1).*f)(t2, ..., tN)</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>(to_reference&lt;T&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
         </ul>
       </li>
-      <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code> and <code>TR</code> is a reference to an object of type <code>T</code> unambiguously selected by overload resolution rules in following context:
+      <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code>:
         <ul>
           <li><code>t1.*f</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
-          <li><code>TR{*t1}.*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
-          <li><code>TR{t1}.*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
+          <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
         </ul>
       </li>
@@ -265,7 +277,7 @@ varidatic templates, <code>decltype</code> and trailing return types.)</p>
 
 <blockquote class="stddel">
   <dl class="attribute">
-     
+ 
     <dd><p>Define <code><em>INVOKE</em>(f, t1, t2, ..., tN)</code> as follows:
     </p><ul>
       <li><code>(t1.*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
@@ -281,19 +293,31 @@ varidatic templates, <code>decltype</code> and trailing return types.)</p>
 <blockquote class="stdins">
   <dl class="attribute">
  
+    <dd><p>Given the exposition only functor:</p>
+<pre>
+template&lt;typename Type&gt;
+struct to_reference
+{
+  Type&amp; operator()(Type&amp; t) const { return t; }
+  Type const&amp; operator()(Type const&amp; t) const { return t; }
+  Type&amp;&amp; operator()(Type&amp;&amp; t) const { return std::move(t); }
+  Type const&amp;&amp; operator()(Type const&amp;&amp; t) const { return std::move(t); }
+};
+</pre></dd>
+
     <dd><p>Define <code><em>INVOKE</em>(f, t1, t2, ..., tN)</code> as follows:
     </p><ul>
-      <li>when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>TR</code> is a reference to an object of type <code>T</code> unambiguously selected by overload resolution rules in following context:
+      <li>when <code>f</code> is a pointer to a member function of a class <code>T</code>:
         <ul>
-          <li><code>(TR{t1}.*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
-          <li><code>(TR{*t1}.*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
+          <li><code>(to_reference&lt;T&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>(to_reference&lt;T&gt;(*t1).*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>the expression is ill-formed when neither or both of above points applies;</li>
         </ul>
       </li>
-      <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code> and <code>TR</code> is a reference to an object of type <code>T</code> unambiguously selected by overload resolution rules in following context:
+      <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code>:
         <ul>
-          <li><code>TR{t1}.*f</code> when <code>t1</code> is implicitly convertible to <code>TR</code>;</li>
-          <li><code>TR{*t1}.*f</code> when <code>*t1</code> is implicitly convertible to <code>TR</code>;</li>
+          <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>the expression is ill-formed when neither or both of above points applies;</li>
         </ul>
       </li>
