@@ -135,37 +135,39 @@ on the result of dereference operator, which adds support for types similar to
 
 <h3><a name="motivation.dereference-operator">Defining <code>operator*</code></a></h3>
 
-<p>The well know workaround for this problem, is to define the <code>operator*</code>
+<p>A well know workaround for this problem, is to define the <code>operator*</code>
  that will return the same result as the conversion operator. Firstly 
 this solution is only applicable in situations when the definition of 
 the class can be changed, so it is not feasible for third-party library 
-classes. Secondly it leads inelegant interface than combines wrapper and
+classes. Secondly, it leads to an inelegant interface that combines wrapper and
  pointer semantics.</p>
 
 <h3><a name="motivation.lambda">Using lambda</a></h3>
 
 <p>The other workaround is to use the lambda expression instead of 
-library functions, but in the most cases it leads to the less readable 
-code. Please compare following code snippets:</p>
+library functions, but in most cases it leads to a less readable 
+code. Please, compare following code snippets:</p>
 <pre>  std::bind(&amp;foo, _1, expr, ref(a));
   [e = expr, &amp;a] (auto&amp;&amp; arg) -&gt; decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
 </pre>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
 
-<p>In case of <code>bind</code> expressions the problem may be mitigated by introduction of additional cast functor that preforms required casting.</p>
+<p>In the case of <code>bind</code> expressions the problem may be mitigated by the introduction of additional cast functor that preforms required casting.</p>
 <pre>std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
-<p>However this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied to other library components that depends of <code><em>INVOKE</em></code> (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
+<p>However, this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied
+to other library components that are defined in terms of <code><em>INVOKE</em></code> 
+(e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
 <h3><a name="design.amibiguity">Resolution ambiguity of dereference operator and conversion</a></h3>
 
-<p>Allowing conversion in <code><em>INVOKE</em></code> with member pointer may lead to ambiguity in case of entity <code>t</code>, for which both result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
+<p>Allowing the conversion in <code><em>INVOKE</em></code> for pointers to member may lead to an ambiguity in the case of entity <code>t</code>, for which both the result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
 
-<p>As example, for the following class:</p>
+<p>For example, for the following class:</p>
 <pre>  struct Clazz { int foo; }
 
   struct Mixed
