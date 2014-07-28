@@ -105,17 +105,17 @@ td { text-align: left; vertical-align: top;
       to method qualification.</li>
   <li>Removed Alternate Wording section. Linked to previous version
       instead.</li>
+  <li>Fixed wording of Motivation and Scope section.</li>
 </ul>
 
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
 <p>The definition of <code><em>INVOKE</em></code> in the Standard handles pointers to members
-by defining two free standing functions: one that takes a 
-reference and the other that takes a pointer (including smart pointers) to target class.
-However, there is a difference in semantics between the 
-<code><em>INVOKE</em></code> expression for pointers to members and
-functors: for pointers to members the conversions are not taken into
+by defining two free standing functions: one that takes a reference and the other that takes 
+a pointer (including smart pointers) to target class. 
+However, there is a difference in semantics between the <code><em>INVOKE</em></code> expression
+for pointers to members and functors: for pointers to members the conversions are not taken into
 consideration in matching of first argument.</p>
 
 <p>This difference in behaviour prohibits the uses of wrapper types (e.g., <code>std::reference_wrapper</code>,
@@ -131,7 +131,7 @@ With the acceptance of this proposal, expression
 seconds for any specialization of std::chrono::duration.</p>
 
 <p>In addition, this proposal allows the conversion to the target type to be applied
-on the result ofthe dereference operator. This handles types similar to
+on the result of the dereference operator. This handles types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
 <h3><a name="motivation.dereference-operator">Defining <code>operator*</code></a></h3>
@@ -154,10 +154,13 @@ code. Please, compare following code snippets:</p>
 
 <h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
 
-<p>In the case of <code>bind</code> expressions the problem may be mitigated by the introduction of additional cast functor that preforms required casting.</p>
+<p>In the case of <code>bind</code> expressions the problem may be mitigated by the introduction of additional cast functor
+that preforms required casting.</p>
+
 <pre>std::bind(&amp;Class::method, _1)(std::ref(clazz));
 std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 </pre>
+
 <p>However, this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied
 to other library components that are defined in terms of <code><em>INVOKE</em></code> 
 (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
@@ -166,7 +169,8 @@ to other library components that are defined in terms of <code><em>INVOKE</em></
 
 <h3><a name="design.amibiguity">Resolution ambiguity of dereference operator and conversion</a></h3>
 
-<p>Allowing the conversion in <code><em>INVOKE</em></code> for pointers to member may lead to an ambiguity in the case of entity <code>t</code>, for which both the result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
+<p>Allowing the conversion in <code><em>INVOKE</em></code> for pointers to member may lead to an ambiguity in the case of entity <code>t</code>,
+for which both the result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
 
 <p>For example, for the following class:</p>
 <pre>  struct Clazz { int foo; }
@@ -322,7 +326,7 @@ struct to_reference
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Tomasz Miąsko and Mikhail Semenov offered many useful suggestions and corrections to the proposal.</p>
+<p>Tomasz Miąsko, Andrzej Krzemieński and Mikhail Semenov offered many useful suggestions and corrections to the proposal.</p>
 <p>Ville Voutilainen, Gabriel Dos Reis and other people in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#%21topic/std-proposals/FtilAt9V_1c">ISO C++ Standard - Future Proposals</a> provided numerous insightful suggestions.</p>
 
 <h2><a name="literature">References</a></h2>
