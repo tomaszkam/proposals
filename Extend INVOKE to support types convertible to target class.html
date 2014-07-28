@@ -110,27 +110,28 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>The standard <code><em>INVOKE</em></code> expression models the 
-member pointers as pair of free standing functions, that takes a 
-reference and the pointer (including smart pointers) to target class 
-respectively. However there is difference in semantics between the 
-<code><em>INVOKE</em></code> expression for member pointers and
-functors - for member pointers the conversions are not taken into
+<p>The definition of <code><em>INVOKE</em></code> in the Standard handles pointers to members
+by defining two free standing functions: one that takes a 
+reference and the other that takes a pointer (including smart pointers) to target class.
+However, there is a difference in semantics between the 
+<code><em>INVOKE</em></code> expression for pointers to members and
+functors: for pointers to members the conversions are not taken into
 consideration in matching of first argument.</p>
 
-<p>This behavior difference prohibit uses wrapper types (e.g., <code>std::reference_wrapper</code>,
-<code>boost::flyweight</code>) in combination with member pointers with the standard library functions 
-that are modeled using <code><em>INVOKE</em></code> (e.g., <code>std::bind</code>, <code>std::mem_fn</code>,
-<code>std::async</code>). The aim of this proposal is to fix that usability problem via extending definition of
+<p>This difference in behaviour prohibits the uses of wrapper types (e.g., <code>std::reference_wrapper</code>,
+<code>boost::flyweight</code>) in combination with pointers to members inside the Standard Library functions 
+that are defined in terms of <code><em>INVOKE</em></code> (e.g., <code>std::bind</code>, <code>std::mem_fn</code>,
+<code>std::async</code>). The aim of this proposal is to fix that usability problem by extending the definition of
 <code><em>INVOKE</em></code> to allow implicit conversions in such situations.</p>
 
-<p>Proposed change will also cover cases of set of convertible types that models the same logical entity
-(e.g., <code>std::chrono::duration</code> specializations). With the acceptance of this proposal, 
-<code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create functor returning amount of 
+<p>The proposed change will also cover the cases like <code>std::chrono::duration</code> specializations,
+where a family of types convertible to one common 'base' model the same logical entity.
+With the acceptance of this proposal, expression 
+<code>std::bind(&amp;std::chrono&lt;double&gt;::count, _1)</code> will create a functor returning the number of 
 seconds for any specialization of std::chrono::duration.</p>
 
-<p>In addition this proposal allows the conversion to target type to be applied
-on the result of dereference operator, which adds support for types similar to
+<p>In addition, this proposal allows the conversion to the target type to be applied
+on the result ofthe dereference operator. This handles types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
 <h3><a name="motivation.dereference-operator">Defining <code>operator*</code></a></h3>
