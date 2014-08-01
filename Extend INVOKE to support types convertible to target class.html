@@ -87,7 +87,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>This proposal is to extend the definition of <code><em>INVOKE</em></code> for class member pointers to cover types convertible to a target class of the pointer, like <code>std::reference_wrapper</code>.</p>
+<p>This proposal extends the definition of <code><em>INVOKE</em></code> for class member pointers to cover types convertible to the target class of the pointer, like <code>std::reference_wrapper</code>.</p>
 
 <p>Proposal also resolves <a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a></p>
 
@@ -102,7 +102,7 @@ td { text-align: left; vertical-align: top;
   <li>Added description of silent code change caused by previous
       resolution rules to Design Decisions.</li>
   <li>Changed wording to make resolution of ambiguity independent
-      to method qualification.</li>
+      of the member function qualifiers.</li>
   <li>Removed Alternate Wording section. Linked to previous version
       instead.</li>
   <li>Incorporated fixes suggested by Andrzej Krzemieński.</li>
@@ -116,7 +116,7 @@ by defining two free standing functions: one that takes a reference and the othe
 a pointer (including smart pointers) to target class. 
 However, there is a difference in semantics between the <code><em>INVOKE</em></code> expression
 for pointers to members and functors: for pointers to members the conversions are not taken into
-consideration in matching of first argument.</p>
+consideration when matching the first argument.</p>
 
 <p>This difference in behaviour prohibits the uses of wrapper types (e.g., <code>std::reference_wrapper</code>,
 <code>boost::flyweight</code>) in combination with pointers to members inside the Standard Library functions 
@@ -134,25 +134,27 @@ seconds for any specialization of std::chrono::duration.</p>
 on the result of the dereference operator. This handles types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
-<h3><a name="motivation.dereference-operator">Defining <code>operator*</code></a></h3>
+<h3><a name="motivation.workarounds">Existing workarounds</a></h4>
 
-<p>A well know workaround for this problem, is to define the <code>operator*</code>
- that will return the same result as the conversion operator. Firstly 
+<h4><a name="motivation.workarounds.dereference-operator">Defining <code>operator*</code></a></h3>
+
+<p>A well known workaround for this problem, is to define the <code>operator*</code>
+ that will return the same result as the conversion operator. Firstly, 
 this solution is only applicable in situations when the definition of 
 the class can be changed, so it is not feasible for third-party library 
 classes. Secondly, it leads to an inelegant interface that combines wrapper and
  pointer semantics.</p>
 
-<h3><a name="motivation.lambda">Using lambda</a></h3>
+<h4><a name="motivation.workarounds.lambda">Using lambda</a></h4>
 
 <p>The other workaround is to use the lambda expression instead of 
 library functions, but in most cases it leads to a less readable 
-code. Please, compare following code snippets:</p>
+code. Compare the following code snippets:</p>
 <pre>  std::bind(&amp;foo, _1, expr, ref(a));
   [e = expr, &amp;a] (auto&amp;&amp; arg) -&gt; decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); }
 </pre>
 
-<h3><a name="motivation.bind-cast">Define special cast functor</a></h3>
+<h4><a name="motivation.workarounds.bind-cast">Define special cast functor</a></h4>
 
 <p>In the case of <code>bind</code> expressions the problem may be mitigated by the introduction of additional cast functor
 that preforms required casting.</p>
@@ -167,9 +169,9 @@ to other library components that are defined in terms of <code><em>INVOKE</em></
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<h3><a name="design.amibiguity">Resolution ambiguity of dereference operator and conversion</a></h3>
+<h3><a name="design.amibiguity">Resolving ambiguity between dereference operator and conversion</a></h3>
 
-<p>Allowing the conversion in <code><em>INVOKE</em></code> for pointers to member may lead to an ambiguity in the case of entity <code>t</code>,
+<p>Allowing the conversion in <code><em>INVOKE</em></code> for pointers to member may lead to an ambiguity in the case of entity <code>t</code>
 for which both the result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.</p>
 
 <p>For example, for the following class:</p>
@@ -184,7 +186,7 @@ for which both the result of <code>t</code> and <code>*t</code> is implicitly co
   Mixed m;
 </pre>
 <p>The expression <code><em>INVOKE</em>(&amp;Clazz::foo, m)</code> may be interpreted as <code>static_cast&lt;Clazz&gt;(m).*foo</code> 
-or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase class may be a result of using 
+or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. The existence of such class in codebase might be the result of using a
 <a href="#motivation.dereference-operator">work around</a> presented in the motivation section of this proposal.</p>
 
 <p>There are tree possible resolutions of such ambiguity:</p>
@@ -196,9 +198,9 @@ or <code>static_cast&lt;Clazz&gt;(*m).*foo</code>. Existence of such in codebase
 
 <h4><a name="design.amibiguity.error">1. Compilation error</a></h4>
 
-<p>Raising an error will make behaviour of <code><em>INVOKE</em></code>
-for member pointers more uniform with behaviour of free standing 
-functions. However it will break existing code, that use such entities.</p>
+<p>Rising an error will make the behaviour of <code><em>INVOKE</em></code>
+for member pointers more uniform with the behaviour of free standing 
+functions. However, it will break existing code that uses such entities.</p>
 
 <h4><a name="design.amibiguity.prefer-dereference">2. Preference of <code>operator*</code></a></h4>
 
@@ -225,7 +227,7 @@ Third option is not further discussed.</p>
 <p>According to wording presented in the first version of this proposal dereference
 operator was preferred over conversion if it's result type was compatible with 
 cv-qualification and ref-qualification of member function pointer.
-For example with following definitions:</p> 
+For example, given the following definitions:</p> 
 <pre>
 struct Clazz
 {
@@ -238,25 +240,24 @@ struct Wrapper
   operator A&amp;();
 };</pre>
 <p>expression <code>std::mem_fn(&amp;A::foo)(Wrapper())</code> will use conversion operator 
-because <code>foo</code> method cannot be invoked on const object.</p>
+because member function <code>foo</code> cannot be invoked on a const object.</p>
 
-<p>In consequence of above behaviour, modification of cv-qualification of the function may lead
-to silent code changes. Lets imagine the situation in which the <code>foo</code> method
-becomes const-qualified, such modification will silently change meaning of <code>std::mem_fn(&amp;A::foo)(Wrapper())</code>
-expression, that will invoke dereference operator instead of conversion.
-Author perceives such change as unacceptable, because in contrast to pair overloaded functions,
-we cannot expect that dereference operator and conversion will have similar behaviour.</p>
+<p>As a consequence of the above behaviour, the modification of cv-qualification of the function may lead
+to silent code changes. Let's imagine the situation in which member function <code>foo</code>
+becomes const-qualified; such modification will silently change meaning of expression <code>std::mem_fn(&amp;A::foo)(Wrapper())</code>,
+that will invoke dereference operator instead of conversion.
+The author considers such change unacceptable because -- unlike in the case when we change one function overload for another --
+we cannot reliably expect that dereference operator and conversion wiould have similar behaviour.</p>
 
-<p>To avoid described problem current revision of the paper include new rules for selection dereference operator:
-<i>The deference operator is selected if it returns a type that is implicitly convertible to any type of reference to target class of member pointer.</i></p>
+<p>In order to avoid the described problem, the current revision of the paper includes new rules for selecting the dereference operator:
+<i>the deference operator is selected if it returns a type that is implicitly convertible to a reference to target class of member pointer, however cv-qualified.</i></p>
 
-<p>Proposed resolution make above example stay ill-formed, preserving behaviour defined in current standard.
-In addition it greatly simplifies usage of components defined in terms of <code><em>INVOKE</em></code>,
-by making their behaviour for member pointers independent to actual type of member, including pointers to data 
-and function members.</p> 
+<p>The proposed resolution keeps the above example ill-formed, preserving behaviour defined in the current standard.
+In addition, it greatly simplifies usage of components defined in terms of <code><em>INVOKE</em></code>,
+by making their behaviour for pointers to members independent of the actual nature of the member: data of function.</p> 
 
-<p>Please also note that the wording change is only impacting cases of ambiguous wrappers that defines both dereference operator
-and conversion. Furthermore the problem would not be present, if compilation error approach was selected as resolution in such situations.</p>
+<p>Please also note that the wording change is only impacting cases of ambiguous wrappers that define both dereference operator
+and conversion. Furthermore, the problem would not be present, if compilation error approach was selected as resolution in such situations.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
