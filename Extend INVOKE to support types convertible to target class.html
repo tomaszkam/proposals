@@ -304,23 +304,23 @@ struct to_reference
     </p><ul>
       <li>when <code>f</code> is a pointer to a member function of a class <code>T</code>:
         <ul>
-          <li><code>(t1.*f)(t2, ..., tN)</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
-          <li><code>(to_reference&lt;T&gt;(*t1).*f)(t2, ..., tN)</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
-          <li><code>(to_reference&lt;T&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>(t1.*f)(t2, ..., tN)</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>; otherwise</li>
+          <li><code>(to_reference&lt;T&gt;(*t1).*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>; otherwise</li>
+          <li><code>(to_reference&lt;T&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
         </ul>
       </li>
-      <li>when <code>f</code> is a pointer to member data of a class <code>T</code> and <code>N == 1</code>:
+      <li>when <code>f</code> is a pointer to member data of a class <code>T</code>:
         <ul>
-          <li><code>t1.*f</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
-          <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
-          <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> does not fulfill criteria of any of previous point and <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li>if <code>N != 1</code> expression is ill-formed; otherwise</li>
+          <li><code>t1.*f</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>; otherwise</li>
+          <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>; otherwise</li>
+          <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
         </ul>
       </li>
       <li><code>f(t1, t2, ..., tN)</code> in all other cases.</li>
     </ul><p></p></dd>
-
   </dl>
 </blockquote>
 
