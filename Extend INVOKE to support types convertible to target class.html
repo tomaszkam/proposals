@@ -254,7 +254,7 @@ we cannot reliably expect that dereference operator and conversion wiould have s
 
 <p>The proposed resolution keeps the above example ill-formed, preserving behaviour defined in the current standard.
 In addition, it greatly simplifies usage of components defined in terms of <code><em>INVOKE</em></code>,
-by making their behaviour for pointers to members independent of the actual nature of the member: data of function.</p> 
+by making their behaviour for pointers to members independent of the actual nature of the member: data or function.</p> 
 
 <p>Please also note that the wording change is only impacting cases of ambiguous wrappers that define both dereference operator
 and conversion. Furthermore, the problem would not be present, if compilation error approach was selected as resolution in such situations.</p>
