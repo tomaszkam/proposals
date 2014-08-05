@@ -134,9 +134,9 @@ seconds for any specialization of std::chrono::duration.</p>
 on the result of the dereference operator. This handles types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
-<h3><a name="motivation.workarounds">Existing workarounds</a></h4>
+<h3><a name="motivation.workarounds">Existing workarounds</a></h3>
 
-<h4><a name="motivation.workarounds.dereference-operator">Defining <code>operator*</code></a></h3>
+<h4><a name="motivation.workarounds.dereference-operator">Defining <code>operator*</code></a></h4>
 
 <p>A well known workaround for this problem, is to define the <code>operator*</code>
  that will return the same result as the conversion operator. Firstly, 
@@ -306,8 +306,8 @@ struct to_reference
       <li>when <code>f</code> is a pointer to a member function of a class <code>T</code>:
         <ul>
           <li><code>(t1.*f)(t2, ..., tN)</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>; otherwise</li>
-          <li><code>(to_reference&lt;T&gt;(*t1).*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>; otherwise</li>
-          <li><code>(to_reference&lt;T&gt;(t1).*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>(to_reference&lt;T&gt;{}(*t1).*f)(t2, ..., tN)</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>; otherwise</li>
+          <li><code>(to_reference&lt;T&gt;{}(t1).*f)(t2, ..., tN)</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
         </ul>
       </li>
@@ -315,8 +315,8 @@ struct to_reference
         <ul>
           <li>if <code>N != 1</code> expression is ill-formed; otherwise</li>
           <li><code>t1.*f</code> when <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>; otherwise</li>
-          <li><code>to_reference&lt;T&gt;(*t1).*f</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>; otherwise</li>
-          <li><code>to_reference&lt;T&gt;(t1).*f</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
+          <li><code>to_reference&lt;T&gt;{}(*t1).*f</code> when <code>*t1</code> is implicitly convertible to a reference to an object of type <code>T</code>; otherwise</li>
+          <li><code>to_reference&lt;T&gt;{}(t1).*f</code> when <code>t1</code> is implicitly convertible to a reference to an object of type <code>T</code>;</li>
           <li>otherwise expression is ill-formed;</li>
         </ul>
       </li>
