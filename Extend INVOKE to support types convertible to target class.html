@@ -97,8 +97,7 @@ td { text-align: left; vertical-align: top;
 
 <p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3719.html">N3719</a>:</p>
 <ul>
-  <li>Added information about <code>synchronized_value</code> to 
-      Motivation and Scope section.</li>
+  <li>Extended Motivation and Scope section.</li>
   <li>Added description of silent code change caused by previous
       resolution rules to Design Decisions.</li>
   <li>Changed wording to make resolution of ambiguity independent
@@ -134,12 +133,41 @@ seconds for any specialization of std::chrono::duration.</p>
 on the result of the dereference operator. This handles types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
+<h3><a name="motivation.generic-aproach">Why generic approach is needed?</a></h3>
+
+<p>If we analyse previously presented examples, we may found that the only support for <code>reference_wrapper</code> is
+really compelling motivation for introducing changes to <code><em>INVOKE</em></code>. Basing on the above statement we may 
+perceive a simpler modification of standard (as proposed <a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a>) 
+as a compelling alternative.</p>
+
+<p>The problem with above reasoning is that is is not taking into account need to support user-defined types, both existing ones 
+and ones developed in future. In contrast the solution presented in this proposal is consistent with the design standard library 
+that aims to provide equal support for both user-defined types and standard component, even at the cost of increased complexity 
+of definition.
+Most notable examples include:</p> 
+<ul>
+  <li>ranged based for loop is supporting any type of container that defines <code>begin</code>/<code>end</code> operations
+      (both as member or free function found by argument depended loopkup);</li>
+  <li><code>condition_variable_any</code> is provided in addition to <code>condition_variable</code>, 
+      to provide to support for any lock type;</li>
+  <li><code><em>INVOKE</em></code> expression is supporting any deference type that returns reference to type compatible
+      with member class.</li>
+</ul>
+
+<p>Furthermore, support for <code>reference_wrapper</code> in the <code><em>INVOKE</em></code> expression may be achieved by
+introducing dereference operator to this class. If we perceive such solution as not feasible in this situation, then we should 
+not impose it on custom classes, thats aims to be usable with standard library functional components.</p>
+
+<p>In conclusion the author perceives adding in single exception to standard library to support single standard class as not 
+feasible solution, both from the language learning perspective and usability of the language, especially in the context of 
+designing library that should interoperate with standard one.</p>
+
 <h3><a name="motivation.workarounds">Existing workarounds</a></h3>
 
 <h4><a name="motivation.workarounds.dereference-operator">Defining <code>operator*</code></a></h4>
 
 <p>A well known workaround for this problem, is to define the <code>operator*</code>
- that will return the same result as the conversion operator. Firstly, 
+that will return the same result as the conversion operator. Firstly, 
 this solution is only applicable in situations when the definition of 
 the class can be changed, so it is not feasible for third-party library 
 classes. Secondly, it leads to an inelegant interface that combines wrapper and
