@@ -133,35 +133,6 @@ seconds for any specialization of std::chrono::duration.</p>
 on the result of the dereference operator. This handles types similar to
 <code>synchronized_value</code> proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4033.html">N4033</a>.</p>
 
-<h3><a name="motivation.generic-aproach">Comparison with alternate solutions</a></h3>
-
-<p><a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a> proposes that <code><em>INVOKE</em></code> be specialized for class template <code>reference_wrapper</code>.
-Indeed, if we take a look at the examples above, we may find that the only thing we are missing is the support for <code>reference_wrapper</code>. This requires less changes to the standardese.
-</p>
-
-<p>The problem with this solution is that it is not taking into account the need to support user-defined types, both existing ones 
-and ones developed in future. In contrast, the solution presented in this proposal is consistent with the design of the standard library 
-which aims to provide equal support both for user-defined types and standard components, even at the cost of the increased complexity 
-of the definition.
-Most notable examples include:</p> 
-<ul>
-  <li>ranged based for loop supports any type of container that defines <code>begin</code>/<code>end</code> operations
-      (both as member or free function found by argument depended loopkup);</li>
-  <li><code>condition_variable_any</code> is provided in addition to <code>condition_variable</code>, 
-      to provide to support for any lock type;</li>
-  <li><code><em>INVOKE</em></code> expression is supporting any deference type that returns reference to type compatible
-      with member class.</li>
-</ul>
-
-<p>Furthermore, it has been suggested that if a user-defined type needs to work with <code><em>INVOKE</em></code>,
-it can acheive the goal by defining <code>operator*</code>. If this were to be a valid advice, we would expect it
-to also apply to <code>reference_wrapper</code>. However, in the case of <code>reference_wrapper</code> a special
-dedicated solution is being proposed, which indicates that the original advice is insufficient; probaly also for user-defined types.
-</p>
-
-<p>In conclusion, the author perceives the addition of a single exception to the standard library in order to support a single standard class, a non-feasible solution, both from the language learning perspective and the usability of the language, especially in the context of 
-designing library that should interoperate with standard ones.</p>
-
 <h3><a name="motivation.workarounds">Existing workarounds</a></h3>
 
 <h4><a name="motivation.workarounds.dereference-operator">Defining <code>operator*</code></a></h4>
@@ -194,6 +165,37 @@ std::bind(&amp;Class::method, cast&lt;Class&amp;&gt;(_1))(std::ref(clazz));
 <p>However, this solution depends on <code>std::is_bind_expression</code> trait and cannot be applied
 to other library components that are defined in terms of <code><em>INVOKE</em></code> 
 (e.g., <code>std::async</code>, <code>std::call_once</code>).</p>
+
+<h3><a name="motivation.generic-aproach">Comparison with alternate solutions</a></h3>
+
+<p><a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a> proposes that <code><em>INVOKE</em></code> 
+be specialized for class template <code>reference_wrapper</code>. Indeed, if we take a look at the examples above, we may
+find that the only thing we are missing is the support for <code>reference_wrapper</code>. This requires less changes to the
+standardese.</p>
+
+<p>The problem with this solution is that it is not taking into account the need to support user-defined types, both existing ones 
+and ones developed in future. In contrast, the solution presented in this proposal is consistent with the design of the standard 
+library which aims to provide equal support both for user-defined types and standard components, even at the cost of the increased 
+complexity of the definition.
+Most notable examples include:</p> 
+<ul>
+  <li>ranged based for loop supports any type of container that defines <code>begin</code>/<code>end</code> operations
+      (both as member or free function found by argument depended loopkup);</li>
+  <li><code>condition_variable_any</code> is provided in addition to <code>condition_variable</code>, 
+      to provide to support for any lock type;</li>
+  <li><code><em>INVOKE</em></code> expression is supporting any deference type that returns reference to type compatible
+      with member class.</li>
+</ul>
+
+<p>Furthermore, it has been suggested that if a user-defined type needs to work with <code><em>INVOKE</em></code>,
+it can acheive the goal by defining <code>operator*</code>. If this were to be a valid advice, we would expect it
+to also apply to <code>reference_wrapper</code>. However, in the case of <code>reference_wrapper</code> a special
+dedicated solution is being proposed, which indicates that the original advice is insufficient; probaly also for 
+user-defined types.</p>
+
+<p>In conclusion, the author perceives the addition of a single exception to the standard library in order to support
+a single standard class, a non-feasible solution, both from the language learning perspective and the usability of the
+language, especially in the context of designing library that should interoperate with standard ones.</p>
 
 <h2><a name="design">Design Decisions</a></h2>
 
