@@ -107,7 +107,6 @@ td { text-align: left; vertical-align: top;
   <li>Incorporated fixes suggested by Andrzej Krzemieński.</li>
 </ul>
 
-
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
 <p>The definition of <code><em>INVOKE</em></code> in the Standard handles pointers to members
@@ -142,7 +141,7 @@ that will return the same result as the conversion operator. Firstly,
 this solution is only applicable in situations when the definition of 
 the class can be changed, so it is not feasible for third-party library 
 classes. Secondly, it leads to an inelegant interface that combines wrapper and
- pointer semantics.</p>
+pointer semantics.</p>
 
 <h4><a name="motivation.workarounds.lambda">Using lambda</a></h4>
 
@@ -170,7 +169,7 @@ to other library components that are defined in terms of <code><em>INVOKE</em></
 
 <p><a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a> proposes that <code><em>INVOKE</em></code> 
 be specialized for class template <code>reference_wrapper</code>. Indeed, if we take a look at the examples above, we may
-find that the only thing we are missing is the support for <code>reference_wrapper</code>. This requires less changes to the
+find that the only one, that is commonly used is <code>reference_wrapper</code>. This requires less changes to the
 standardese.</p>
 
 <p>The problem with this solution is that it is not taking into account the need to support user-defined types, both existing ones 
@@ -180,7 +179,7 @@ complexity of the definition.
 Most notable examples include:</p> 
 <ul>
   <li>ranged based for loop supports any type of container that defines <code>begin</code>/<code>end</code> operations
-      (both as member or free function found by argument depended loopkup);</li>
+      (both as member or free function found by argument depended lookup);</li>
   <li><code>condition_variable_any</code> is provided in addition to <code>condition_variable</code>, 
       to provide to support for any lock type;</li>
   <li><code><em>INVOKE</em></code> expression is supporting any deference type that returns reference to type compatible
@@ -188,9 +187,9 @@ Most notable examples include:</p>
 </ul>
 
 <p>Furthermore, it has been suggested that if a user-defined type needs to work with <code><em>INVOKE</em></code>,
-it can acheive the goal by defining <code>operator*</code>. If this were to be a valid advice, we would expect it
+it can achieve the goal by defining <code>operator*</code>. If this were to be a valid advice, we would expect it
 to also apply to <code>reference_wrapper</code>. However, in the case of <code>reference_wrapper</code> a special
-dedicated solution is being proposed, which indicates that the original advice is insufficient; probaly also for 
+dedicated solution is being proposed, which indicates that the original advice is insufficient; probably also for 
 user-defined types.</p>
 
 <p>In conclusion, the author perceives the addition of a single exception to the standard library in order to support
