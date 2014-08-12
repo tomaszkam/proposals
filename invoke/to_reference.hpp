@@ -19,12 +19,32 @@ namespace functional
       return t;
     }
 
+    Type volatile& operator()(Type volatile& t) const
+    {
+      return t;
+    }
+    
+    Type const volatile& operator()(Type const volatile& t) const
+    {
+      return t;
+    }
+
     Type&& operator()(Type&& t) const
     {
       return std::move(t);
     }
 
     Type const&& operator()(Type const&& t) const
+    {
+      return std::move(t);
+    }
+
+    Type volatile&& operator()(Type volatile&& t) const
+    {
+      return std::move(t);
+    }
+
+    Type const volatile&& operator()(Type const volatile&& t) const
     {
       return std::move(t);
     }
