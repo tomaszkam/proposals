@@ -90,49 +90,51 @@ namespace functional
       return argument_passer<typename std::decay<Argument>::type>{}(invoker, std::forward<Argument>(argument), std::forward<ActualArgs>(actualArgs)...);
     } 
 
-    template<typename StoredArgs, typename CallArgs>
+    template<typename TupleRef>
+    constexpr std::size_t tuple_size()
+    {
+      return std::tuple_size<typename std::decay<TupleRef>::type>::value;
+    }
+
+    template<typename StoredArgsRef, typename CallArgsRef>
     class bind_invoker_base
     {
-      using StoredArgsD = typename std::decay<StoredArgs>::type;
-      using CallArgsD = typename std::decay<CallArgs>::type;
-   
     public:
-
       static constexpr std::size_t stored_args_size()
       {
-        return std::tuple_size<StoredArgsD>::value;
+        return tuple_size<StoredArgsRef>();
       }
 
       static constexpr std::size_t call_args_size()
       {
-        return std::tuple_size<CallArgsD>::value;
+        return tuple_size<CallArgsRef>();
       }
 
-      bind_invoker_base(StoredArgs _storedArgs, CallArgs _callArgs)
-        : storedArgs(std::forward<StoredArgs>(_storedArgs)),
-          callArgs(std::forward<CallArgs>(_callArgs))
+      bind_invoker_base(StoredArgsRef _storedArgs, CallArgsRef _callArgs)
+        : storedArgs(std::forward<StoredArgsRef>(_storedArgs)),
+          callArgs(std::forward<CallArgsRef>(_callArgs))
       {}
 
-      StoredArgs stored_args() const
+      StoredArgsRef stored_args() const
       {
-        return std::forward<StoredArgs>(storedArgs);
+        return std::forward<StoredArgsRef>(storedArgs);
       }
 
-      CallArgs call_args() const
+      CallArgsRef call_args() const
       {
-        return std::forward<CallArgs>(callArgs);
+        return std::forward<CallArgsRef>(callArgs);
       }
 
     private:
-      StoredArgs storedArgs;
-      CallArgs   callArgs;
+      StoredArgsRef storedArgs;
+      CallArgsRef   callArgs;
     };
 
-    template<std::size_t ReversePosition, typename StoredArgs, typename CallArgs>
+    template<std::size_t ReversePosition, typename StoredArgsRef, typename CallArgsRef>
     class bind_invoker :
-      public bind_invoker_base<StoredArgs, CallArgs>
+      public bind_invoker_base<StoredArgsRef, CallArgsRef>
     {
-      using base = bind_invoker_base<StoredArgs, CallArgs>; 
+      using base = bind_invoker_base<StoredArgsRef, CallArgsRef>; 
  
       static constexpr std::size_t current_position()
       {
@@ -145,16 +147,13 @@ namespace functional
         return std::get<current_position()>(this->stored_args());
       }
      
-      bind_invoker<ReversePosition-1, StoredArgs, CallArgs> next_invoker() const
+      bind_invoker<ReversePosition-1, StoredArgsRef, CallArgsRef> next_invoker() const
       {
         return {this->stored_args(), this->call_args()};
       }
 
     public:
-      //using base::base;
-      bind_invoker(StoredArgs _storedArgs, CallArgs _callArgs)
-        : base(std::forward<StoredArgs>(_storedArgs), std::forward<CallArgs>(_callArgs))
-      {}
+      using base::base;
 
       template<typename... ActualArgs>
       auto operator()(ActualArgs&&... actualArgs) const
@@ -164,17 +163,14 @@ namespace functional
       }
     };
 
-    template<typename StoredArgs, typename CallArgs>
-    class bind_invoker<0, StoredArgs, CallArgs> : 
-      public bind_invoker_base<StoredArgs, CallArgs>
+    template<typename StoredArgsRef, typename CallArgsRef>
+    class bind_invoker<0, StoredArgsRef, CallArgsRef> : 
+      public bind_invoker_base<StoredArgsRef, CallArgsRef>
     {
-      using base = bind_invoker_base<StoredArgs, CallArgs>; 
+      using base = bind_invoker_base<StoredArgsRef, CallArgsRef>; 
 
     public:
-      //using base::base;
-      bind_invoker(StoredArgs _storedArgs, CallArgs _callArgs)
-        : base(std::forward<StoredArgs>(_storedArgs), std::forward<CallArgs>(_callArgs))
-      {}
+      using base::base;
 
       template<typename... ActualArgs>
       auto operator()(ActualArgs&&... actualArgs) const
