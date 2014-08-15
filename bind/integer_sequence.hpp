@@ -6,7 +6,15 @@
 namespace type_traits
 {
   template<typename T, T... values>
-  struct integer_sequence {};
+  struct integer_sequence 
+  {
+    using value_type = T;
+
+    static constexpr std::size_t size()
+    {
+      return sizeof...(values);
+    }
+  };
 
   namespace detail
   {
@@ -18,6 +26,12 @@ namespace type_traits
                      IntegralSequence,
                      typename concat_impl<IntegralSequences...>::type
                    >::type;
+    };
+
+    template<typename T1>
+    struct concat_impl<T1>
+    {
+      using type = T1;
     };
 
     template<typename T1, typename T2>
