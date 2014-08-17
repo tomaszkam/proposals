@@ -97,6 +97,16 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="design">Design Decisions</a></h2>
 
+<h3><a name="design.variable-templates">Use of variables templates to define placeholders</a></h3>
+
+<p>The variable templates are used to define placeholders instead of set of extern variables. This approach allows
+the programmer to compute positions of passed parameters at compile time, which is cumbersome in case of existing placeholders.
+In addition the author finds single definition of <code>_from</code>, instead list of <code>_1onwards, _2onwards, ..., _Nonwards</code>,
+being more elegant.</p>
+
+<p>To complement set of group placeholders, the variable template version of single argument placeholder named <code>_at&lt;N&gt;</code>
+is also introduced in this paper.</p>
+
 <h3><a name="design.names">Naming of placeholders</a></h3>
 
 <p>Parameter group placeholder proposed in this paper has names that begins with underscore (<code>_all</code>, <code>_from</code>)
