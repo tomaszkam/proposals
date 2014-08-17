@@ -20,6 +20,9 @@ namespace functional
     //But gcc 4.8.1 does not support it
     template<int B, int E>
     using _between = between_placeholder<B, E>;
+
+    template<int N>
+    using _to = between_placeholder<1, N>;
   }
 
   template<int B, int E>
@@ -29,7 +32,7 @@ namespace functional
 
   template<int B, int E,  int ArgCount>
   struct parameter_indexes<between_placeholder<B, E>, ArgCount>
-    : type_traits::make_integer_range<int, B, E + 1>
+    : type_traits::make_integer_range<int, B, E>
   {
     static_assert(ArgCount > 0, "Argument count must be positive");
     static_assert(E <= ArgCount + 1, "To few argument provided.");

@@ -99,5 +99,6 @@ int main()
 
 
   std::cout << std::endl << "Additional (not proposed) placeholders tests: " << std::endl;
-  functional::bind(printer{}, _between<2,3>())(10, 20, 30, 40);
+  functional::bind(printer{}, _between<2,4>())(10, 20, 30, 40);
+  functional::bind(printer{}, _to<3>(), 25, _from<3>())(10, 20, 30, 40);
 }
