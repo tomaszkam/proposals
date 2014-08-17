@@ -10,6 +10,12 @@ namespace functional
   struct all_placeholder {};
 
   template<int N>
+  struct at_placeholder
+  {
+    static_assert(N > 0, "Parameter index must be positive"); 
+  };
+
+  template<int N>
   struct from_placeholder 
   {
     static_assert(N > 0, "Stating parameter index must be positve.");
@@ -25,6 +31,9 @@ namespace functional
     //But gcc 4.8.1 does not support it
     template<int N>
     using _from = from_placeholder<N>;
+
+    template<int N>
+    using _at = at_placeholder<N>;
   }
 
   template<>
@@ -51,6 +60,11 @@ namespace functional
     static_assert(ArgCount > 0, "Argument count must be positive");
     static_assert(N <= ArgCount + 1, "To few argument provided.");
   };
+
+  template<int N>
+  struct is_placeholder<at_placeholder<N>>
+    : std::integral_constant<int, N>
+  {};
 }
 
 #endif //PLACEHOLDERS_HPP

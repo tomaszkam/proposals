@@ -159,11 +159,6 @@ template&lt;class R, class F, class... BoundArgs&gt;
   <em>unspecified</em> bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
 
 namespace placeholders {
-<ins>  extern <em>unspecified</em> _all;
-
-  template&lt;int N&gt;
-  <em>unspecified</em> _from;</ins>
-
   // <em>M is the implementation-defined number of placeholders</em>
   extern <em>unspecified</em> _1;
   extern <em>unspecified</em> _2;
@@ -171,6 +166,14 @@ namespace placeholders {
   .
   .
   extern <em>unspecified</em> _M;
+
+<ins>  template&lt;int N&gt;
+  <em>unspecified</em> _at;
+
+  template&lt;int N&gt;
+  <em>unspecified</em> _from;
+
+  extern <em>unspecified</em> _all;</ins>
 }
 </pre>
 </blockquote>
@@ -188,9 +191,9 @@ namespace placeholders {
            if <code>T</code> is the type of <code>std::placeholders::_J</code>, otherwise it shall have a BaseCharacteristic of
            <code>integral_constant&lt;int, 0&gt;</code>.</del><ins>:</ins>
         </p><ins><ul>
-           <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_J</code>,</li>
            <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
            <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code> and <code>N &gt; 0</code>,</li>
+           <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_at&lt;J&gt;</code> or <code>std::placeholders::_J</code>,</li>
            <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
         </ul></ins>
         <p>A program may specialize this template for a user-defined type <code>T</code> to
@@ -348,11 +351,6 @@ template&lt;class R, class F, class... BoundArgs&gt;
 <blockquote class="std"> 
 <pre>
 namespace placeholders {
-<ins>  extern <em>unspecified</em> _all;
-
-  template&lt;int N&gt;
-  <em>unspecified</em> _from;</ins>
-
   // <em>M is the implementation-defined number of placeholders</em>
   extern <em>unspecified</em> _1;
   extern <em>unspecified</em> _2;
@@ -360,6 +358,14 @@ namespace placeholders {
   .
   .
   extern <em>unspecified</em> _M;
+
+<ins>  template&lt;int N&gt;
+  <em>unspecified</em> _at;
+
+  template&lt;int N&gt;
+  <em>unspecified</em> _from;
+
+  extern <em>unspecified</em> _all;</ins>
 }
 </pre>
 
@@ -370,7 +376,7 @@ namespace placeholders {
            It is implementation-defined whether placeholder types are <code>CopyAssignable</code>.
            <code>CopyAssignable</code> placeholders’ copy assignment operators shall not throw exceptions.</p></dd>
 
-    <dd><p><ins>A program that necessitates the instantiation of <code>_from&lt;N&gt;</code> with <code>N &lt;= 0</code> is ill-formed.</ins></p></dd>
+           <dd><p><ins>A program that necessitates the instantiation of <code>_from&lt;N&gt;</code> or <code>_at&lt;N&gt;</code> with <code>N &lt;= 0</code> is ill-formed.</ins></p></dd>
 
   </dl>
 
