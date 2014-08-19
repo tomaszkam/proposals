@@ -82,7 +82,7 @@ namespace functional
 
     template<int CallArgsCount, typename... StoredArgs>
     using positions = typename combine_positions<CallArgsCount,
-                         type_traits::make_integer_range<int, 1, sizeof...(StoredArgs)+1>,
+                         type_traits::make_integer_sequence<int, sizeof...(StoredArgs)>,
                          StoredArgs...>::sequence;
 
     template<argument_type type, int Position>
@@ -148,36 +148,38 @@ namespace functional
     template<int Combined>
     using argument_resolver = argument_resolver_impl<argument(Combined), position(Combined)>;
 
-    template<int... Combined, typename StoredArgs, typename CallArgs>
-    inline auto bind_invoke(type_traits::integer_sequence<int, Combined...>, StoredArgs&& storedArgs, CallArgs&& callArgs)
-      -> decltype(INVOKE_MODEL::invoke(std::get<0>(std::forward<StoredArgs>(storedArgs)), argument_resolver<Combined>{}(std::forward<StoredArgs>(storedArgs), std::forward<CallArgs>(callArgs))...))
-    {
-      return INVOKE_MODEL::invoke(std::get<0>(std::forward<StoredArgs>(storedArgs)), argument_resolver<Combined>{}(std::forward<StoredArgs>(storedArgs), std::forward<CallArgs>(callArgs))...);
+    template<int... Combined, typename Function, typename StoredArgs, typename CallArgs>
+    inline auto bind_invoke(type_traits::integer_sequence<int, Combined...>, Function&& function, StoredArgs&& storedArgs, CallArgs&& callArgs)
+      -> decltype(INVOKE_MODEL::invoke(std::forward<Function>(function), argument_resolver<Combined>{}(std::forward<StoredArgs>(storedArgs), std::forward<CallArgs>(callArgs))...))
+    { 
+      return INVOKE_MODEL::invoke(std::forward<Function>(function), argument_resolver<Combined>{}(std::forward<StoredArgs>(storedArgs), std::forward<CallArgs>(callArgs))...);
     }
 
     template<typename Function, typename... Args>
     class bind_functor
     {
-      std::tuple<Function, Args...> storedArgs;
+      Function            function;
+      std::tuple<Args...> storedArgs;
 
     public:
       template<typename F, typename... As>
       bind_functor(F&& f, As&&... as)
-       : storedArgs(std::forward<F>(f), std::forward<As>(as)...)
+       : function(std::forward<F>(f))
+       , storedArgs(std::forward<As>(as)...)
       {}
 
       template<typename... CallArgs>
       auto operator()(CallArgs&&... callArgs)
-        -> decltype(bind_invoke(positions<sizeof...(CallArgs), Args...>{}, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...)))
+        -> decltype(bind_invoke(positions<sizeof...(CallArgs), Args...>{}, function, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...)))
       {
-        return bind_invoke(positions<sizeof...(CallArgs), Args...>{}, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...));
+        return bind_invoke(positions<sizeof...(CallArgs), Args...>{}, function, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...));
       }
 
       template<typename... CallArgs>
       auto operator()(CallArgs&&... callArgs) const
-        -> decltype(bind_invoke(positions<sizeof...(CallArgs), Args...>{}, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...)))
+        -> decltype(bind_invoke(positions<sizeof...(CallArgs), Args...>{}, function, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...)))
       {
-        return bind_invoke(positions<sizeof...(CallArgs), Args...>{}, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...));
+        return bind_invoke(positions<sizeof...(CallArgs), Args...>{}, function, storedArgs, std::forward_as_tuple(std::forward<CallArgs>(callArgs)...));
       }
     };
   }
