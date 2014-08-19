@@ -3,19 +3,18 @@
 #include "placeholders.hpp"
 #include "additional_placeholders.hpp"
 
-struct ignore
-{
-  template<typename... U>
-  ignore(U&&...) {}
-};
-
 struct printer
 {
-  template<typename... Ts>
-  void operator()(const Ts&... ts)
+  void operator()()
   {
-    ignore{(std::cout << ts << " ", 0)...};
     std::cout << std::endl;
+  }
+
+  template<typename T, typename... Ts>
+  void operator()(const T& t, const Ts&... ts)
+  {
+    std::cout << t << " " << std::flush;
+    operator()(ts...);
   }
 };
 
