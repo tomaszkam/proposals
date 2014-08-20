@@ -27,6 +27,7 @@ Pointer smartPointer;
 ValueConversion valueConversion;
 ReferenceConversion referenceConversion;
 Mixed mixed;
+ConstMixed constMixed;
 
 static_assert(!type_traits::is_pointer_compatible_with_member_pointer<decltype(base), int Class::*>::value, "checking Base");
 static_assert(!type_traits::is_pointer_compatible_with_member_pointer<decltype(clazz), int Class::*>::value, "checking Class");
@@ -36,6 +37,7 @@ static_assert(type_traits::is_pointer_compatible_with_member_pointer<decltype(sm
 static_assert(!type_traits::is_pointer_compatible_with_member_pointer<decltype(valueConversion), int Class::*>::value, "checking ValueConversion");
 static_assert(!type_traits::is_pointer_compatible_with_member_pointer<decltype(referenceConversion), int Class::*>::value, "checking ReferenceConversion");
 static_assert(type_traits::is_pointer_compatible_with_member_pointer<decltype(mixed), int Class::*>::value, "checking Mixed");
+static_assert(type_traits::is_pointer_compatible_with_member_pointer<decltype(constMixed), int Class::*>::value, "checking ConstMixed");
 
 static_assert(!type_traits::is_wrapper_compatible_with_member_pointer<decltype(base), int Class::*>::value, "checking Base");
 static_assert(type_traits::is_wrapper_compatible_with_member_pointer<decltype(clazz), int Class::*>::value, "checking Class");
@@ -45,6 +47,7 @@ static_assert(!type_traits::is_wrapper_compatible_with_member_pointer<decltype(s
 static_assert(type_traits::is_wrapper_compatible_with_member_pointer<decltype(valueConversion), int Class::*>::value, "checking ValueConversion");
 static_assert(type_traits::is_wrapper_compatible_with_member_pointer<decltype(referenceConversion), int Class::*>::value, "checking ReferenceConversion");
 static_assert(type_traits::is_wrapper_compatible_with_member_pointer<decltype(mixed), int Class::*>::value, "checking Mixed");
+static_assert(type_traits::is_wrapper_compatible_with_member_pointer<decltype(constMixed), int Class::*>::value, "checking ConstMixed");
 
 int main()
 {}

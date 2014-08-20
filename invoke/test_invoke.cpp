@@ -12,6 +12,7 @@ Pointer smartPointer;
 ValueConversion valueConversion;
 ReferenceConversion referenceConversion;
 Mixed mixed;
+ConstMixed constMixed;
 
 int main()
 {
@@ -26,20 +27,18 @@ int main()
   invoke(&Class::normal, valueConversion);
   invoke(&Class::normal, referenceConversion);
   invoke(&Class::normal, mixed);
+  //invoke(&Class::normal, constMixed);
  
-  /* Wont work on gcc 4.8.1 and clang 3.2 because of bug with in implementation
-     of is_member_function_pointer for ref qualified methods.
-     See: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57388
-          http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57825
   //invoke(&Class::reference, Class{});
   //invoke(&Class::reference, base);
   invoke(&Class::reference, clazz);
   invoke(&Class::reference, derived);
   invoke(&Class::reference, rawPointer);
   invoke(&Class::reference, smartPointer);
-  invoke(&Class::reference, valueConversion);
+  //invoke(&Class::reference, valueConversion);
   invoke(&Class::reference, referenceConversion);
-  invoke(&Class::reference, mixed);*/
+  invoke(&Class::reference, mixed);
+  //invoke(&Class::reference, constMixed);
 
   invoke(&Class::member, Class{});
   //invoke(&Class::member, base);
@@ -50,6 +49,7 @@ int main()
   invoke(&Class::member, valueConversion);
   invoke(&Class::member, referenceConversion);
   invoke(&Class::member, mixed);
+  //invoke(&Class::member, constMixed);
 
   invoke([](int) {}, 1);
 }

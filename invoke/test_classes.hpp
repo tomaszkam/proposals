@@ -40,8 +40,17 @@ namespace test_classes
     Class clazz;
 
     Class& operator*() { return clazz; }
-    operator Class() { throw std::logic_error("ReferenceConversion operator invoked for type with operator*"); }
+    operator Class() { throw std::logic_error("Conversion operator invoked for type with operator*"); }
   };
+
+  struct ConstMixed
+  {
+    Class clazz;
+
+    Class const& operator*() { return clazz; }
+    operator Class&() { throw std::logic_error("Conversion operator invoked for type with operator*"); }
+  };
+
 }
 
 #endif //TEST_CLASSES_HPP
