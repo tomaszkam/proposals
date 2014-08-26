@@ -87,7 +87,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>The aim of this proposal is to introduce the function template <code>invoke</code> that provide uniform sementics for invoking all C++
+<p>The aim of this proposal is to introduce the function template <code>invoke</code> that provide uniform semantics for invoking all C++
 callable types which includes: function pointers, member pointers and functors. 
 The behaviour of the function is defined in terms of <code><em>INVOKE</em></code> expression.</p>
 
@@ -109,10 +109,11 @@ can be directly used with <code>std::function</code> or <code>std::bind</code>, 
 <code>std::mem_fun_ref</code> or <code>std::mem_fn</code>. This uniform support was achieved by introduction of <code><em>INVOKE</em></code>
 expression.</p>
 
-<p>On the other side, there is no standard function, that will provide uniform syntax for calling any callable object with given arguments,
-so when generic component is developed, the programmer has two options: implement separate handling for member pointers (using <code>std::mem_fn</code>)
-or support only function types. Because of additional implementation burden required the second approach is chosen, most notable example
-includes <code>apply</code> function from <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4082.pdf">Library Fundamentals TS</a>.</p>
+<p>On the other side, there is no standard component, that will provide uniform syntax for calling any callable object with given arguments,
+so when generic component is developed, the programmer has two options: implement separate handling for member pointers (auto boxing with
+<code>std::mem_fn</code>) or support only function types. Because of additional implementation burden and relatively small popularity
+of this feature the second approach is preferred. Most notably the <code>apply</code> function from <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4082.pdf">Library Fundamentals TS</a>
+lacks of support for member pointers.</p>
 
 <h3><a name="motivation.deref-example">Simple call wrapper example</a></h3>
 
@@ -162,6 +163,13 @@ function template and replacing all existing references to the <code><em>INVOKE<
 <p>The approach described above is not used in this proposal, primarily to give implementation freedom to the standard library providers (e.g., 
 whether <code>invoke</code> should be defined in terms of <code>mem_fn</code> or vice versa). In addition such approach will require changes in existing 
 implementations of standard function objects, without providing any real benefit from the library user perspective.</p> 
+
+<h3><a name="design.explicit_return">Overload with explicit return type</a></h3>
+
+<p>First revision of the paper definied second overload of the proposed function (<code>invoke&lt;R&gt;(args...)</code>), mapped to <code><em>INVOKE</em></code> 
+expression with explicit specification of return type (<code><em>INVOKE</em>(args..., R)</code>). Mentioned version is leftover from TR1 implementation,
+were result type was determined using <code>result_of</code> protocol or has to be specified at call side and, after the introduction of type interference
+in C++11, it becomes obsolete.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
