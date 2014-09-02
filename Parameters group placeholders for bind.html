@@ -183,6 +183,12 @@ namespace placeholders {
   template&lt;int N&gt;
   <em>unspecified</em> _from;
 
+  template&lt;int N&gt;
+  <em>unspecified</em> _to;
+
+  template&lt;int B, int E&gt;
+  <em>unspecified</em> _between;
+
   extern <em>unspecified</em> _all;</ins>
 }
 </pre>
@@ -193,7 +199,8 @@ namespace placeholders {
 <blockquote class="std">
   <dl class="attribute">
 
-    <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <ins><code>_all</code>, <code>_from&lt;N&gt;</code>, <code>_at&lt;N&gt;</code>,</ins> <code>_1</code>, <code>_2</code>, and so on.
+    <dd><p><code>is_placeholder</code> can be used to detect the standard placeholders <ins><code>_all</code>, <code>_between&lt;B, E&gt;</code>, <code>_to&lt;N&gt;</code>, 
+           <code>_from&lt;N&gt;</code>, <code>_at&lt;N&gt;</code>,</ins> <code>_1</code>, <code>_2</code>, and so on.
            <code>bind</code> uses <code>is_placeholder</code> to detect placeholders.</p></dd>
 
     <dd><p>Instantiations of the <code>is_placeholder</code> template shall meet the UnaryTypeTrait requirements (20.11.1).
@@ -203,6 +210,8 @@ namespace placeholders {
         </p><ins><ul>
            <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_all</code>,</li>
            <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_from&lt;N&gt;</code> and <code>N &gt; 0</code>,</li>
+           <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_to&lt;N&gt;</code> and <code>N &gt; 0</code>,</li>
+           <li><code>integral_constant&lt;int, 1&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_between&lt;B, E&gt;</code> and <code>B &gt; 0</code> and <code>E &gt;= B</code>,</li>
            <li><code>integral_constant&lt;int, J&gt;</code> if <code>T</code> is the type of <code>std::placeholders::_at&lt;J&gt;</code> or <code>std::placeholders::_J</code>,</li>
            <li><code>integral_constant&lt;int, 0&gt;</code> otherwise.</li>
         </ul></ins>
@@ -232,6 +241,14 @@ namespace std {
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N == 0</code>,</li>
       <li><code>integer_sequence&lt;int, 1, 2, ..., N&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N &gt; 0</code>,</li>
+      <li><code>integer_sequence&lt;int&gt;</code>
+          if <code>T</code> is the type of <code>std::placeholders::_between&lt;B,B&gt;</code> and <code>N &gt;= B-1</code>,</li>
+      <li><code>integer_sequence&lt;int, B, B+1, ..., E-1&gt;</code>
+           if <code>T</code> is the type of <code>std::placeholders::_between&lt;B,E&gt;</code> and <code>B &lt; E</code> and <code>N &gt;= E-1</code>,</li>
+      <li><code>integer_sequence&lt;int&gt;</code>
+          if <code>T</code> is the type of <code>std::placeholders::_to&lt;1&gt;</code> and <code>N == 0</code>,</li>
+      <li><code>integer_sequence&lt;int, 1, 2, ..., K-1&gt;</code>
+          if <code>T</code> is the type of <code>std::placeholders::_to&lt;K&gt;</code> and <code>N &gt;= K-1</code>,</li>
       <li><code>integer_sequence&lt;int&gt;</code>
           if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N == K-1</code>,</li>
       <li><code>integer_sequence&lt;int, K, K+1, ..., N&gt;</code>
@@ -375,6 +392,12 @@ namespace placeholders {
   template&lt;int N&gt;
   <em>unspecified</em> _from;
 
+  template&lt;int N&gt;
+  <em>unspecified</em> _to;
+
+  template&lt;int B, int E&gt;
+  <em>unspecified</em> _between;
+
   extern <em>unspecified</em> _all;</ins>
 }
 </pre>
@@ -386,7 +409,9 @@ namespace placeholders {
            It is implementation-defined whether placeholder types are <code>CopyAssignable</code>.
            <code>CopyAssignable</code> placeholders’ copy assignment operators shall not throw exceptions.</p></dd>
 
-           <dd><p><ins>A program that necessitates the instantiation of <code>_from&lt;N&gt;</code> or <code>_at&lt;N&gt;</code> with <code>N &lt;= 0</code> is ill-formed.</ins></p></dd>
+           <dd><p><ins>A program that necessitates the instantiation of <code>_at&lt;N&gt;</code>, <code>_from&lt;N&gt;</code> or <code>_to&lt;N&gt;</code> with <code>N &lt;= 0</code> is ill-formed.</ins></p></dd>
+           
+           <dd><p><ins>A program that necessitates the instantiation of <code>_betweem&lt;B, E&gt;</code> with <code>B &lt;= 0</code> or <code>E &lt;= 0</code> or <code>B &gt; E</code> is ill-formed.</ins></p></dd>
 
   </dl>
 
