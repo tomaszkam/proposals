@@ -520,27 +520,41 @@ and they still may occur if some handler with shallow copy semantics is captured
 <p>The above reasoning leads us to conclusion that when lambda is passed outside current context (either when passing it to other thread, or when returning
 it from a function) it is safer to explicitly specify the variables that should be captured. For example, given the following definitions:</p>
 
-<pre>struct Widget { void process(std::string) const; };
-std::unqiue_ptr&lt;Widget&gt; createConcreteWidget();
-std::vector&lt;std::string&gt; vs;</pre>
+<pre>struct Widget { void process(std::string&amp;) const };
+struct WidgetFactory { std::unqiue_ptr&lt;Widget&gt; create() };
 
-<p>We want to create a callback that will process the first element of the vector using the given callback. Our first attempt would be to write:</p>
-<pre>[&amp;vs] { createConcreteWidget()-&gt;process(vs[0]); }</pre>
+void process_in_parallel(std::vectorr&lt;std::string&gt& vs,
+                         WidgetFactory factory)
+{
+  std::vector&lt;std::future&lt;void&gt;&gt; results;
+  for (std::size_t i = 0; i &lt; vs.size(); ++i)
+    results.emplace_back(std::async(<em>some_callback</em>));
+  for (std::future&lt;void&gt;& fut : results)
+    fut.get();
+};</pre>
 
-<p>We have accidentally postponed creation of <code>Widget</code> until the point when lambda is invoked and if the lambda
-is passed outside current context and loss control of the point of it creation. To fix above problem we try to create widget
-and capture it from local context:</p> 
-<pre>auto widget = createConcreteWidget();
-[&amp;vs, widget] { widget-&gt;process(vs[0]); }</pre>
+<p>We want to create a callback <code><em>some_callback</em></code> that will process given element with concrete wdget. 
+Our first attempt would be:</p>
+<pre>[&amp;vs, &factory, i] { factory.create()-&gt;process(vs[i]); }</pre>
+
+<p>We have accidentally postponed creation of <code>Widget</code> until the point when lambda is invoked and thus causes
+concurrent invocation of <code>factory</code> method, which would create data race. To fix above problem we try to create widget
+and capture it from local context:</p>
+<pre>
+for (std::size_t i = 0; i &lt; vs.size(); ++i)
+{
+  auto widget = createConcreteWidget();
+  results.emplace_back(std::async([&amp;vs, widget, i] { widget-&gt;process(vs[i]); }));
+}</pre>
 
 <p>Above code will not compile because we want to copy a move-only type <code>std::unique_ptr&lt;Widget&gt;</code>. 
-In addition find that we are capturing whole vector <code>vs</code>, although we are using only one of the element. 
+In addition find that we are capturing whole vector <code>vs</code>, although we can use one element in single thread.
 Both of this issues may be fixed using a C++14 extended lambda capture syntax:</p>
-<pre>[&amp;elem = vs.front(), widget = createConcreteWidget()] { widget-&gt;process(elem); }</pre>
+<pre>[&amp;elem = vs[i], widget = factory.create()] { widget-&gt;process(elem); }</pre>
 
 <p>Our task can be reduced to binding two parameters to a function and standard already provides a component designed
 for such purpose, named <code>std::bind</code>:</p>
-<pre>std::bind(&amp;Widget::process, createConcreteWidget(), std::ref(vs.front()))</pre>
+<pre>std::bind(&amp;Widget::process, factory.create(), std::ref(vs[i]))</pre>
 
 <p>In connection to a problem with a <code>Widget</code> creation, it is worth noticing that sometimes it is recommend
 to capture some precomputed values in lambda. Lets return we want to find a <code>Employee</code> with given first and
