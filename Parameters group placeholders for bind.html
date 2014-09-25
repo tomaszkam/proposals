@@ -93,6 +93,9 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
+<p>Before going thought this chapter the author recommends reader to familiarize with 
+<a href="#appendix.bind_vs_lambda">Appendix: Why we need bind when we have a generic lambda?</a>.</p>
+
 <p>TODO: proposal from M. Semenov, motivation for _from bind(f, _2, _1, _from&lt;3&gt;), </p>
 
 <h2><a name="design">Design Decisions</a></h2>
@@ -411,7 +414,7 @@ namespace placeholders {
 
            <dd><p><ins>A program that necessitates the instantiation of <code>_at&lt;N&gt;</code>, <code>_from&lt;N&gt;</code> or <code>_to&lt;N&gt;</code> with <code>N &lt;= 0</code> is ill-formed.</ins></p></dd>
            
-           <dd><p><ins>A program that necessitates the instantiation of <code>_betweem&lt;B, E&gt;</code> with <code>B &lt;= 0</code> or <code>E &lt;= 0</code> or <code>B &gt; E</code> is ill-formed.</ins></p></dd>
+           <dd><p><ins>A program that necessitates the instantiation of <code>_between&lt;B, E&gt;</code> with <code>B &lt;= 0</code> or <code>E &lt;= 0</code> or <code>B &gt; E</code> is ill-formed.</ins></p></dd>
 
   </dl>
 
@@ -427,6 +430,92 @@ namespace placeholders {
 <p>Jonathan Wakely originally proposed idea of multi parameter placeholders in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/#!msg/std-proposals/CxpGVY1APcs/_RYAajMGhcUJ">ISO C++ Standard - Future Proposals</a>.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
+
+<h2><a name="appendix.bind_vs_lambda">Appendix: Why we need bind when we have a generic lambda?</a></h2>
+
+<p>After introduction of generic lambda and extensions to the capture, some of the C++ community presented opinion
+that <code>std::bind</code> is no longer necessary and should not be longer recommend or even become deprecated.
+To validate such statement, we would need to prove that the lambda is as good as bind in every context, but to 
+show that <code>bind</code> is still useful, we need to point out range of usage, when it behaves better.</p> 
+
+<p>The author want to emphasise that the aim of this section is to present situation when <code>std::bind</code> leds
+to more readable and less error prone code than a lambda. All examples presented this section do not aim to prove that bind
+should be used instead of lambda in every context.</p>
+
+<h3><a name="appendix.bind_vs_lambda.return">Specifying return type</a></h3>
+
+<p>Default return type deduction for a lambda will preform return by value, which is optimal approach
+is build-in is retruned, for example if we use lambda to write a predicate (function returning <code>bool</code>)
+for STL algorithms, but it introduces performance overhead if return by reference should be used.</p>
+
+<p>Lets assume that we want to write to transform a vector of <code>Employee</code> (<code>ve</code>) in to a vector
+of full names.</p>
+<pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
+               [](const Employee&amp; e) { return e.full_name(); });</pre>
+<p>If the <code>full_name</code> function returns a <code>const std::string&amp;</code>, then above code will led to
+two copies of the string being created for every element: one to return a value from the lambda and second to initialize
+element in the vector (no move constructor will be used, because return type for a lambda preserve constness,
+so <code>const std::string</code> will be deduced in this situation). To avoid above problems we may specify the return
+type for a lambda.</p>
+<pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
+               [](const Employee&amp; e) -> const auto&amp; { return e.full_name(); });</pre>
+<p>Should approach will fix above problems, but if the function <code>full_name</code> would be changed to
+return by value, then above code will cause dangling reference problem, but to avoid such problems we may use
+the <code>decltype(auto)</code> deduction:
+<pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
+               [](const Employee&amp; e) -> decltype(auto) { return e.full_name(); });</pre>
+
+<p>I we attempt to repeat the same exercise using standard function wrappers, none of above problems will be present and
+in addition it will benefit from single syntax for handling method pointers and member pointers.<p>
+<pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
+               std::mem_fn(&amp;Employee::full_name));</pre>
+
+<h3><a name="appendix.bind_vs_lambda.capturing">Capturing variables</a></h3>
+
+<p>In most common case when the closure does not outlive the context in which it was created and is invoked in the same
+thread of the execution, like when it is passed to STL algorithm, it is safe and optimal to use capture all be reference
+(<code>[&amp;]</code>) semantics.
+For the situation when we want to pass closure, probably wrapped into <code>std::function</code>, outside the current context,
+then it is save to use capture all by value (<code>[=]</code>), if we assume that we do not use any unmanaged pointer inside
+it, but if we want to pass our function to other thread of execution we need to be sure that will are not causing data races,
+data my occur is some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
+
+<p>Above reasoning led us to conclusion that when lambda is passed outside current context (to other thread of by retruning
+it) it is safer to explicit my specify the variables that should be captured. For example, given bellow definitions:</p>
+<pre>struct Widget { void process(std::string&gt;) const; };
+std::unqiue_ptr&lt;Widget&gt; createConcreteWidget();
+std::vectorlt&;tstd::string&gt; vs;</pre>
+
+<p>We want to create callback that will process first element of the vector using given callback. Our first attempt would be to write:</p>
+<pre>[&amp;vs] { createConcreteWidget()-&gt;process(vs[0]); }</pre>
+
+<p>We have additionally postponed creation of <code>Widget</code> until the point when lambda is invoked and if the lambda
+is passed outside current context, we loss control of the point of widget creation. To fix above problem we try to create widget
+and capture it from local context:</p> 
+<pre>auto widget = createConcreteWidget();
+[&amp;vs, widget] { widget-&gt;process(vs[0]); }</pre>
+
+<p>Above code will not compile because we want to copy a move-only type <code>std::unique_ptr&lt;Widget&gt;</code>. 
+In addition find that we are capturing whole vector <code>vs</code>, although we are using only one of the element. 
+Both of this issues may be fixed using a C++14 extended lambda capture syntax:</p>
+<pre>[&amp;elem = vs.front(), widget = createConcreteWidget()] { widget-&gt;process(elem); }</pre>
+
+<p>Our task can be reduced to binding two parameters to a function and standard already provides a component designed
+for such purpose, named <code>std::bind</code>:</p>
+<pre>std::bind(&amp;Widget::process, createConcreteWidget(), std::ref(vs.front()))</pre>
+
+<p>In connection to a problem with a <code>Widget</code> creation, it is worth noticing that sometimes it is recommend
+to capture some precomputed values in lambda. Lets return we want to find a <code>Employee</code> with given first and
+last name:</p>
+<pre>std::find_if(std::begin(ve), std::end(ve), [](const auto&amp; e) { return e.full_name() == first + ' ' + last; });</pre>
+
+<p>This innocent looking code has a performance issue inside it: the string <code>first + ' ' + last</code> is constant for every element,
+but new instance is create for every iterator. To avoid such problems we should capture such value:</p>
+<pre>std::find_if(std::begin(ve), std::end(ve), [name = first + " " + last](const auto&amp; e) { return e.full_name() == name; });</pre>
+
+<p>Although use of <code>std::bind</code> will eliminate the problem, the author would recommend use of lambda is such case, because
+use of nested <code>std::bind</code> is necessary in this situation:</p>
+<pre>std::find_if(std::begin(ve), std::end(ve), std::bind(std::equal_to&lt;&gt;, std::bind(&amp;Employee::full_name, _1), first + ' ' + last));</pre>
 
 <h2><a name="literature">References</a></h2>
 
