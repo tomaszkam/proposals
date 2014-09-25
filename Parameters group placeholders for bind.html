@@ -493,12 +493,12 @@ code would be equivalent to:</p>
 <pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&amp;&amp;&gt;(t)); }</pre>
 <p>Instead of:</p>
 <pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&gt;(t)); }</pre>
-<p>We could make this equivalent by use <code>std::remove_rvalue_reference_t&lt;decltype(auto)&gt;</code>, but the
-definition of <code>std::forward</code> allredy makes above equivalent. So finally we get:</code>
+<p>We could make this equivalent by use of <code>std::remove_rvalue_reference_t&lt;decltype(auto)&gt;</code>,
+but according definition of <code>std::forward</code> behaviour is same in both cases. So finally we get:</code>
 <pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;decltype(auto)&gt;(val), 3); }</pre>
 
 <p>The <code>std::bind</code> creates functors that perfectly forwards all unbounded parameters, so we can equivalently use:</p>
-<pre>std:bind(&amp;concat_serveral_times, 1, 3)</pre>
+<pre>std:bind(&amp;concat_serveral_times, _1, 3)</pre>
 
 <h3><a name="appendix.bind_vs_lambda.capturing">Capturing variables</a></h3>
 
