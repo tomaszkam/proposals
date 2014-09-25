@@ -249,7 +249,7 @@ namespace std {
       <li><code>integer_sequence&lt;int, B, B+1, ..., E-1&gt;</code>
            if <code>T</code> is the type of <code>std::placeholders::_between&lt;B,E&gt;</code> and <code>B &lt; E</code> and <code>N &gt;= E-1</code>,</li>
       <li><code>integer_sequence&lt;int&gt;</code>
-          if <code>T</code> is the type of <code>std::placeholders::_to&lt;1&gt;</code> and <code>N == 0</code>,</li>
+          if <code>T</code> is the type of <code>std::placeholders::_to&lt;1&gt;</code> and <code>N &gt;= 0</code>,</li>
       <li><code>integer_sequence&lt;int, 1, 2, ..., K-1&gt;</code>
           if <code>T</code> is the type of <code>std::placeholders::_to&lt;K&gt;</code> and <code>N &gt;= K-1</code>,</li>
       <li><code>integer_sequence&lt;int&gt;</code>
@@ -523,8 +523,7 @@ it from a function) it is safer to explicitly specify the variables that should 
 <pre>struct Widget { void process(std::string&amp;) const };
 struct WidgetFactory { std::unqiue_ptr&lt;Widget&gt; create() };
 
-void process_in_parallel(std::vectorr&lt;std::string&gt& vs,
-                         WidgetFactory factory)
+void process_in_parallel(std::vectorr&lt;std::string&gt& vs, WidgetFactory&amp; factory)
 {
   std::vector&lt;std::future&lt;void&gt;&gt; results;
   for (std::size_t i = 0; i &lt; vs.size(); ++i)
