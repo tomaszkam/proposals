@@ -446,7 +446,7 @@ should be used instead of lambda in every context.</p>
 
 <p>Default return type deduction for a lambda will preform return by value, which is optimal approach
 is build-in is retruned, for example if we use lambda to write a predicate (function returning <code>bool</code>)
-for STL algorithms, but it introduces performance overhead if return by reference should be used.</p>
+for STL algorithms, but it introduces performance overhead if return by reference would be preffered.</p>
 
 <p>Lets assume that we want to write to transform a vector of <code>Employee</code> (<code>ve</code>) in to a vector
 of full names.</p>
@@ -459,7 +459,7 @@ so <code>const std::string</code> will be deduced in this situation). To avoid a
 type for a lambda.</p>
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                [](const Employee&amp; e) -> const auto&amp; { return e.full_name(); });</pre>
-<p>Should approach will fix above problems, but if the function <code>full_name</code> would be changed to
+<p>This approach will fix above problems, but if the function <code>full_name</code> would be changed to
 return by value, then above code will cause dangling reference problem, but to avoid such problems we may use
 the <code>decltype(auto)</code> deduction:
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
@@ -470,6 +470,36 @@ in addition it will benefit from single syntax for handling method pointers and 
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                std::mem_fn(&amp;Employee::full_name));</pre>
 
+<h3><a name="appendix.bind_vs_lambda.arguments">Passing arguments</a></h3>
+
+<p>One of the decision that programmer must take when writing a lambda (and any other functions) is to decide how to 
+pass arguments to it. If we write a comparator or predicate that only checks state of the object, then we can use
+<code>const auto&amp;</code>. The problem becomes less obvious if we want to write a wrapper to a function that 
+accepts arguments by value, for example:</p>
+<pre>std::string concat_several_times(std::string val, std::size_t n);</pre>
+
+<p>We want to create a function that will concatenate given string 3 times. Lets begin with:</p>
+<pre>[](std::string val) { return concat_serveral_times(std::move(val), 3); }</pre>
+
+<p>Above solution will create a temporary <code>std::string</code> every time the lambda is invoked, even if the c-string
+is passed to the function. Also we will always have a second temporary being created from a rvalue reference.
+In case of the <code>std::string</code> this will end up with cheap move-construction, but my introduce additional copy
+for legacy classes that define only custom copy-construction. To avoid these problems will will use perfect forwarding to
+pass a parameter.</p>
+<pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;??&gt;(val), 3); }</pre>
+
+<p>What type should we use in <code>std::forward&lt;??&gt;</code>? If we use <code>decltype(auto)</code> then above
+code would be equivalent to:</p>
+<pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&amp;&amp;&gt;(t)); }</pre>
+<p>Instead of:</p>
+<pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&gt;(t)); }</pre>
+<p>We could make this equivalent by use <code>std::remove_rvalue_reference_t&lt;decltype(auto)&gt;</code>, but the
+definition of <code>std::forward</code> allredy makes above equivalent. So finally we get:</code>
+<pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;decltype(auto)&gt;(val), 3); }</pre>
+
+<p>The <code>std::bind</code> creates functors that perfectly forwards all unbounded parameters, so we can equivalently use:</p>
+<pre>std:bind(&amp;concat_serveral_times, 1, 3)</pre>
+
 <h3><a name="appendix.bind_vs_lambda.capturing">Capturing variables</a></h3>
 
 <p>In most common case when the closure does not outlive the context in which it was created and is invoked in the same
@@ -478,10 +508,10 @@ thread of the execution, like when it is passed to STL algorithm, it is safe and
 For the situation when we want to pass closure, probably wrapped into <code>std::function</code>, outside the current context,
 then it is save to use capture all by value (<code>[=]</code>), if we assume that we do not use any unmanaged pointer inside
 it, but if we want to pass our function to other thread of execution we need to be sure that will are not causing data races,
-data my occur is some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
+and they still may occur is some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
 
-<p>Above reasoning led us to conclusion that when lambda is passed outside current context (to other thread of by retruning
-it) it is safer to explicit my specify the variables that should be captured. For example, given bellow definitions:</p>
+<p>Above reasoning laed us to conclusion that when lambda is passed outside current context (to other thread of by retruning
+it) it is safer to explicitly specify the variables that should be captured. For example, given bellow definitions:</p>
 <pre>struct Widget { void process(std::string&gt;) const; };
 std::unqiue_ptr&lt;Widget&gt; createConcreteWidget();
 std::vectorlt&;tstd::string&gt; vs;</pre>
@@ -489,8 +519,8 @@ std::vectorlt&;tstd::string&gt; vs;</pre>
 <p>We want to create callback that will process first element of the vector using given callback. Our first attempt would be to write:</p>
 <pre>[&amp;vs] { createConcreteWidget()-&gt;process(vs[0]); }</pre>
 
-<p>We have additionally postponed creation of <code>Widget</code> until the point when lambda is invoked and if the lambda
-is passed outside current context, we loss control of the point of widget creation. To fix above problem we try to create widget
+<p>We have accidentally postponed creation of <code>Widget</code> until the point when lambda is invoked and if the lambda
+is passed outside current context and loss control of the point of it creation. To fix above problem we try to create widget
 and capture it from local context:</p> 
 <pre>auto widget = createConcreteWidget();
 [&amp;vs, widget] { widget-&gt;process(vs[0]); }</pre>
@@ -510,12 +540,30 @@ last name:</p>
 <pre>std::find_if(std::begin(ve), std::end(ve), [](const auto&amp; e) { return e.full_name() == first + ' ' + last; });</pre>
 
 <p>This innocent looking code has a performance issue inside it: the string <code>first + ' ' + last</code> is constant for every element,
-but new instance is create for every iterator. To avoid such problems we should capture such value:</p>
+but new instance is created in every iteration. To avoid such problems we should capture such value:</p>
 <pre>std::find_if(std::begin(ve), std::end(ve), [name = first + " " + last](const auto&amp; e) { return e.full_name() == name; });</pre>
 
 <p>Although use of <code>std::bind</code> will eliminate the problem, the author would recommend use of lambda is such case, because
-use of nested <code>std::bind</code> is necessary in this situation:</p>
+nested <code>std::bind</code> is necessary in this situation:</p>
 <pre>std::find_if(std::begin(ve), std::end(ve), std::bind(std::equal_to&lt;&gt;, std::bind(&amp;Employee::full_name, _1), first + ' ' + last));</pre>
+
+<h3><a name="appendix.bind_vs_lambda.summary">Summary</a></h3>
+
+<p>The original aim of the lambda functions was to simplify writing of ad-hoc functors to use with STL algorithm and it design makes 
+writing such predicates simple and efficient. In the consequence of such design, lambda is not efficient when used to write a function wrappers.
+For example let us compare the following simple bind expression and it lambda equivalent:</p>
+<pre>std::bind(&amp;foo, _1, expr, ref(a));
+[e = expr, &amp;a] (auto&amp;&amp; arg) -&gt; decltype(auto) { return foo(std::forward&lt;decltype(arg)&gt;(arg), e, a); };</pre>
+
+<p>The use of <code>std::bind</code> to write a simple function wrappers allow to programmer to allow avoid running into correctness and performance
+problems described in the section. This can be directly compared to decision between use of STL algorithms and writin raw loop that performs the same
+task: both of the solution are feasible, but using a standard library is a lot easier. In the same way we should recommend using a library components
+designed to bind arguments instead of customer functors (including lambdas).</p>
+
+<p>Of course the <code>std::bind</code> has it limits, and should be used only for a simple task of binding constant values to a specific set of
+function arguments. If we want to create a function that contains composition of the two functions or more complex expression we should use a lambda
+or even write a separate function if the expression is large enough. In addition if we want to use <code>std::bind</code> with overloaded function 
+name we need resolve ambiguity at the point of invocation of <code>std::bind</code> and casting to appropriate function pointer is required.</p>
 
 <h2><a name="literature">References</a></h2>
 
