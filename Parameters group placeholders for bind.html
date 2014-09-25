@@ -433,90 +433,98 @@ namespace placeholders {
 
 <h2><a name="appendix.bind_vs_lambda">Appendix: Why we need bind when we have a generic lambda?</a></h2>
 
-<p>After introduction of generic lambda and extensions to the capture, some of the C++ community presented opinion
-that <code>std::bind</code> is no longer necessary and should not be longer recommend or even become deprecated.
-To validate such statement, we would need to prove that the lambda is as good as bind in every context, but to 
-show that <code>bind</code> is still useful, we need to point out range of usage, when it behaves better.</p> 
+<p>After the introduction of generic lambda and extensions to lambda capture, a portion of the C++ community expresses an opinion
+that <code>std::bind</code> is no longer necessary and should no longer be recommend and even become deprecated.
+The author disagrees with this opinion, and in support of his position, a number of use cases is discussed here
+that illustrate the superiority of <code>std::bind</code> over lambdas.</p>
 
-<p>The author want to emphasise that the aim of this section is to present situation when <code>std::bind</code> leds
-to more readable and less error prone code than a lambda. All examples presented this section do not aim to prove that bind
+<p>The author wants to emphasise that the aim of this section is to demonstrate situations where <code>std::bind</code> leads
+to more readable and less error prone code than lambdas. It is <em>not</em> to prove that <code>bind</code>
 should be used instead of lambda in every context.</p>
 
 <h3><a name="appendix.bind_vs_lambda.return">Specifying return type</a></h3>
 
-<p>Default return type deduction for a lambda will preform return by value, which is optimal approach
-is build-in is retruned, for example if we use lambda to write a predicate (function returning <code>bool</code>)
-for STL algorithms, but it introduces performance overhead if return by reference would be preffered.</p>
+<p>The default return type deduction for a lambda will preform return by value, which is an optimal approach
+when a build-in type is returned; for example when we use lambda to write a predicate (function returning <code>bool</code>)
+for STL algorithms; but it introduces performance overhead if returning by reference would be preferred.</p>
 
-<p>Lets assume that we want to write to transform a vector of <code>Employee</code> (<code>ve</code>) in to a vector
+<p>Let's assume that we want to transform a vector of <code>Employee</code> (<code>ve</code>) in to a vector
 of full names.</p>
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                [](const Employee&amp; e) { return e.full_name(); });</pre>
-<p>If the <code>full_name</code> function returns a <code>const std::string&amp;</code>, then above code will led to
+               
+<p>If the <code>full_name</code> function returns a <code>const std::string&amp;</code>, then above code will lead to
 two copies of the string being created for every element: one to return a value from the lambda and second to initialize
-element in the vector (no move constructor will be used, because return type for a lambda preserve constness,
-so <code>const std::string</code> will be deduced in this situation). To avoid above problems we may specify the return
+element in the vector (no move constructor will be used, because deduced return type in a lambda preserves const-ness,
+so <code>const std::string</code> will be deduced in this situation). To avoid the above problem we may specify the return
 type for a lambda.</p>
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                [](const Employee&amp; e) -> const auto&amp; { return e.full_name(); });</pre>
-<p>This approach will fix above problems, but if the function <code>full_name</code> would be changed to
-return by value, then above code will cause dangling reference problem, but to avoid such problems we may use
+               
+<p>This approach will fix above problems, but if the function <code>full_name</code> is changed to
+return by value, then the code will cause a dangling reference problem. But to avoid such problems we may use
 the <code>decltype(auto)</code> deduction:
+
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                [](const Employee&amp; e) -> decltype(auto) { return e.full_name(); });</pre>
 
-<p>I we attempt to repeat the same exercise using standard function wrappers, none of above problems will be present and
-in addition it will benefit from single syntax for handling method pointers and member pointers.<p>
+<p>If we attempt to repeat the same exercise using standard function wrappers, none of above problems will be present, and
+additionally it will benefit from a single syntax for handling method pointers and member pointers.<p>
+
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                std::mem_fn(&amp;Employee::full_name));</pre>
 
+               
 <h3><a name="appendix.bind_vs_lambda.arguments">Passing arguments</a></h3>
 
-<p>One of the decision that programmer must take when writing a lambda (and any other functions) is to decide how to 
-pass arguments to it. If we write a comparator or predicate that only checks state of the object, then we can use
-<code>const auto&amp;</code>. The problem becomes less obvious if we want to write a wrapper to a function that 
+<p>One of the decisions that programmer must make when writing a lambda (and any other functions) is to decide how to 
+pass arguments to it. If we write a comparator or a predicate that only checks the state of the object, then we can use
+<code>const auto&amp;</code>. The choice becomes less obvious if we want to write a wrapper around a function that 
 accepts arguments by value, for example:</p>
 <pre>std::string concat_several_times(std::string val, std::size_t n);</pre>
 
 <p>We want to create a function that will concatenate given string 3 times. Lets begin with:</p>
 <pre>[](std::string val) { return concat_serveral_times(std::move(val), 3); }</pre>
 
-<p>Above solution will create a temporary <code>std::string</code> every time the lambda is invoked, even if the c-string
-is passed to the function. Also we will always have a second temporary being created from a rvalue reference.
-In case of the <code>std::string</code> this will end up with cheap move-construction, but my introduce additional copy
-for legacy classes that define only custom copy-construction. To avoid these problems will will use perfect forwarding to
+<p>The above solution will create a temporary <code>std::string</code> every time the lambda is invoked, even if the C-style string
+is passed to the function. Also, we will always have a second temporary being created from the rvalue reference.
+In case of the <code>std::string</code> this will end up with cheap move-construction, but it may as well introduce additional copies
+for legacy classes that define only custom copy-construction. To avoid these problems we will use perfect forwarding to
 pass a parameter.</p>
+
 <pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;??&gt;(val), 3); }</pre>
 
-<p>What type should we use in <code>std::forward&lt;??&gt;</code>? If we use <code>decltype(auto)</code> then above
+<p>What type should we use in <code>std::forward&lt;??&gt;</code>? If we use <code>decltype(val)</code> then above
 code would be equivalent to:</p>
 <pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&amp;&amp;&gt;(t)); }</pre>
-<p>Instead of:</p>
+<p>Instead of the usual:</p>
 <pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&gt;(t)); }</pre>
-<p>We could make this equivalent by use of <code>std::remove_rvalue_reference_t&lt;decltype(auto)&gt;</code>,
-but according definition of <code>std::forward</code> behaviour is same in both cases. So finally we get:</code>
-<pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;decltype(auto)&gt;(val), 3); }</pre>
 
-<p>The <code>std::bind</code> creates functors that perfectly forwards all unbounded parameters, so we can equivalently use:</p>
+<p>Are you ok with this additional rvalue reference? We could get rid of it by using <code>std::remove_rvalue_reference_t&lt;decltype(val)&gt;</code>,
+but according definition of <code>std::forward</code>, the behaviour is same in both cases. So finally, we can safely stick to:</code>
+<pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;decltype(val)&gt;(val), 3); }</pre>
+
+<p>The <code>std::bind</code> creates functors that perfectly forwards all non-bound parameters, so we can equivalently use:</p>
 <pre>std:bind(&amp;concat_serveral_times, _1, 3)</pre>
 
 <h3><a name="appendix.bind_vs_lambda.capturing">Capturing variables</a></h3>
 
-<p>In most common case when the closure does not outlive the context in which it was created and is invoked in the same
-thread of the execution, like when it is passed to STL algorithm, it is safe and optimal to use capture all be reference
+<p>In most common cases, when the closure does not outlive the context in which it was created and is invoked in the same
+thread of the execution, like when it is passed to STL algorithm, it is safe and optimal to use "capture all be reference"
 (<code>[&amp;]</code>) semantics.
 For the situation when we want to pass closure, probably wrapped into <code>std::function</code>, outside the current context,
-then it is save to use capture all by value (<code>[=]</code>), if we assume that we do not use any unmanaged pointer inside
-it, but if we want to pass our function to other thread of execution we need to be sure that will are not causing data races,
-and they still may occur is some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
+then it is save to use "capture all by value" (<code>[=]</code>) &mdash; but only if we assume that we do not use any unmanaged pointer inside.
+But if we want to pass our function to other thread of execution we need to be sure that would not be causing any data races,
+and they still may occur if some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
 
-<p>Above reasoning laed us to conclusion that when lambda is passed outside current context (to other thread of by retruning
-it) it is safer to explicitly specify the variables that should be captured. For example, given bellow definitions:</p>
-<pre>struct Widget { void process(std::string&gt;) const; };
+<p>The above reasoning leads us to conclusion that when lambda is passed outside current context (either when passing it to other thread, or when returning
+it from a function) it is safer to explicitly specify the variables that should be captured. For example, given the following definitions:</p>
+
+<pre>struct Widget { void process(std::string) const; };
 std::unqiue_ptr&lt;Widget&gt; createConcreteWidget();
-std::vectorlt&;tstd::string&gt; vs;</pre>
+std::vector&lt;std::string&gt; vs;</pre>
 
-<p>We want to create callback that will process first element of the vector using given callback. Our first attempt would be to write:</p>
+<p>We want to create a callback that will process the first element of the vector using the given callback. Our first attempt would be to write:</p>
 <pre>[&amp;vs] { createConcreteWidget()-&gt;process(vs[0]); }</pre>
 
 <p>We have accidentally postponed creation of <code>Widget</code> until the point when lambda is invoked and if the lambda
