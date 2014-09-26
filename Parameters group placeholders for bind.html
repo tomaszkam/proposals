@@ -140,12 +140,12 @@ goal the previous responsibility of the <code>is_placeholder</code> is divided i
   To mark type as placeholder, the specialization <code>is_placeholder&lt;P&gt;</code> should be derived from <code>integral_constant&lt;int, K&gt;</code>,
   where <code>K &gt; 0</code>.</li>
 
-  <li><code>parameter_indexes</code> that is used to determine indices of call arguments that should be passed as replacement of the placeholder.
+  <li><code>parameter_indices</code> that is used to determine indices of call arguments that should be passed as replacement of the placeholder.
   This type traits accepts as a second argument the number of call arguments passed to functor.
   To signalize that arguments with indices <code>i1, i2, ..., iK</code> should be used instead of placeholder, the specialization of the
-  <code>parameter_indexes&lt;T, N&gt;</code> should be derived from <code>integer_sequence&lt;int, i1, i2, ..., iK&gt;</code>.</li>
+  <code>parameter_indices&lt;T, N&gt;</code> should be derived from <code>integer_sequence&lt;int, i1, i2, ..., iK&gt;</code>.</li>
 </ul>
-<p>To preserve backward compatibility with existing single argument placeholders the default implementation for <code>parameter_indexes&lt;P, N&gt;</code>
+<p>To preserve backward compatibility with existing single argument placeholders the default implementation for <code>parameter_indices&lt;P, N&gt;</code>
    for every placeholder type <code>P</code> is derived from <code>integer_sequence&lt;int, is_placeholder&lt;P&gt;::value&gt;</code>.</p>
 
 <p>Bellow example implementation of <code>_args</code> placeholder that accepts set of indices of arguments that should be forwarded is included:</p>
@@ -162,7 +162,7 @@ namespace std
     : integral_constant&lt;int, 1&gt; {}
 
   template&lt;int... Is, int N&gt;
-  struct parameter_indexes&lt;args_placeholder&lt;Is...&gt;, N&gt;
+  struct parameter_indices&lt;args_placeholder&lt;Is...&gt;, N&gt;
    : integer_sequence&lt;int, Is...&gt; {}
 }</pre>
 
@@ -209,7 +209,7 @@ being more elegant.</p>
    
 <h3><a name="design.int-index">Non-type template argument of type <code>int</code></a></h3>
 
-<p>The non-type template argument of <code>_from</code>, <code>parameter_indexes</code> has an <code>int</code> type, although they values
+<p>The non-type template argument of <code>_from</code>, <code>parameter_indices</code> has an <code>int</code> type, although they values
    are required to be non-negative. This design decision was made to keep them consistent with existing <code>is_placeholder</code>
    trait, that uses <code>int</code> to represent index of forwarder parameter.</p>
 
@@ -229,7 +229,7 @@ being more elegant.</p>
 // 20.10.9, <em>bind</em>:
 template&lt;class T&gt; struct is_bind_expression;
 template&lt;class T&gt; struct is_placeholder;
-<ins>template&lt;class T, int N&gt; struct parameter_indexes;</ins>
+<ins>template&lt;class T, int N&gt; struct parameter_indices;</ins>
 
 template&lt;class F, class... BoundArgs&gt;
   <em>unspecified</em> bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
@@ -292,18 +292,18 @@ namespace placeholders {
 <p>After paragraph 20.10.9.1.2 Class template <code>is_placeholder</code>, insert a new paragraph. (Paragraph 20.10.9.1.3 Function template <code>bind</code> [func.bind.bind] becomes 20.10.9.1.?)</p>
   
 <blockquote class="stdins"> 
-<h4>20.10.9.1.3 Class template <code>parameter_indexes</code> <span style="float:right">[func.bind.paramidx]</span></h4>
+<h4>20.10.9.1.3 Class template <code>parameter_indices</code> <span style="float:right">[func.bind.paramidx]</span></h4>
 
 <pre>
 namespace std {
-  template&lt;class T, int N&gt; struct parameter_indexes; // see below
+  template&lt;class T, int N&gt; struct parameter_indices; // see below
 }</pre>
 
   <dl class="attribute">
-    <dd><p><code>bind</code> uses <code>parameter_indexes</code> to determine indexes of parameters of the forwarding call wrapper
+    <dd><p><code>bind</code> uses <code>parameter_indices</code> to determine indices of parameters of the forwarding call wrapper
            to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
-    <dd><p>The implementation shall provide a definition of <code>parameter_indexes&lt;T, N&gt;</code> that is publicly and unambiguously derived from:
+    <dd><p>The implementation shall provide a definition of <code>parameter_indices&lt;T, N&gt;</code> that is publicly and unambiguously derived from:
     </p><ul>
       <li><code>integer_sequence&lt;int&gt;</code> 
           if <code>T</code> is the type of <code>std::placeholders::_all</code> and <code>N == 0</code>,</li>
@@ -327,12 +327,12 @@ namespace std {
           and <code>N &gt;= j</code>,</li>
     </ul><p></p></dd>
 
-    <dd><p>A program may specialize or partially specialize <code>parameter_indexes</code> template for a user-defined placeholder type to be publicly and 
+    <dd><p>A program may specialize or partially specialize <code>parameter_indices</code> template for a user-defined placeholder type to be publicly and 
            unambiguously derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
-           to indicate indexes of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
+           to indicate indices of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
-    <dd><p>A program is ill-formed if it necessitates the instantiation of <code>parameter_indexes&lt;T, N&gt;</code> that does not satisfy criteria of any of the bullets in paragraph 1
-           and does not match a specialization or a partial specialization of template <code>parameter_indexes</code> defined in the program.</p></dd>
+    <dd><p>A program is ill-formed if it necessitates the instantiation of <code>parameter_indices&lt;T, N&gt;</code> that does not satisfy criteria of any of the bullets in paragraph 1
+           and does not match a specialization or a partial specialization of template <code>parameter_indices</code> defined in the program.</p></dd>
 
   </dl>
 
@@ -430,7 +430,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
           <del>the argument is</del><ins>the pack contains single element with value</ins> <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
           <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&amp;&amp;...)&gt;::type&amp&amp</code>;</li>
       <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
-          <ins>and <code>parameter_indexes&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code></ins>,
+          <ins>and <code>parameter_indices&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code></ins>,
           <del>the argument is <code>std::forward&lt;Uj&gt;(uj)</code>  and its type <code>Vi</code> is <code>Uj&amp;&amp;</code></del>
           <ins>the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
           of types <code>Uj1&amp;&amp;, Uj2&amp;&amp;, ..., UjK&amp;&amp;</code> respectively</ins>;</li>
