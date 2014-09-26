@@ -96,7 +96,75 @@ td { text-align: left; vertical-align: top;
 <p>Before going thought this chapter the author recommends reader to familiarize with 
 <a href="#appendix.bind_vs_lambda">Appendix: Why we need bind when we have a generic lambda?</a>.</p>
 
-<p>TODO: proposal from M. Semenov, motivation for _from bind(f, _2, _1, _from&lt;3&gt;), </p>
+<p>In the scope of this proposal we introduce new type of parameter placeholder: group placeholders
+that are replaced by zero or more argument in invocation of stored functor.
+The meaning of single placeholder is independent from the context, so if given placeholder is used
+twice, appropriate set of values will be passed twice, reproducing existing behaviour.</p>
+
+<p>The following group placeholders are included in this paper:</p>
+<table>
+  <tr><th>placeholder</th>                      <th>range of arguments</th></tr>
+  <tr><td><code>_all</code></td>                <td>[1st, last]</td></tr>
+  <tr><td><code>_from&lt;N&gt;</code></td>      <td>[Nth, last]</td></tr>
+  <tr><td><code>_to&lt;N&gt;</code></td>        <td>[1st, Nth)</td></tr>
+  <tr><td><code>_between&lt;N, K&gt;</code></td><td>[Nth, Kth)</td></tr>
+</table>
+<p>To complement set of group placeholders, the variable template version of single argument placeholder named <code>_at&lt;N&gt;</code>
+is also introduced in this paper.</p>
+
+<p>TODO: proposal from M. Semenov</p>
+
+<h3><a name="motivation.argument-list-manipulation">Argument list manipulation</a></h3>
+
+<p>With the proposed set of the placeholders programmer is able to perform various manipulation on the argument list, 
+including, but not limited to:</p>
+<ul>
+  <li>insert new argument at Nth position: <code>bind(f{}, _to&lt;N&gt;, val, _from&lt;N&gt;)</code></li>
+  <li>replace Nth argument with given value: <code>bind(f{}, _to&lt;N&gt;, val, _from&lt;N+1&gt;)</code></li>
+  <li>change order of first and second parameters: <code>bind(f{}, _2, _1, _from&lt;3&gt;)</code></li>
+  <li>swap positions of Nth and Kth argument: <code>bind(f{}, _to&lt;N&gt;, _at&lt;K&gt;, _between&lt;N+1, K&gt;, _at&lt;N&gt;, _from&lt;K+1&gt;)</code></li>
+  <li>forward only first N argument: <code>bind(f{}, _to&lt;N&gt;)</code></li>
+  <li>drop first N parameters: <code>bind(f{}, _from&lt;N+1&gt;)</code></li>
+</ul>
+
+<h3><a name="motivation.custom-placeholder">Defining custom placeholders</a></h3>
+
+<p>Existing design of <code>std::bind</code> allows the programmer to specify own placeholder types via specialization of <code>is_placeholder</code> trait,
+which where used both to check if given type <code>P</code> represents placeholder (<code>is_placeholder&lt;P&gt;::value &gt; 0</code>) and to define index
+of call argument that will be passed as a replacement of the placeholder (<code>is_placeholder&lt;P&gt;::value</code>).</p>
+
+<p>Extension proposed in this paper, preserves this functionality, while also add ability to create user defined group placeholder type. To achieve this
+goal the previous responsibility of the <code>is_placeholder</code> is divided into two separate type function:</p>
+<ul>
+  <li><code>is_placeholder</code> that is used to determine if given type <code>P</code> represents a placeholder.
+  To mark type as placeholder, the specialization <code>is_placeholder&lt;P&gt;</code> should be derived from <code>integral_constant&lt;int, K&gt;</code>,
+  where <code>K &gt; 0</code>.</li>
+
+  <li><code>parameter_indexes</code> that is used to determine indices of call arguments that should be passed as replacement of the placeholder.
+  This type traits accepts as a second argument the number of call arguments passed to functor.
+  To signalize that arguments with indices <code>i1, i2, ..., iK</code> should be used instead of placeholder, the specialization of the
+  <code>parameter_indexes&lt;T, N&gt;</code> should be derived from <code>integer_sequence&lt;int, i1, i2, ..., iK&gt;</code>.</li>
+</ul>
+<p>To preserve backward compatibility with existing single argument placeholders the default implementation for <code>parameter_indexes&lt;P, N&gt;</code>
+   for every placeholder type <code>P</code> is derived from <code>integer_sequence&lt;int, is_placeholder&lt;P&gt;::value&gt;</code>.</p>
+
+<p>Bellow example implementation of <code>_args</code> placeholder that accepts set of indices of arguments that should be forwarded is included:</p>
+<pre>template&lt;int... Is&gt;
+struct args_placeholder {};
+
+template&lt;int... Is&gt;
+constexpr args_placeholder _args{};
+
+namespace std
+{
+  template&lt;int... Is&gt;
+  struct is_placeholder&lt;args_placeholder&lt;Is...&gt;&gt;
+    : integral_constant&lt;int, 1&gt; {}
+
+  template&lt;int... Is, int N&gt;
+  struct parameter_indexes&lt;args_placeholder&lt;Is...&gt;, N&gt;
+   : integer_sequence&lt;int, Is...&gt; {}
+}</pre>
 
 <h2><a name="design">Design Decisions</a></h2>
 
@@ -106,9 +174,6 @@ td { text-align: left; vertical-align: top;
 the programmer to compute positions of passed parameters at compile time, which is cumbersome in case of existing placeholders.
 In addition the author finds single definition of <code>_from</code>, instead list of <code>_1onwards, _2onwards, ..., _Nonwards</code>,
 being more elegant.</p>
-
-<p>To complement set of group placeholders, the variable template version of single argument placeholder named <code>_at&lt;N&gt;</code>
-is also introduced in this paper.</p>
 
 <h3><a name="design.names">Naming of placeholders</a></h3>
 
@@ -501,7 +566,7 @@ code would be equivalent to:</p>
 <pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&gt;(t)); }</pre>
 
 <p>Are you ok with this additional rvalue reference? We could get rid of it by using <code>std::remove_rvalue_reference_t&lt;decltype(val)&gt;</code>,
-but according definition of <code>std::forward</code>, the behaviour is same in both cases. So finally, we can safely stick to:</code>
+but according definition of <code>std::forward</code>, the behaviour is same in both cases. So finally, we can safely stick to:</p>
 <pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;decltype(val)&gt;(val), 3); }</pre>
 
 <p>The <code>std::bind</code> creates functors that perfectly forwards all non-bound parameters, so we can equivalently use:</p>
@@ -534,7 +599,7 @@ void process_in_parallel(std::vectorr&lt;std::string&gt& vs, WidgetFactory&amp; 
 
 <p>We want to create a callback <code><em>some_callback</em></code> that will process a given element with a concrete widget. 
 Our first attempt would be:</p>
-<pre>[&amp;vs, &factory, i] { factory.create()-&gt;process(vs[i]); }</pre>
+<pre>[&amp;vs, &amp;factory, i] { factory.create()-&gt;process(vs[i]); }</pre>
 
 <p>We have accidentally postponed the creation of <code>Widget</code> until the point when lambda is invoked, thus causing
 a concurrent invocation of <code>factory</code> method, which could cause a data race. To fix this we might try to create the widget
