@@ -112,7 +112,36 @@ twice, appropriate set of values will be passed twice, reproducing existing beha
 <p>To complement set of group placeholders, the variable template version of single argument placeholder named <code>_at&lt;N&gt;</code>
 is also introduced in this paper.</p>
 
-<p>TODO: proposal from M. Semenov</p>
+<h3><a name="motivation.mem_fn-reproduction">Binding object with member function</a></h3>
+
+<p>The most common use case for <code>_all</code> all placeholder is to bind a object to a member function,
+effectively emulating the result of expressions <code>obj.*ptr</code>.</p>
+
+<p>For example if we have following definitions:</p>
+<pre>struct Strategy { double process(std:string, std::string, double, double); };
+std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
+
+<p>We want to create a functor that will invoke process method on given strategy.</p>
+<pre>[s = createStrategy()] (auto&amp;&amp;... args) -&gt; decltype(auto) { return s-&gt;process(std::forward&lt;decltype(args))&gt;(args); }</pre>
+<pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
+
+<p>The lambda approach allow us to write a functor that will be immune to the changes in number of method parameters, 
+but it requires changes in return type and use of perfect forwarding to accomplish such simple task. 
+The solution that uses bind is pretty straight forward, but it requires changes every time the number of parameters
+to the method is changes. 
+The extension proposed in this paper allow us to avoid above problems by writing:</p>
+<pre>std::bind(&amp;Strategy::process, createStrategy(), _all)</pre>
+
+<p>The same problem was addressed by the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">N3702</a>
+paper by introduction of new version of <code>mem_fn</code> function:</p>
+<pre>std::mem_fn(&amp;Strategy::process, createStrategy())</pre>
+
+<p>Although solution presented in mentioned paper provides nice and concise syntax, it address only this specific use cases,
+and can be easily emulated with using <code>std::bind</code> with group placeholder:</p>
+<pre>template&lt;typename Class, typename Member, typename Object&gt;
+auto mem_fn(Member Class::* mem_ptr, Object&amp;&amp; obj)
+{ return std::bind(mem_ptr, std::forward&lt;Object&gt;(obj), _all); }
+</pre>
 
 <h3><a name="motivation.argument-list-manipulation">Argument list manipulation</a></h3>
 
@@ -148,7 +177,7 @@ goal the previous responsibility of the <code>is_placeholder</code> is divided i
 <p>To preserve backward compatibility with existing single argument placeholders the default implementation for <code>parameter_indices&lt;P, N&gt;</code>
    for every placeholder type <code>P</code> is derived from <code>integer_sequence&lt;int, is_placeholder&lt;P&gt;::value&gt;</code>.</p>
 
-<p>Bellow example implementation of <code>_args</code> placeholder that accepts set of indices of arguments that should be forwarded is included:</p>
+<p>Example implementation of <code>_args</code> placeholder that accepts set of indices of arguments that should be forwarded is included bellow:</p>
 <pre>template&lt;int... Is&gt;
 struct args_placeholder {};
 
@@ -658,7 +687,7 @@ if we want to use it with overloaded function name we need resolve the ambiguity
 <h2><a name="literature">References</a></h2>
 
 <ol>
-  <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
+yy  <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
   <li>Tomasz Kamiński, Implementation of bind function (<a href="https://github.com/tomaszkam/proposals/tree/master/bind">https://github.com/tomaszkam/proposals/tree/master/bind</a>)</li>
 </ol>
 
