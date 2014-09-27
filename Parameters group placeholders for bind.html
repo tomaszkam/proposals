@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2014-07-12</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2014-09-27</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
@@ -388,8 +388,7 @@ template&lt;class F, class... BoundArgs&gt;
            The effect of <code>g(u1, u2, ..., uM)</code> shall be 
            <del><code><em>INVOKE</em> (fd, std::forward&lt;V1&gt;(v1), std::forward&lt;V2&gt;(v2), ..., std::forward&lt;VN&gt;(vN), 
                                            result_of&lt;FD <em>cv</em> &amp; (V1, V2, ..., VN)&gt;::type)</code></del>
-           <ins><code><em>INVOKE</em> (fd, std::forward&lt;P1&gt;(p1)..., std::forward&lt;P2&gt;(p2)..., ..., std::forward&lt;PN&gt;(pN)...,
-                                           result_of&lt;FD <em>cv</em> &amp; (P1..., P2..., ..., PN...)&gt;::type)</code></ins>
+           <ins><code><em>INVOKE</em> (fd, std::forward&lt;P1&gt;(p1)..., std::forward&lt;P2&gt;(p2)..., ..., std::forward&lt;PN&gt;(pN)...)</code></ins>
            , where <code><em>cv</em></code> represents the cv-qualifiers of <code>g</code> and the values and types of <del>the</del>
            <ins>elements of each of</ins> bound arguments <del><code>v1, v2, ..., vN</code></del> <ins>packs <code>p1, p2, ..., pN</code></ins>
            are determined as specified below.
@@ -687,7 +686,7 @@ if we want to use it with overloaded function name we need resolve the ambiguity
 <h2><a name="literature">References</a></h2>
 
 <ol>
-yy  <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
+  <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
   <li>Tomasz Kamiński, Implementation of bind function (<a href="https://github.com/tomaszkam/proposals/tree/master/bind">https://github.com/tomaszkam/proposals/tree/master/bind</a>)</li>
 </ol>
 
