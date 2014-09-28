@@ -117,7 +117,7 @@ twice, appropriate set of values will be passed twice, reproducing existing beha
 
 <h3><a name="motivation.mem_fn-reproduction">Binding object with member function</a></h3>
 
-<p>The most common use case for <code>_all</code> all placeholder is to bind a object to a member function,
+<p>The most common use case for <code>_all</code> placeholder is to bind a object to a member function,
 effectively emulating the result of expressions <code>obj.*ptr</code>.</p>
 
 <p>For example if we have following definitions:</p>
@@ -125,13 +125,13 @@ effectively emulating the result of expressions <code>obj.*ptr</code>.</p>
 std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
 
 <p>We want to create a functor that will invoke process method on given strategy.</p>
-<pre>[s = createStrategy()] (auto&amp;&amp;... args) -&gt; decltype(auto) { return s-&gt;process(std::forward&lt;decltype(args))&gt;(args); }</pre>
+<pre>[s = createStrategy()] (auto&amp;&amp;... args) -&gt; decltype(auto) { return s-&gt;process(std::forward&lt;decltype(args)&gt;(args); }</pre>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
 
-<p>The lambda approach allow us to write a functor that will be immune to the changes in number of method parameters, 
-but it requires changes in return type and use of perfect forwarding to accomplish such simple task. 
-The solution that uses bind is pretty straight forward, but it requires changes every time the number of parameters
-of the method is changes. 
+<p>The lambda approach allow us to write a functor that will be immune to the changes in number of method arguments, 
+but it requires explicit specification return type and use of perfect forwarding to accomplish such simple task. 
+The solution that uses bind is pretty straight forward, but it requires modification every time the number of parameters
+of the method changes. 
 The extension proposed in this paper allow us to avoid above problems by writing:</p>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _all)</pre>
 
@@ -165,22 +165,22 @@ including, but not limited to:</p>
 which where used both to check if given type <code>P</code> represents placeholder (<code>is_placeholder&lt;P&gt;::value &gt; 0</code>) and to define index
 of call argument that will be passed as a replacement of the placeholder (<code>is_placeholder&lt;P&gt;::value</code>).</p>
 
-<p>Extension proposed in this paper, preserves this functionality, while also add ability to create user defined group placeholder type. To achieve this
-goal the previous responsibility of the <code>is_placeholder</code> is divided into two separate type function:</p>
+<p>Extension proposed in this paper, preserves this functionality, while also add ability to create user defined group placeholders.
+To achieve this goal the previous responsibility of the <code>is_placeholder</code> is divided into two separate type function:</p>
 <ul>
   <li><code>is_placeholder</code> that is used to determine if given type <code>P</code> represents a placeholder.
   To mark type as placeholder, the specialization <code>is_placeholder&lt;P&gt;</code> should be derived from <code>integral_constant&lt;int, K&gt;</code>,
   where <code>K &gt; 0</code>.</li>
 
   <li><code>parameter_indices</code> that is used to determine indices of call arguments that should be passed as replacement of the placeholder.
-  This type traits accepts as a second argument the number of call arguments passed to functor.
+  This type traits accepts number of call arguments passed to functor as a second parameter.
   To signalize that arguments with indices <code>i1, i2, ..., iK</code> should be used instead of placeholder, the specialization of the
   <code>parameter_indices&lt;T, N&gt;</code> should be derived from <code>integer_sequence&lt;int, i1, i2, ..., iK&gt;</code>.</li>
 </ul>
 <p>To preserve backward compatibility with existing single argument placeholders the default implementation for <code>parameter_indices&lt;P, N&gt;</code>
-   for every placeholder type <code>P</code> is derived from <code>integer_sequence&lt;int, is_placeholder&lt;P&gt;::value&gt;</code>.</p>
+is derived from <code>integer_sequence&lt;int, is_placeholder&lt;P&gt;::value&gt;</code> for every placeholder type <code>P</code>.</p>
 
-<p>Example implementation of <code>_args</code> placeholder that accepts set of indices of arguments that should be forwarded is included bellow:</p>
+<p>Example implementation of <code>_args</code> placeholder that accepts indices of arguments that should be forwarded is included bellow:</p>
 <pre>template&lt;int... Is&gt;
 struct args_placeholder {};
 
@@ -233,17 +233,17 @@ being more elegant.</p>
 
 <p>There are two possible approaches:</p>
 <ol>
-  <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object.</li>
-  <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used,</li>
+  <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object,</li>
+  <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used.</li>
 </ol>
 <p>The first behaviour was choosen by this proposal, because it allows to easily simulate the second one by passing <code>_N, _from&lt;N+1&gt;</code>
    insteaf of <code>_from&lt;N&gt;</code> as argument.</p>
    
 <h3><a name="design.int-index">Non-type template argument of type <code>int</code></a></h3>
 
-<p>The non-type template argument of <code>_from</code>, <code>parameter_indices</code> has an <code>int</code> type, although they values
-   are required to be non-negative. This design decision was made to keep them consistent with existing <code>is_placeholder</code>
-   trait, that uses <code>int</code> to represent index of forwarder parameter.</p>
+<p>The non-type template argument of <code>_at</code>, <code>_from</code>, <code>_to</code>, <code>_between</code> and <code>parameter_indices</code>
+   has an <code>int</code> type, although they values are required to be non-negative. 
+   This decision was made to keep them consistent with existing <code>is_placeholder</code> trait, that uses <code>int</code> to represent index of forwarder parameter.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -355,8 +355,7 @@ namespace std {
           if <code>T</code> is the type of <code>std::placeholders::_form&lt;K&gt;</code> and <code>N &gt;= K</code>,</li>
       <li><code>integer_sequence&lt;int, j&gt;</code>
           if <code>T</code> is not one of the types described in the previous items
-          and the value <code>j</code> defined as <code>is_placeholder&lt;T&gt;::value</code> is not zero
-          and <code>N &gt;= j</code>,</li>
+          and the value <code>j</code> defined as <code>is_placeholder&lt;T&gt;::value</code> is positive and <code>N &gt;= j</code>,</li>
     </ul><p></p></dd>
 
     <dd><p>A program may specialize or partially specialize <code>parameter_indices</code> template for a user-defined placeholder type to be publicly and 
@@ -450,7 +449,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
           <del><code>v1, v2, ..., vN</code></del> <ins><em>pack</em> <code>pi</code></ins>
           and their corresponding types <del><code>V1, V2, ..., VN</code></del> depend on the 
           type<del>s</del> <code>TiD</code> derived from the call to <code>bind</code>
-          <ins>, number of parameter of the forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code></ins>
+          <ins>, number of parameter passed to invocation forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code></ins>
           and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
     </p>
     <ul>
@@ -460,7 +459,7 @@ template&lt;class R, class F, class... BoundArgs&gt;
       <li>if the value of <code>is_bind_expression&lt;TiD&gt;::value</code> is true,
           <del>the argument is</del><ins>the pack contains single element with value</ins> <code>tid(std::forward&lt;Uj&gt;(uj)...)</code> 
           <del>and its type <code>Vi</code> is</del><ins>of type</ins> <code>result_of&lt;TiD <em>cv</em> &amp; (Uj&amp;&amp;...)&gt;::type&amp&amp</code>;</li>
-      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is not zero
+      <li>if the value <code>j</code> of <code>is_placeholder&lt;TiD&gt;::value</code> is <del>not zero</del><ins>positive</ins>
           <ins>and <code>parameter_indices&lt;TiD, M&gt;</code> is derived from <code>integer_sequence&lt;int, j1, j2, ..., jK&gt;</code></ins>,
           <del>the argument is <code>std::forward&lt;Uj&gt;(uj)</code>  and its type <code>Vi</code> is <code>Uj&amp;&amp;</code></del>
           <ins>the pack contains <code>K</code> elements with values <code>std::forward&lt;Uj1&gt;(uj1), std::forward&lt;Uj2&gt;(uj2), ..., std::forward&lt;UjK&gt;(ujK)</code>
@@ -588,9 +587,9 @@ In case of the <code>std::string</code> this will end up with cheap move-constru
 for legacy classes that define only custom copy-construction. To avoid these problems we will use perfect forwarding to
 pass a parameter.</p>
 
-<pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;??&gt;(val), 3); }</pre>
+<pre>[](auto&amp;&amp; val) { return concat_serveral_times(std::forward&lt;<em>some_type</em>&gt;(val), 3); }</pre>
 
-<p>What type should we use in <code>std::forward&lt;??&gt;</code>? If we use <code>decltype(val)</code> then above
+<p>What type should we use as <code><em>some_type</em></code>? If we use <code>decltype(val)</code> then above
 code would be equivalent to:</p>
 <pre>template&lt;typename T&gt; void foo(T&amp;&amp; t) { bar(std::forward&lt;T&amp;&amp;&gt;(t)); }</pre>
 <p>Instead of the usual:</p>
@@ -610,7 +609,7 @@ thread of the execution, like when it is passed to STL algorithm, it is safe and
 (<code>[&amp;]</code>) semantics.
 For the situation when we want to pass closure, probably wrapped into <code>std::function</code>, outside the current context,
 then it is save to use "capture all by value" (<code>[=]</code>) &mdash; but only if we assume that we do not use any unmanaged pointer inside.
-But if we want to pass our function to other thread of execution we need to be sure that would not be causing any data races,
+However if we want to pass our functor to other thread of execution we need to be sure that would not be causing any data races,
 and they still may occur if some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
 
 <p>The above reasoning leads us to conclusion that when lambda is passed outside current context (either when passing it to other thread, or when returning
@@ -644,7 +643,7 @@ for (std::size_t i = 0; i &lt; vs.size(); ++i)
 
 <p>The above code will not compile because we want to copy a move-only type <code>std::unique_ptr&lt;Widget&gt;</code>. 
 In addition, note that we are capturing the whole vector <code>vs</code>, although it is sufficient to use only one element in a single thread.
-Both of this issues may be fixed with a C++14 extended lambda capture syntax:</p>
+Both of this issues may be fixed with a C++14 extended lambda capture:</p>
 <pre>[&amp;elem = vs[i], widget = factory.create()] { widget-&gt;process(elem); }</pre>
 
 <p>What it effectively does is to <em>bind</em> (or 'fix') two parameters to a (member) function;
@@ -677,11 +676,11 @@ bind expression and its lambda equivalent:</p>
 <p>The use of <code>std::bind</code> to write simple function wrappers allows the programmer to avoid running into correctness
 and performance problems described in this appendix. The choice between using <code>bind</code> and a lambda
 can be directly compared to the between the use of STL algorithms and writing a raw loop that performs the same
-task: both of the solution are feasible, but using the Standard Library is a lot easier. In the same way,
-we should recommend using library components designed to bind arguments rather than writing custom functors (including lambdas).</p>
+task: both of the solution are feasible, but using the Standard Library is a simpler.</p>
 
 <p>Of course, <code>std::bind</code> has its limitations, and should be used only for the simple task of binding
-constant values to a specific set of function arguments. If we want to create a function that contains composition of the two functions or more complex expression we should use a lambda
+constant values to a specific set of function arguments. If we want to create a function that contains composition 
+of the two functions or more complex expression we should use a lambda
 or even write a separate function if the expression is large enough. Another drawback of <code>bind</code> is that
 if we want to use it with overloaded function name we need resolve the ambiguity at the point of invocation of
 <code>std::bind</code> and casting to appropriate function pointer is required.</p>
