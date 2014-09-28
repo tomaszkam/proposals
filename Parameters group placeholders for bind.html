@@ -637,7 +637,7 @@ and capture it from local context:</p>
 <pre>
 for (std::size_t i = 0; i &lt; vs.size(); ++i)
 {
-  auto widget = createConcreteWidget();
+  auto widget = factory.create();
   results.emplace_back(std::async([&amp;vs, widget, i] { widget-&gt;process(vs[i]); }));
 }</pre>
 
@@ -649,6 +649,15 @@ Both of this issues may be fixed with a C++14 extended lambda capture:</p>
 <p>What it effectively does is to <em>bind</em> (or 'fix') two parameters to a (member) function;
 the Standard Library already provides a component designed exactly for such purpose, named <code>std::bind</code>:</p>
 <pre>std::bind(&amp;Widget::process, factory.create(), std::ref(vs[i]))</pre>
+
+<p>You may also notice that instead of new for-each loop syntax an index based loop was used in above examples:</p>
+<pre>
+for (std::string&amp; elem : vs)
+  results.emplace_back(std::async([&amp;elem, widget = factory.create()] { widget-&gt;process(elem); }));</pre>
+<p>This approach was chosen to avoid causing undefined behaviour, that may occur because the implementation 
+of lambda is allowed to store a frame pointer instead of having separate data member instead for each variable captured
+by reference. This means that each lambda can directly use the value of reference <code>elem</code> stored on stack,
+which changes with every iterator and is invalid after the loop completion.</p> 
 
 <p>In contrast to the problem with creating a <code>Widget</code>, it is worth noticing that sometimes it is desired
 to capture some precomputed values in lambda. Suppose we want to find an <code>Employee</code> with the given first and
