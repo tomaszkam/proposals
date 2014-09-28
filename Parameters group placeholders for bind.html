@@ -87,7 +87,10 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>TODO: bug report from isocpp</p>
+<p>The aim of this proposal is to introduce new class of placeholder that could be used with <code>std::bind</code>:
+groups placeholder that represents set (zero or more) call arguments.</p>
+
+<p>This paper addresses <a href="https://issues.isocpp.org/show_bug.cgi?id=40">LEWG Bug 40: variadic bind</a>.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -109,8 +112,8 @@ twice, appropriate set of values will be passed twice, reproducing existing beha
   <tr><td><code>_to&lt;N&gt;</code></td>        <td>[1st, Nth)</td></tr>
   <tr><td><code>_between&lt;N, K&gt;</code></td><td>[Nth, Kth)</td></tr>
 </table>
-<p>To complement set of group placeholders, the variable template version of single argument placeholder named <code>_at&lt;N&gt;</code>
-is also introduced in this paper.</p>
+<p>To complement set of group placeholders, the variable template version of single argument placeholder named
+<code>_at&lt;N&gt;</code> is also introduced.</p>
 
 <h3><a name="motivation.mem_fn-reproduction">Binding object with member function</a></h3>
 
@@ -128,16 +131,16 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
 <p>The lambda approach allow us to write a functor that will be immune to the changes in number of method parameters, 
 but it requires changes in return type and use of perfect forwarding to accomplish such simple task. 
 The solution that uses bind is pretty straight forward, but it requires changes every time the number of parameters
-to the method is changes. 
+of the method is changes. 
 The extension proposed in this paper allow us to avoid above problems by writing:</p>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _all)</pre>
 
-<p>The same problem was addressed by the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">N3702</a>
+<p>The same problem is also addressed by the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">N3702</a>
 paper by introduction of new version of <code>mem_fn</code> function:</p>
 <pre>std::mem_fn(&amp;Strategy::process, createStrategy())</pre>
 
 <p>Although solution presented in mentioned paper provides nice and concise syntax, it address only this specific use cases,
-and can be easily emulated with using <code>std::bind</code> with group placeholder:</p>
+and can be easily emulated with <code>std::bind</code> and group placeholder:</p>
 <pre>template&lt;typename Class, typename Member, typename Object&gt;
 auto mem_fn(Member Class::* mem_ptr, Object&amp;&amp; obj)
 { return std::bind(mem_ptr, std::forward&lt;Object&gt;(obj), _all); }
@@ -150,10 +153,10 @@ including, but not limited to:</p>
 <ul>
   <li>insert new argument at Nth position: <code>bind(f{}, _to&lt;N&gt;, val, _from&lt;N&gt;)</code></li>
   <li>replace Nth argument with given value: <code>bind(f{}, _to&lt;N&gt;, val, _from&lt;N+1&gt;)</code></li>
-  <li>change order of first and second parameters: <code>bind(f{}, _2, _1, _from&lt;3&gt;)</code></li>
+  <li>change order of first and second argument: <code>bind(f{}, _2, _1, _from&lt;3&gt;)</code></li>
   <li>swap positions of Nth and Kth argument: <code>bind(f{}, _to&lt;N&gt;, _at&lt;K&gt;, _between&lt;N+1, K&gt;, _at&lt;N&gt;, _from&lt;K+1&gt;)</code></li>
-  <li>forward only first N argument: <code>bind(f{}, _to&lt;N&gt;)</code></li>
-  <li>drop first N parameters: <code>bind(f{}, _from&lt;N+1&gt;)</code></li>
+  <li>forward only first N arguments: <code>bind(f{}, _to&lt;N&gt;)</code></li>
+  <li>drop first N arguments: <code>bind(f{}, _from&lt;N+1&gt;)</code></li>
 </ul>
 
 <h3><a name="motivation.custom-placeholder">Defining custom placeholders</a></h3>
@@ -188,11 +191,11 @@ namespace std
 {
   template&lt;int... Is&gt;
   struct is_placeholder&lt;args_placeholder&lt;Is...&gt;&gt;
-    : integral_constant&lt;int, 1&gt; {}
+    : integral_constant&lt;int, 1&gt; {};
 
   template&lt;int... Is, int N&gt;
   struct parameter_indices&lt;args_placeholder&lt;Is...&gt;, N&gt;
-   : integer_sequence&lt;int, Is...&gt; {}
+   : integer_sequence&lt;int, Is...&gt; {};
 }</pre>
 
 <h2><a name="design">Design Decisions</a></h2>
@@ -521,7 +524,7 @@ namespace placeholders {
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
 <p>Jonathan Wakely originally proposed idea of multi parameter placeholders in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/#!msg/std-proposals/CxpGVY1APcs/_RYAajMGhcUJ">ISO C++ Standard - Future Proposals</a>.</p>
-<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+<p>Andrzej Krzemieński and Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p>
 
 
 <h2><a name="appendix.bind_vs_lambda">Appendix: Why we need bind when we have a generic lambda?</a></h2>
@@ -686,6 +689,7 @@ if we want to use it with overloaded function name we need resolve the ambiguity
 <h2><a name="literature">References</a></h2>
 
 <ol>
+  <li>Chris Jefferson, Ville Voutilainen, "Bug 40 - variadic bind" (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
   <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
   <li>Tomasz Kamiński, Implementation of bind function (<a href="https://github.com/tomaszkam/proposals/tree/master/bind">https://github.com/tomaszkam/proposals/tree/master/bind</a>)</li>
 </ol>
