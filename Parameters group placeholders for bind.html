@@ -650,15 +650,6 @@ Both of this issues may be fixed with a C++14 extended lambda capture:</p>
 the Standard Library already provides a component designed exactly for such purpose, named <code>std::bind</code>:</p>
 <pre>std::bind(&amp;Widget::process, factory.create(), std::ref(vs[i]))</pre>
 
-<p>You may also that, in above examples, index based loop was used instead of:</p>
-<pre>
-for (std::string&amp; elem : vs)
-  results.emplace_back(std::async([&amp;elem, widget = factory.create()] { widget-&gt;process(elem); }));</pre>
-<p>This approach was chosen to avoid causing undefined behaviour, that may occur because the implementation 
-of lambda is allowed to store a frame pointer instead of having separate data member for each variable captured
-by reference. This means that each lambda can directly use the value of reference <code>elem</code> stored on stack,
-which changes with every iterator and may be overwritten by unrelated value after the loop completion.</p> 
-
 <p>In contrast to the problem with creating a <code>Widget</code>, it is worth noticing that sometimes it is desired
 to capture some precomputed values in lambda. Suppose we want to find an <code>Employee</code> with the given first and
 last name:</p>
