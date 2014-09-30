@@ -139,7 +139,7 @@ The extension proposed in this paper allow us to avoid above problems by writing
 paper by introduction of new version of <code>mem_fn</code> function:</p>
 <pre>std::mem_fn(&amp;Strategy::process, createStrategy())</pre>
 
-<p>Although solution presented in mentioned paper provides nice and concise syntax, it address only this specific use cases,
+<p>Although solution presented in mentioned paper provides nice and concise syntax, it address only this specific use cases
 and can be easily emulated with <code>std::bind</code> and group placeholder:</p>
 <pre>template&lt;typename Class, typename Member, typename Object&gt;
 auto mem_fn(Member Class::* mem_ptr, Object&amp;&amp; obj)
@@ -165,7 +165,7 @@ including, but not limited to:</p>
 which where used both to check if given type <code>P</code> represents placeholder (<code>is_placeholder&lt;P&gt;::value &gt; 0</code>) and to define index
 of call argument that will be passed as a replacement of the placeholder (<code>is_placeholder&lt;P&gt;::value</code>).</p>
 
-<p>Extension proposed in this paper, preserves this functionality, while also add ability to create user defined group placeholders.
+<p>Extension proposed in this paper, preserves this functionality, while also adds ability to create user defined group placeholders.
 To achieve this goal the previous responsibility of the <code>is_placeholder</code> is divided into two separate type function:</p>
 <ul>
   <li><code>is_placeholder</code> that is used to determine if given type <code>P</code> represents a placeholder.
@@ -243,7 +243,7 @@ being more elegant.</p>
 
 <p>The non-type template argument of <code>_at</code>, <code>_from</code>, <code>_to</code>, <code>_between</code> and <code>parameter_indices</code>
    has an <code>int</code> type, although they values are required to be non-negative. 
-   This decision was made to keep them consistent with existing <code>is_placeholder</code> trait, that uses <code>int</code> to represent index of forwarder parameter.</p>
+   This decision was made to keep them consistent with existing <code>is_placeholder</code> trait, that uses <code>int</code> to represent index of forwarded parameter.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -448,8 +448,8 @@ template&lt;class R, class F, class... BoundArgs&gt;
    <dd><p>The values of <del>the</del><ins>elements of each</ins> <em>bound arguments</em> 
           <del><code>v1, v2, ..., vN</code></del> <ins><em>pack</em> <code>pi</code></ins>
           and their corresponding types <del><code>V1, V2, ..., VN</code></del> depend on the 
-          type<del>s</del> <code>TiD</code> derived from the call to <code>bind</code>
-          <ins>, number of parameter passed to invocation forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code></ins>
+          type<del>s</del> <code>TiD</code> derived from the call to <code>bind</code><ins>, 
+          number of parameter passed to invocation forwarding call wrapper <code>M = sizeof...(UnBoundArgs)</code></ins>
           and the cv-qualifiers <code>cv</code> of the call wrapper <code>g</code> as follows:
     </p>
     <ul>
