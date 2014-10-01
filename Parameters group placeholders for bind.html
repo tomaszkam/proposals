@@ -549,10 +549,9 @@ of full names.</p>
                [](const Employee&amp; e) { return e.full_name(); });</pre>
                
 <p>If the <code>full_name</code> function returns a <code>const std::string&amp;</code>, then above code will lead to
-two copies of the string being created for every element: one to return a value from the lambda and second to initialize
-element in the vector (no move constructor will be used, because deduced return type in a lambda preserves const-ness,
-so <code>const std::string</code> will be deduced in this situation). To avoid the above problem we may specify the return
-type for a lambda.</p>
+copy of the string being created for every element to return value form the lambda and then element of vector will get 
+initialized from this temporary. In this case this cheap move construction will be used, but for legacy classes
+copy constructor my be used twice. To avoid the above problem we may specify the return type for a lambda.</p>
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                [](const Employee&amp; e) -> const auto&amp; { return e.full_name(); });</pre>
                
@@ -618,7 +617,7 @@ it from a function) it is safer to explicitly specify the variables that should 
 <pre>struct Widget { void process(std::string&amp;) const };
 struct WidgetFactory { std::unqiue_ptr&lt;Widget&gt; create() };
 
-void process_in_parallel(std::vectorr&lt;std::string&gt& vs, WidgetFactory&amp; factory)
+void process_in_parallel(std::vector&lt;std::string&gt& vs, WidgetFactory&amp; factory)
 {
   std::vector&lt;std::future&lt;void&gt;&gt; results;
   for (std::size_t i = 0; i &lt; vs.size(); ++i)
