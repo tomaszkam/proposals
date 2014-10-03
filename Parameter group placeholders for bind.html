@@ -140,7 +140,7 @@ The extension proposed in this paper allows us to avoid this problem by writing:
  
 <pre>std::mem_fn(&amp;Strategy::process, createStrategy())</pre>
 
-<p>Although the solution presented in N3702 provides nice and concise syntax, it address only this specific use case, the 
+<p>Although the solution presented in N3702 provides nice and concise syntax, it address only this specific use case, 
 and can be easily emulated with <code>std::bind</code> and group placeholder:</p>
 <pre>template&lt;typename Class, typename Member, typename Object&gt;
 auto mem_fn(Member Class::* mem_ptr, Object&amp;&amp; obj)
@@ -181,7 +181,7 @@ To achieve this goal the previous responsibility of the <code>is_placeholder</co
 <p>To preserve backward compatibility with the existing single argument placeholders, the default implementation of <code>parameter_indices&lt;P, N&gt;</code>
 is derived from <code>integer_sequence&lt;int, is_placeholder&lt;P&gt;::value&gt;</code> for every placeholder type <code>P</code>.</p>
 
-<p>an example implementation of <code>_args</code> placeholder that accepts indices of arguments that should be forwarded is provided bellow:</p>
+<p>An example implementation of <code>_args</code> placeholder that accepts indices of arguments that should be forwarded is provided bellow:</p>
 <pre>template&lt;int... Is&gt;
 struct args_placeholder {};
 
@@ -229,7 +229,7 @@ being more elegant.</p>
 
 <h3><a name="design.from">Number of parameters required by <code>_from&lt;N&gt;</code></a></h3>
 
-<p>The addition of the <code>_from&lt;N&gt;</code> placeholder opens the question about its behaviour if the number of parmeters 
+<p>The addition of the <code>_from&lt;N&gt;</code> placeholder opens the question about its behaviour when the number of parameters 
    passed to the forwarding call wrapper produced as a result of <code>bind(&amp;foo, _from&lt;N&gt;)</code> is equal to <code>N-1</code>.</p>
 
 <p>There are two possible approaches:</p>
@@ -237,8 +237,8 @@ being more elegant.</p>
   <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object,</li>
   <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used.</li>
 </ol>
-<p>The first behaviour was choosen by this proposal, because it allows to easily simulate the second one by passing <code>_N, _from&lt;N+1&gt;</code>
-   insteaf of <code>_from&lt;N&gt;</code> as argument.</p>
+<p>The first behaviour was chosen by this proposal, because it is more general and allows to easily simulate the second one by passing 
+   <code>_N, _from&lt;N+1&gt;</code> instead of <code>_from&lt;N&gt;</code> as argument.</p>
    
 <h3><a name="design.int-index">Non-type template argument of type <code>int</code></a></h3>
 
@@ -527,7 +527,7 @@ namespace placeholders {
 <p>Andrzej Krzemieński and Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p>
 
 
-<h2><a name="appendix.bind_vs_lambda">Appendix: Why we need bind when we have a generic lambda?</a></h2>
+<h2><a name="appendix.bind_vs_lambda">Appendix: Why we need <code>bind</code> when we have a generic lambda?</a></h2>
 
 <p>After the introduction of generic lambda and extensions to lambda capture, a portion of the C++ community expresses an opinion
 that <code>std::bind</code> is no longer necessary and should no longer be recommend and even become deprecated.
