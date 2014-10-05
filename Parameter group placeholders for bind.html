@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2014-09-27</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2014-10-05</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
@@ -230,9 +230,7 @@ being more elegant.</p>
 <h3><a name="design.from">Number of parameters required by <code>_from&lt;N&gt;</code></a></h3>
 
 <p>The addition of the <code>_from&lt;N&gt;</code> placeholder opens the question about its behaviour when the number of parameters 
-   passed to the forwarding call wrapper produced as a result of <code>bind(&amp;foo, _from&lt;N&gt;)</code> is equal to <code>N-1</code>.</p>
-
-<p>There are two possible approaches:</p>
+   passed to the forwarding call wrapper produced as a result of <code>bind(&amp;foo, _from&lt;N&gt;)</code> is equal to <code>N-1</code>. There are two possible approaches:</p>
 <ol>
   <li>forward no arguments in place of <code>_from&lt;N&gt;</code> to target callable object,</li>
   <li>make such invocation ill-formed and require at least <code>N</code> arguments if the <code>_from&lt;N&gt;</code> is used.</li>
@@ -360,7 +358,7 @@ namespace std {
     </ul><p></p></dd>
 
     <dd><p>A program may specialize or partially specialize <code>parameter_indices</code> template for a user-defined placeholder type to be publicly and 
-           unambiguously derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero
+           unambiguously derived from <code>integer_sequence&lt;int, i1, i2, ..., iN&gt;</code> with values <code>i1, i2, ..., iN</code> greater than zero,
            to indicate indices of parameters of the forwarding call wrapper to be forwarded to stored callable object as replacement for placeholder.</p></dd>
 
     <dd><p>A program is ill-formed if it necessitates the instantiation of <code>parameter_indices&lt;T, N&gt;</code> that does not satisfy criteria of any of the bullets in paragraph 1
@@ -552,12 +550,12 @@ of full names.</p>
 <p>If the <code>full_name</code> function returns a <code>const std::string&amp;</code>, then above code will lead to
 copy of the string being created for every iteration to return value form the lambda and then element of vector will get
 initialized from this temporary. In this case cheap move construction will be used, but for legacy classes
-copy constructor my be used twice. To avoid the above problem we may specify the return type for a lambda.</p>
+copy constructor may be used twice. To avoid the above problem we may specify the return type for a lambda.</p>
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
                [](const Employee&amp; e) -> const auto&amp; { return e.full_name(); });</pre>
                
 <p>This approach will fix above problems, but if the function <code>full_name</code> is changed to
-return by value, then the code will cause a dangling reference problem. But to avoid such problems we may use
+return by value, then the code will cause a dangling reference problem. To avoid such problems we may use
 the <code>decltype(auto)</code> deduction:
 
 <pre>std::transform(std::begin(ve), std::end(ve), std::back_inserter(vfn),
@@ -609,7 +607,7 @@ thread of the execution, like when it is passed to STL algorithm, it is safe and
 (<code>[&amp;]</code>) semantics.
 For the situation when we want to pass closure, probably wrapped into <code>std::function</code>, outside the current context,
 then it is save to use "capture all by value" (<code>[=]</code>) &mdash; but only if we assume that we do not use any unmanaged pointer inside.
-However if we want to pass our functor to other thread of execution we need to be sure that would not be causing any data races,
+However if we want to pass our functor to other thread of execution we need to be sure, that it would not be causing any data races,
 and they still may occur if some handler with shallow copy semantics is captured by a lambda (e.g. <code>std::shared_ptr</code>).
 
 <p>The above reasoning leads us to conclusion that when lambda is passed outside current context (either when passing it to other thread, or when returning
