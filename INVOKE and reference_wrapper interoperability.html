@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>INVOKE and reference_wrapper interoperability</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td></td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">INVOKE and reference_wrapper interoperability</a></h1>
+
+<h2><a name="intro">Introduction</a></h2>
+
+<!--p>This proposal extends the definition of <code><em>INVOKE</em></code> for class member pointers to cover types convertible to the target class of the pointer, like <code>std::reference_wrapper</code>.</p>
+
+<p>Proposal also resolves <a href="http://isocpp.org/files/papers/n3522.html#2219">LWG issue #2219</a></p-->
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<!--h2><a name="revision">Revision history</a></h2>
+
+<p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3719.html">N3719</a>:</p>
+<ul>
+  <li>Extended Motivation and Scope section.</li>
+  <li>Added description of silent code change caused by previous
+      resolution rules to Design Decisions.</li>
+  <li>Changed wording to make resolution of ambiguity independent
+      of the member function qualifiers.</li>
+  <li>Removed Alternate Wording section. Linked to previous version
+      instead.</li>
+  <li>Incorporated fixes suggested by Andrzej Krzemieński.</li>
+</ul-->
+
+<h2><a name="motivation">Motivation and Scope</a></h2>
+
+<p>
+
+<h3><a name="motivation.resolutions.free-function">Change <code><em>INVOKE</em></code> to behave as free function</a></h3>
+
+<p>One of possible interpretation of <code><em>INVOKE</em></code> for member pointer is behaviour should be equivalent to result
+of invocation of free function that accepts object at the first argument. In that case user-defined conversion should be also
+considered for the one, newly introduced argument. As consequence of this design we introduce support <code>reference_wrapper</code>
+and other wrappers with conversion operator.</p>
+
+
+<h4><a name="motivation.resolutions.free-function.transformation">Transformation to free function</a></h4>
+
+<p>In C++98 every member function of class <code>C</code> with signature <code>Ret foo(Args...) <em>cv</em></code>
+can be transformed into pair of the following functions:</p>
+<pre>Ret foo(C <em>cv</em> &amp;, Args...);
+Ret foo(C <em>cv</em> *, Args...);</pre>
+
+<p>Although after introduction of reference qualified method in C++11, every member function of class <code>C</code>
+with signature <code>Ret foo(Args...) <em>cv ref</em></code> can be transformed without loss of information only to:</p>
+<pre>Ret foo(C <em>cv ref</em>, Args...);</pre>
+
+<p>That is caused by the fact that dereferencing a raw pointer in C++ will always produce and lvalue, so there is no possibility
+to transform rvalue-qualified methods into free function that accepts raw pointer.
+Although there is a possibility that we will encounter a class that will return a rvalue from a dereference operator; most noticeable
+example of such class is <code>optional</code> from <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n4335.html#optional">Library Fundamentals TS</a>.
+To support such classed we should provde a generic overload that will support every pointee object:</p>
+<pre>template&lt;typename T, typename U&gt;
+concept bool Pointee = requires(T t) { {*std::forward&lt;T&gt;(t)} -> U; };
+
+template&lt;typename T&gt; 
+ requires Pointee&lt;T&amp;&amp;, C <em>cv ref</em>&gt; 
+Ret foo(T&amp;&amp;, Args...);</pre>
+
+
+<h4><a name="motivation.resolutions.free-function.amibiguity">Resolving ambiguity between dereference operator and conversion</a></h4>
+
+<p>Allowing the conversion in <code><em>INVOKE</em></code> for pointers to member may lead to an ambiguity in the case of entity <code>t</code>
+for which both the result of <code>t</code> and <code>*t</code> is implicitly convertible to target class of the pointer.
+If we want to keep the behaviour close to the result of the invocation of overloaded function, as defined in previous section, dereference operator
+should be preferred over conversion if it's result type was compatible with cv-qualification and ref-qualification of member function pointer, as
+the template function will always instantiate.</p>
+
+<p>However applying such rules can cause silent code behaviour change, caused by change in cv-qualification of member method. 
+For example, given the following definitions:</p> 
+<pre>
+struct Clazz
+{
+  void foo();
+};
+
+struct Wrapper
+{
+  A const&amp; operator*();
+  operator A&amp;();
+};</pre>
+
+<p>With above defitions expression <code>std::mem_fn(&amp;A::foo)(Wrapper())</code> will use conversion operator 
+because member function <code>foo</code> cannot be invoked on a const object. 
+Let's imagine the situation in which member function <code>foo</code>
+becomes const-qualified; such modification will silently change meaning of expression <code>std::mem_fn(&amp;A::foo)(Wrapper())</code>,
+that will invoke dereference operator instead of conversion.
+The author considers such change unacceptable because -- unlike in the case when we change one function overload for another --
+we cannot reliably expect that dereference operator and conversion would have similar behaviour.</p>
+
+<p>In order to avoid the described problem, following rules of dereference operator preference is proposed:
+<i>the deference operator is selected if it returns a type that is implicitly convertible to a reference to target class of member pointer, however cv-qualified.</i>.</p>
+
+<p>Described resolution keeps the above example ill-formed, preserving behaviour defined in the current standard.
+In addition, it greatly simplifies usage of components defined in terms of <code><em>INVOKE</em></code>,
+by making their behaviour for pointers to members independent of the actual nature of the member: data or function.</p> 
+
+
+<h2><a name="design">Design Decisions</a></h2>
+
+<h2><a name="standard">Impact On The Standard</a></h2>
+
+<p>This proposal has no dependencies beyond a C++11 compiler and 
+Standard Library implementation. (It depends on perfect forwarding, 
+varidatic templates, <code>decltype</code> and trailing return types.)</p>
+
+<p>Nothing depends on this proposal.</p>
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+<p>Change the paragraph 20.9.2 Requirements [func.require].</p>
+
+<blockquote class="stddel">
+  <dl class="attribute">
+     
+    <dd><p>Define <code><em>INVOKE</em>(f, t1, t2, ..., tN)</code> as follows:
+    </p><ul>
+      <li><code>(t1.*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
+      <li><code>((*t1).*f)(t2, ..., tN)</code> when <code>f</code> is a pointer to a member function of a class <code>T</code> and <code>t1</code> is not one of the types described in the previous item;</li>
+      <li><code>t1.*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> is an object of type <code>T</code> or a reference to an object of type <code>T</code> or a reference to an object of a type derived from <code>T</code>;</li>
+      <li><code>(*t1).*f</code> when <code>N == 1</code> and <code>f</code> is a pointer to member data of a class <code>T</code> and <code>t1</code> is not one of the types described in the previous item;</li>
+      <li><code>f(t1, t2, ..., tN)</code> in all other cases.</li>
+    </ul><p></p></dd>
+
+  </dl>
+</blockquote>
+  
+
+<h2><a name="implementability">Implementability</a></h2>
+
+<p>Proposed change can be implemented as pure library extension in C++11. Implementation of <code>invoke</code> function that conforms proposed wording can be found <a href="https://github.com/tomaszkam/proposals/tree/master/invoke">https://github.com/tomaszkam/proposals/tree/master/invoke</a>.</p>
+
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
+
+
+<h2><a name="literature">References</a></h2>
+
+<ol>
+
+  <li>Jeffrey Yasskin, "Working Draft, C++ Extensions for Library Fundamentals" (N4335, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n4335.html">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n4335.html</a>)</li>
+
+</ol>
+
+
+</body></html>
