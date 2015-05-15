@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Change is_transparent to metafunction</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Change is_transparent to a metafunction</a></h1>
+
+<h2><a name="intro">Introduction</a></h2>
+
+<p>This proposal discuss alternate design using metafunction for enabling a heterogeneous lookup function in the associative containers.</p>
+
+<p>This paper is result of the LWG recommendation provided in the resolution of the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="motivation">Motivation and Scope</a></h2>
+
+<p>In the scope of this paper we propose to introduce a new metafunction <code>is_heterogeneous_comparator</code>.
+This metafunction is designed to be used to enable the heterogeneous lookup in associative container, instead
+of the current standard method relying on presence of <code>is_transparent</code> nested type in the comparator
+type ($23.2.4 [associative.reqmts]).</p>
+
+<h3><a name="motivation.backward-compatibility">Presreving backward compatibility</a></h3>
+
+<p>Addition of the heterogeneous lookup to the container may silently change the behavior of the existing code
+and to avoid such situations it was designed as opt-in feature. However the mechanism that created for the purpose
+is not always working correctly - existing programs may define <code>is_transparent</code> nested type in their
+comparator type and as consequence meaning of such programs will be changed.</p>
+
+</p>In contrast the design that introduces new type trait in the namespace <code>std</code> that has BaseCharacteristic
+of <code>std::false_type</code> and needs to be specialized does not introduce possibility of false-positives.
+However such design will no longer support user defined comparators that intentionally enables new lookup function
+via declaration of <code>is_transparent</code> nested type.</p>
+
+<p>The resolution of this problem is discussed in <a href="design.backward-compatibility">Backward compatibility</a>
+subsection of the proposal.</p>
+
+<h3><a name="motivation.third-party">Support for third party comparators</a></h3>
+
+<p>In current design enabling heterogeneous lookup requires a modification of the comparator class to 
+declare a nested type. As consequence of this intrusiveness the user is not able to enable this functionality
+for the third-party comparison types that are outside their control, even if they know that such operations
+is supported.</p>
+
+<p>In contrast use of type trait allow new lookup mechanism to be enabled in the program without any
+modification to the used libraries.</p>
+
+
+<h3><a name="motivation.wrappers">Creating transparent call wrappers</a></h3>
+
+<p>Introduction of type trait would also simplify the definition of call wrapper types that would like 
+to reproduced enable new functionality if the wrapped function type was provided for wrapped callable.</p>
+
+<p>Let assume that we are creating <code>call_wrapper&lt;F&gt;</code>. In the case of the proposed <code>is_heterogeneous_comparator</code>
+trait, the implementation is pretty straight forward:</p>
+<pre>namespace std
+{
+  template&lt;typename F&gt;
+  struct is_heterogeneous_comparator&lt;call_wrapper&lt;F&gt;&gt; 
+    : is_heterogeneous_comparator&lt;F&gt; {}; 
+}</pre>
+
+<p>But for current design it becomes more complicated. The user is required to declare <code>is_transparent</code> nested 
+type in the definition of <code>call_wrapper&lt;F&gt;</code> if such type was defined in the <code>F</code> type.</p>
+<pre>namespace detail 
+{
+  template&l;typename F, typename IT = void&gt;
+  struct is_transparent_base {};
+
+  template&l;typename F, void_t&lt;typename F::is_transparent&gt;&gt;
+  struct is_transparent_base 
+  {
+    using is_transparent = typename F::is_transparent; 
+  };
+}
+
+template&lt;typename F&gt;
+struct call_wrapper : detail::is_transparent_base&lt;F&gt;
+{ ... }</pre>
+
+<p>In addition to being longer and intrusive the nested type implementation is requiring the type <code>F</code> to 
+be complete and the point of instantiation of <code>call_wrapper&lt;F&gt;</code>.
+As consequence there is no possibility to create reference wrapper class that will support incomplete types and
+heterogeneous container lookup.</p>
+
+<h3><a name="motivation.consistency">Standard consistency</a></h3>
+
+<p>Proposed solution will make this functionality consistent with rest of the standard that relies on the usage
+of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</code> 
+
+
+<h2><a name="design">Design Decisions</a></h2>
+
+<p>Name,
+Place in the standard,
+Support for reference_wrapper and not_fn</p>
+
+
+<h3><a name="design.backward-compatibility">Backward compatibility</a></h3>
+
+<p>As the result of the introduction of <code>is_transparent</code> tag in the C++14 the design of <code>is_heterogeneous_comparator</code>
+must carefully decide to choose one of the following:</p>   
+  <ol>
+    <li>Fix the compatibility problem that may be result of enabling heterogeneous container lookup for existing comparators
+    that has coincidentally provided declaration of <code>is_transparent</code> nested type. To achieve that the default
+    implementation of metafunction should return false.</li>
+    <li>Preserve support for post-C++14 user defined comparator types that intentionally enables heterogenous container lookup
+    via declaration of <code>is_transparent</code> nested type. To achieve that the default implementation of metafunction should
+    rely on existence of this tag.</li>
+  </ol>
+
+<h2><a name="standard">Impact On The Standard</a></h2>
+
+<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.</p>
+
+<p>Nothing depends on this proposal.</p>
+
+
+<h2><a name="feature-testing">Feature-testing recommendation</a></h2>
+
+<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_is_heterogeneous_comparator</code>.</p>
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+
+<h2><a name="literature">References</a></h2>
+
+<ol>
+<li>Marshall Clow, "C++ Standard Library Active Issues List (Revision R92)" (N4383, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html</a>)</li>
+</ol>
+
+</body></html>
