@@ -152,8 +152,9 @@ type in the definition of <code>call_wrapper&lt;F&gt;</code> if such type was de
   template&lt;typename F, typename IT = void&gt;
   struct is_transparent_base {};
 
-  template&lt;typename F, void_t&lt;typename F::is_transparent&gt;&gt;
-  struct is_transparent_base 
+
+  template&lt;typename F&gt;
+  struct is_transparent_base&lt;F, void_t&lt;typename F::is_transparent&gt;&gt;
   {
     using is_transparent = typename F::is_transparent; 
   };
@@ -161,7 +162,7 @@ type in the definition of <code>call_wrapper&lt;F&gt;</code> if such type was de
 
 template&lt;typename F&gt;
 struct call_wrapper : detail::is_transparent_base&lt;F&gt;
-{ /*<i>...</i>*/ }</pre>
+{ /*<i>...</i>*/ };</pre>
 
 <p>In addition to being longer and intrusive the nested type implementation is requiring the type <code>F</code> to 
 be complete and the point of instantiation of <code>call_wrapper&lt;F&gt;</code>.
