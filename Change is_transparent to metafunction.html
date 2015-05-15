@@ -83,7 +83,7 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">Change is_transparent to a metafunction</a></h1>
+<h1><a name="title">Change is_transparent to metafunction</a></h1>
 
 <h2><a name="intro">Introduction</a></h2>
 
@@ -107,8 +107,13 @@ and to avoid such situations it was designed as opt-in feature. However the mech
 is not always working correctly - existing programs may define <code>is_transparent</code> nested type in their
 comparator type and as consequence meaning of such programs will be changed.</p>
 
-</p>In contrast the design that introduces new type trait in the namespace <code>std</code> that has BaseCharacteristic
-of <code>std::false_type</code> and needs to be specialized does not introduce possibility of false-positives.
+<p>Introduction of the type trait allow the users to resolve the backward compatibility problem described above
+via providing explicit specialization of the trait that derives from the std::false_type. 
+It is worth noticing that this is only viable resolution for the situation when the programmer does not  have controll over the
+comparators code.</p>
+
+</p>Futhermore it is possible to avoid false positives via providing the default definition
+of <code>is_heterogeneous_comparator</code> that has BaseCharacteristic of <code>std::false_type</code>.
 However such design will no longer support user defined comparators that intentionally enables new lookup function
 via declaration of <code>is_transparent</code> nested type.</p>
 
@@ -144,10 +149,10 @@ trait, the implementation is pretty straight forward:</p>
 type in the definition of <code>call_wrapper&lt;F&gt;</code> if such type was defined in the <code>F</code> type.</p>
 <pre>namespace detail 
 {
-  template&l;typename F, typename IT = void&gt;
+  template&lt;typename F, typename IT = void&gt;
   struct is_transparent_base {};
 
-  template&l;typename F, void_t&lt;typename F::is_transparent&gt;&gt;
+  template&lt;typename F, void_t&lt;typename F::is_transparent&gt;&gt;
   struct is_transparent_base 
   {
     using is_transparent = typename F::is_transparent; 
@@ -156,7 +161,7 @@ type in the definition of <code>call_wrapper&lt;F&gt;</code> if such type was de
 
 template&lt;typename F&gt;
 struct call_wrapper : detail::is_transparent_base&lt;F&gt;
-{ ... }</pre>
+{ /*<i>...</i>*/ }</pre>
 
 <p>In addition to being longer and intrusive the nested type implementation is requiring the type <code>F</code> to 
 be complete and the point of instantiation of <code>call_wrapper&lt;F&gt;</code>.
@@ -181,13 +186,20 @@ Support for reference_wrapper and not_fn</p>
 <p>As the result of the introduction of <code>is_transparent</code> tag in the C++14 the design of <code>is_heterogeneous_comparator</code>
 must carefully decide to choose one of the following:</p>   
   <ol>
-    <li>Fix the compatibility problem that may be result of enabling heterogeneous container lookup for existing comparators
+    <li>Fix the compatibility problem that may be result of silently enabling heterogeneous container lookup for existing comparators
     that has coincidentally provided declaration of <code>is_transparent</code> nested type. To achieve that the default
     implementation of metafunction should return false.</li>
     <li>Preserve support for post-C++14 user defined comparator types that intentionally enables heterogenous container lookup
     via declaration of <code>is_transparent</code> nested type. To achieve that the default implementation of metafunction should
     rely on existence of this tag.</li>
   </ol>
+
+<p>Considering the fact of the relative small possibility of encountering the problem mentonied in first and the fact the harm
+was already done (C++14 was shipped), the proposal decides to choose second option and provide the default implementation
+that relies on presence of nested type.</p>
+
+<p>As consequence of this decision two ways of the enabling hetergenous lookup are provided by the standard: via declaration of
+nested type and explicit sepcialization of the trait. The author strongly believes should be encouranged to use the new mechanism.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
