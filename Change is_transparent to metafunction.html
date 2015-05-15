@@ -172,15 +172,38 @@ heterogeneous container lookup.</p>
 <h3><a name="motivation.consistency">Consistency with the Standard</a></h3>
 
 <p>Proposed solution will make this functionality consistent with rest of the standard that relies on the usage
-of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</code> 
+of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</code> in similiar situations.</p> 
 
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>Name,
+<p>
 Place in the standard,
 Support for reference_wrapper and not_fn</p>
 
+<h3><a name="design.naming">Naming</a></h3>
+
+<p>Following criteria was considered in the process of name selection for new metafunction:</p>
+<ul>
+  <li>The name should not be too generic, to not collide with existing trait or reserve name that would be more suitable in other context.
+  Names that was rejected because of this criteria: <code>is_generic</code>, <code>is_polymorphic</code>, <code>is_transparent</code>.</li>
+  <li>The name should match the semantics of the metafunction: if its returns true, the container specialized with given functor will expose
+  heterogeneous lookup function, not the functor object itself.
+  Names that was rejected because of this criteria: <code>supports_heterogeneous_lookup</code>, <code>provides_heterogeneous_lookup</code>,
+  <code>allows_heterogeneous_lookup</code> and <code>enables_heterogeneous_lookup</code>.</li>
+  <li>The name should allow usage of metafunction for future extension that may provide heterogeneous lookup for other container types
+  like <code>unordered_set</code>, as consequence it should refer to concept of specific implementation.
+  given functor will expose heterogeneous lookup function, but this functionality is not provided by comparator itself.
+  Names that was rejected because of this criteria: <code>is_heterogeneous_comparator</code>.</li>
+  <li>The metafunction represents an opt-in functionality, so it is not automatically enabled for every functor thats support 
+  heterogeneous comparison. As consequence set of types for which this functionality is enabled is subset of types that could be potentially
+  used in this context.
+  Names that was rejected because of this criteria: <code>is_compatible_with_heterogeneous_lookup</code>.</li>
+</ul>
+
+<p>This paper propose a new name for the trait <code>permits_heterogenous_lookup</code>, instead of keeping the name used for nested type.
+This resolution was selected because the original name (<code>is_transparent</code>) is not acceptable, as it does not fulfill criteria
+for a good name listed above.</p>
 
 <h3><a name="design.backward-compatibility">Backward compatibility</a></h3>
 
@@ -199,8 +222,8 @@ must carefully decide to choose one of the following:</p>
 (C++14 was shipped), the proposal decides to choose second option and provide the default implementation
 that relies on presence of the nested type.</p>
 
-<p>As a consequence of this decision, two ways of enabling hetergenous lookup are provided by the standard:
-via the declaration of the nested type, and the explicit sepcialization of the trait. The author strongly believes
+<p>As a consequence of this decision, two ways of enabling heterogeneous lookup are provided by the standard:
+via the declaration of the nested type, and the explicit specialization of the trait. The author strongly believes
 that the usage of the new mechanism should be encouraged.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
@@ -218,7 +241,7 @@ that the usage of the new mechanism should be encouraged.</p>
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Jonathan Wakely provided a simplified wording for the LWG issue #2430, from which this paper originates.</p>
+<p>Jonathan Wakely provided an improved wording for the LWG issue #2430, from which this paper originates.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 
