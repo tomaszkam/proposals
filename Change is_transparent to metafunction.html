@@ -187,7 +187,7 @@ Support for reference_wrapper and not_fn</p>
 <p>As the result of the introduction of <code>is_transparent</code> tag in the C++14 the design of <code>is_heterogeneous_comparator</code>
 must carefully decide to choose one of the following:</p>   
   <ol>
-    <li>Fix the compatibility problem that may be the result of silently enabling heterogeneous container lookup for
+    <li>Fix the pre-C++14 code compatibility problem that may be the result of silently enabling heterogeneous container lookup for
     existing comparators that have coincidentally provided the declaration of <code>is_transparent</code> nested type.
     To achieve that, the default implementation of the metafunction should return false.</li>
     <li>Preserve the support for post-C++14 user-defined comparator types that intentionally enable heterogenous
