@@ -181,6 +181,22 @@ of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</co
 Place in the standard,
 Support for reference_wrapper and not_fn</p>
 
+<h3><a name="design.semantics">Semantic of new trait</a></h3>
+
+<p>Existing <code>is_transparent</code> nested was used to mark classes that has one of the following characteristics:</p>
+<ol>
+  <li>Transparently wraps operation expressed using build-in operators.</li>
+  <li>Represents weak total order relation heterogeneous types and as consequence
+  support lookup thought a different type.</li>
+</ol>
+<p>However we may point out existence of the types that does match one of above criteria. For example diamond version
+<code>logical_not</code> or <code>plus</code> are transparently wrapping some build-in operators, but usually the cannot
+be used as comparators. From the other side we may imagine the <code>icase_less</code> comparator that would provides
+overloads for <code>std::string</code> and <code>char*</code>.</p>
+
+<p>The trait proposed in this is designed to identify only the types in the second category. The relation with the
+existing <code>is_transparent</code> is preserved only for backward compatibility reasons.</p>
+
 <h3><a name="design.naming">Naming</a></h3>
 
 <p>Following criteria was considered in the process of name selection for new metafunction:</p>
@@ -193,7 +209,6 @@ Support for reference_wrapper and not_fn</p>
   <code>allows_heterogeneous_lookup</code> and <code>enables_heterogeneous_lookup</code>.</li>
   <li>The name should allow usage of metafunction for future extension that may provide heterogeneous lookup for other container types
   like <code>unordered_set</code>, as consequence it should refer to concept of specific implementation.
-  given functor will expose heterogeneous lookup function, but this functionality is not provided by comparator itself.
   Names that was rejected because of this criteria: <code>is_heterogeneous_comparator</code>.</li>
   <li>The metafunction represents an opt-in functionality, so it is not automatically enabled for every functor thats support 
   heterogeneous comparison. As consequence set of types for which this functionality is enabled is subset of types that could be potentially
@@ -212,7 +227,7 @@ must carefully decide to choose one of the following:</p>
   <ol>
     <li>Fix the pre-C++14 code compatibility problem that may be the result of silently enabling heterogeneous container lookup for
     existing comparators that have coincidentally provided the declaration of <code>is_transparent</code> nested type.
-    To achieve that, the default implementation of the metafunction should return false.</li>
+    To achieve that, the default implementation of the metafunction should allways return false.</li>
     <li>Preserve the support for post-C++14 user-defined comparator types that intentionally enable heterogenous
     container lookup via the declaration of <code>is_transparent</code> nested type. To achieve that, the default
     implementation of the metafunction should return true for the functors with this type present.</li>
@@ -224,7 +239,7 @@ that relies on presence of the nested type.</p>
 
 <p>As a consequence of this decision, two ways of enabling heterogeneous lookup are provided by the standard:
 via the declaration of the nested type, and the explicit specialization of the trait. The author strongly believes
-that the usage of the new mechanism should be encouraged.</p>
+that new mechanism provides an better alternative and decides to express it via non normative note.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
@@ -235,7 +250,8 @@ that the usage of the new mechanism should be encouraged.</p>
 
 <h2><a name="feature-testing">Feature-testing recommendation</a></h2>
 
-<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_permits_heterogenous_lookup</code>.</p>
+<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_permits_heterogenous_lookup</code> to be defined in the
+<code>&lt;functional&gt;</code> header.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
