@@ -256,6 +256,28 @@ in <code>&lt;functional&gt;</code> header, as it contains definition of comparat
 <p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_permits_heterogeneous_lookup</code> to be defined in the
 <code>&lt;functional&gt;</code> header.</p>
 
+<p>Example use:</p>
+<pre>
+#if __cpp_lib_permits_heterogeneous_lookup
+struct icase_less
+{
+  using is_transparent = void;
+  bool operator()(std::string_view, std::string_view);
+};
+#else
+struct icase_less
+{
+  bool operator()(std::string_view, std::string_view);
+};
+
+namespace std
+{
+  template&lt;&gt;
+  struct permits_heterogeneous_lookup&lt;icase_less&gt;
+    : std::true_type {}
+}
+#endif</pre>
+
 <h2><a name="wording">Proposed wording</a></h2>
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
