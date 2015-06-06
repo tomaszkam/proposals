@@ -253,10 +253,11 @@ enables heterogeneous lookup.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4431.pdf">N4431</a> (C++ Working Draft, 4/10/2015).</p>
 
-<p>After the declaration of <code>hash</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
+<p>After the declaration of <code>hash&lt;T*&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 </p><blockquote class="stdins">
-<pre>  // 20.9.3, <em>support for heterogeneous container lookup</em>
+<pre>  // 20.9.14, <em>heterogeneous container lookup</em>
   template &lt;class F&gt; permits_heterogeneous_lookup;
 </pre>
 
@@ -363,6 +364,7 @@ namespace std
 
 <ol>
 <li>Marshall Clow, "C++ Standard Library Active Issues List (Revision R92)" (N4383, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html</a>)</li>
+<li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4431, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4431.pdf">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4431.pdf</a>)</li>
 </ol>
 
 </body></html>
