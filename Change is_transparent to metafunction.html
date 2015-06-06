@@ -100,7 +100,7 @@ This metafunction is designed to be used to enable the heterogeneous lookup in a
 of the current standard method relying on presence of <code>is_transparent</code> nested type in the comparator
 type ($23.2.4 [associative.reqmts]).</p>
 
-<h3><a name="motivation.backward-compatibility">Presreving backward compatibility</a></h3>
+<h3><a name="motivation.backward-compatibility">Preserving backward compatibility</a></h3>
 
 <p>The addition of the heterogeneous lookup to the container may silently change the behavior of the existing code,
 and to avoid such situations it was designed as an opt-in feature. However, the mechanism created for the purpose
@@ -110,10 +110,10 @@ comparator type, and as a consequence the meaning of such programs will be chang
 <p>The introduction of the type trait allows the users to resolve the backward compatibility problem described above
 via providing an explicit specialization of the trait that derives from the <code>std::false_type</code>. 
 It is worth noting that this is only a viable resolution for the situation when the programmer does not have the
-controll over the comparator's code.</p>
+control over the comparator's code.</p>
 
-</p>Futhermore, it is possible to avoid false positives via providing the default definition
-of <code>permits_heterogenous_lookup</code> that has BaseCharacteristic of <code>std::false_type</code>.
+</p>Furthermore, it is possible to avoid false positives via providing the default definition
+of <code>permits_heterogeneous_lookup</code> that has BaseCharacteristic of <code>std::false_type</code>.
 However, such design will no longer support user-defined comparators that intentionally enable new lookup function
 by declaring nested type <code>is_transparent</code>.</p>
 
@@ -134,15 +134,15 @@ modification to the third party libraries.</p>
 <h3><a name="motivation.wrappers">Creating transparent call wrappers</a></h3>
 
 <p>The introduction of the type trait would also simplify the definition of call wrapper types that would like 
-to 'inherit' the heterogenous comparison trait from the wrapped callable.</p>
+to 'inherit' the heterogeneous comparison trait from the wrapped callable.</p>
 
-<p>Suppose we are creating <code>call_wrapper&lt;F&gt;</code>. In the case of the proposed <code>permits_heterogenous_lookup</code>
+<p>Suppose we are creating <code>call_wrapper&lt;F&gt;</code>. In the case of the proposed <code>permits_heterogeneous_lookup</code>
 trait, the implementation is pretty straight-forward:</p>
 <pre>namespace std
 {
   template&lt;typename F&gt;
-  struct permits_heterogenous_lookup&lt;call_wrapper&lt;F&gt;&gt; 
-    : permits_heterogenous_lookup&lt;F&gt; {}; 
+  struct permits_heterogeneous_lookup&lt;call_wrapper&lt;F&gt;&gt; 
+    : permits_heterogeneous_lookup&lt;F&gt; {}; 
 }</pre>
 
 <p>But for current design it becomes more complicated. The user is required to declare <code>is_transparent</code> nested 
@@ -172,8 +172,7 @@ heterogeneous container lookup.</p>
 <h3><a name="motivation.consistency">Consistency with the Standard</a></h3>
 
 <p>Proposed solution will make this functionality consistent with rest of the standard that relies on the usage
-of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</code> in similiar situations.</p> 
-
+of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</code> in similar situations.</p> 
 
 <h2><a name="design">Design Decisions</a></h2>
 
@@ -212,13 +211,13 @@ existing <code>is_transparent</code> is preserved only for backward compatibilit
   Names that was rejected because of this criteria: <code>is_compatible_with_heterogeneous_lookup</code>.</li>
 </ul>
 
-<p>This paper propose a new name for the trait <code>permits_heterogenous_lookup</code>, instead of keeping the name used for nested type.
+<p>This paper propose a new name for the trait <code>permits_heterogeneous_lookup</code>, instead of keeping the name used for nested type.
 This resolution was selected because the original name (<code>is_transparent</code>) is not acceptable, as it does not fulfill criteria
 for a good name listed above.</p>
 
 <h3><a name="design.backward-compatibility">Backward compatibility</a></h3>
 
-<p>As the result of the introduction of <code>is_transparent</code> tag in the C++14 the design of <code>permits_heterogenous_lookup</code>
+<p>As the result of the introduction of <code>is_transparent</code> tag in the C++14 the design of <code>permits_heterogeneous_lookup</code>
 must carefully decide to choose one of the following:</p>   
   <ol>
     <li>Fix the pre-C++14 code compatibility problem that may be the result of silently enabling heterogeneous container lookup for
@@ -254,7 +253,7 @@ in <code>&lt;functional&gt;</code> header, as it contains definition of comparat
 
 <h2><a name="feature-testing">Feature-testing recommendation</a></h2>
 
-<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_permits_heterogenous_lookup</code> to be defined in the
+<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_permits_heterogeneous_lookup</code> to be defined in the
 <code>&lt;functional&gt;</code> header.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
