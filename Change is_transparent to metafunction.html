@@ -112,7 +112,7 @@ via providing an explicit specialization of the trait that derives from the <cod
 It is worth noting that this is only a viable resolution for the situation when the programmer does not have the
 control over the comparator's code.</p>
 
-</p>Furthermore, it is possible to avoid false positives via providing the default definition
+<p>Furthermore, it is possible to avoid false positives via providing the default definition
 of <code>permits_heterogeneous_lookup</code> that has BaseCharacteristic of <code>std::false_type</code>.
 However, such design will no longer support user-defined comparators that intentionally enable new lookup function
 by declaring nested type <code>is_transparent</code>.</p>
@@ -301,7 +301,7 @@ namespace std {
     <code>a_eq</code> denotes a value of <code>X</code> when <code>X</code> supports multiple keys,
     <code>a_tran</code> denotes a value of <code>X</code> when the
     <del><em>qualified-id</em> <code>X::key_compare::is_transparent</code> is valid and denotes a type (14.8.2)</del>
-    <ins>value of <code>permits_heterogeneous_lookup&lt;X::key_compare&gt;::value</code> is <code>true</code> (20.9.14)</code></ins>,
+    <ins>value of <code>permits_heterogeneous_lookup&lt;X::key_compare&gt;::value</code> is <code>true</code> (20.9.14)</ins>,
     <code>i</code> and <code>j</code> satisfy input iterator requirements and refer to elements implicitly convertible to <code>value_type</code>,
     <code>[i,j)</code> denotes a valid range, 
     <code>p</code> denotes a valid const iterator to <code>a</code>,
