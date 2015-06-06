@@ -177,10 +177,6 @@ of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</co
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>
-Place in the standard,
-Support for reference_wrapper and not_fn</p>
-
 <h3><a name="design.semantics">Semantic of new trait</a></h3>
 
 <p>Existing <code>is_transparent</code> nested was used to mark classes that has one of the following characteristics:</p>
@@ -227,8 +223,8 @@ must carefully decide to choose one of the following:</p>
   <ol>
     <li>Fix the pre-C++14 code compatibility problem that may be the result of silently enabling heterogeneous container lookup for
     existing comparators that have coincidentally provided the declaration of <code>is_transparent</code> nested type.
-    To achieve that, the default implementation of the metafunction should allways return false.</li>
-    <li>Preserve the support for post-C++14 user-defined comparator types that intentionally enable heterogenous
+    To achieve that, the default implementation of the metafunction should always return false.</li>
+    <li>Preserve the support for post-C++14 user-defined comparator types that intentionally enable heterogeneous
     container lookup via the declaration of <code>is_transparent</code> nested type. To achieve that, the default
     implementation of the metafunction should return true for the functors with this type present.</li>
   </ol>
@@ -240,6 +236,14 @@ that relies on presence of the nested type.</p>
 <p>As a consequence of this decision, two ways of enabling heterogeneous lookup are provided by the standard:
 via the declaration of the nested type, and the explicit specialization of the trait. The author strongly believes
 that new mechanism provides an better alternative and decides to express it via non normative note.</p>
+
+<h3><a name="design.header">Place of declaration</a></h3>
+
+<p>The semantics of <code>permits_heterogeneous_lookup</code> new trait is directly related to the associative containers
+and as consequence it would be preferred to declare it in related header. However currently no common utility header
+for associative container is defined in the standard. Furthermore the scale of the proposed changes does not not justify
+introduction of the new header. As consequence we propose that <code>permits_heterogeneous_lookup</code> should be included 
+in <code>&lt;functional&gt;</code> header, as it contains definition of comparators that currently enables heterogeneous lookup.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
