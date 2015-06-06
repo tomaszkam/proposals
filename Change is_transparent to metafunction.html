@@ -242,13 +242,87 @@ that new mechanism provides an better alternative and decides to express it via 
 and as consequence it would be preferred to declare it in related header. However currently no common utility header
 for associative container is defined in the standard. Furthermore the scale of the proposed changes does not not justify
 introduction of the new header. As consequence we propose that <code>permits_heterogeneous_lookup</code> should be included 
-in <code>&lt;functional&gt;</code> header, as it contains definition of comparators that currently enables heterogeneous lookup.</p>
+in <code>&lt;functional&gt;</code> header, as it contains definitions of default hash function and comparators that currently
+enables heterogeneous lookup.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
 <p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.</p>
 
 <p>Nothing depends on this proposal.</p>
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+
+<p>After the declaration of <code>hash</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
+</p><blockquote class="stdins">
+<pre>  // 20.9.3, <em>support for heterogeneous container lookup</em>
+  template &lt;class F&gt; permits_heterogeneous_lookup;
+</pre>
+
+</blockquote>
+
+<p>After paragraph 20.9.13 Class template <code>hash</code>, insert a new paragraph.</p>
+
+<blockquote class="stdins"> 
+<h4>20.9.14 Class template <code>permits_heterogeneous_lookup</code> <span style="float:right">[unord.heterlookup]</span></h4>
+
+<pre>
+namespace std {
+  template&lt;class F&gt; struct permits_heterogeneous_lookup; // see below
+}</pre>
+
+  <dl class="attribute">
+    <dd><p>The associative containers defined in 23.3 use <code>permits_heterogeneous_lookup</code> to detect if method providing
+           heterogeneous container lookup should be enabled for given comparator type.</p></dd>
+
+    <dd><p>Instantiations of the <code>permits_heterogeneous_lookup</code> template shall meet the <code>UnaryTypeTrait</code> requirements (20.10.1).
+           The implementation shall provide a definition of <code>permits_heterogeneous_lookup&lt;F&gt;</code> that has the <code>BaseCharacteristic</code> 
+           of <code>true_type</code> if the <em>qualified-id</em> <code>F::is_transparent</code> is valid and denotes a type (14.8.2),
+           otherwise it shall have a <code>BaseCharacteristic</code> of <code>false_type</code>.</p></dd>
+
+    <dd><p>A program may specialize this template for a user-defined type <code>T</code> to have a <code>BaseCharacteristic</code> of <code>true_type</code>
+           to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type with associative containers.</p></dd>
+
+  </dl>
+
+</blockquote>
+
+<p>Change the paragraph 23.2.4 Associative containers [associative.reqmts] p8.</p>
+
+<blockquote class="std"> 
+
+  <dl class="attribute">
+
+    <dd><p>In Table 102,
+    <code>X</code> denotes an associative container class,
+    <code>a</code> denotes a value of <code>X</code>,
+    <code>a_uniq</code> denotes a value of <code>X</code> when <code>X</code> supports unique keys, 
+    <code>a_eq</code> denotes a value of <code>X</code> when <code>X</code> supports multiple keys,
+    <code>a_tran</code> denotes a value of <code>X</code> when the
+    <del><em>qualified-id</em> <code>X::key_compare::is_transparent</code> is valid and denotes a type (14.8.2)</del>
+    <ins>value of <code>permits_heterogeneous_lookup&lt;X::key_compare&gt;::value</code> is <code>true</code> (20.9.14)</code></ins>,
+    <code>i</code> and <code>j</code> satisfy input iterator requirements and refer to elements implicitly convertible to <code>value_type</code>,
+    <code>[i,j)</code> denotes a valid range, 
+    <code>p</code> denotes a valid const iterator to <code>a</code>,
+    <code>q</code> denotes a valid dereferenceable const iterator to <code>a</code>, 
+    <code>[q1, q2)</code> denotes a valid range of const iterators in <code>a</code>,
+    <code>il</code> designates an object of type <code>initializer_list&lt;value_type&gt;</code>,
+    <code>t</code> denotes a value of <code>X::value_type</code>, 
+    <code>k</code> denotes a value of <code>X::key_type</code> and 
+    <code>c</code> denotes a value of type <code>X::key_compare</code>; 
+    <code>kl</code> is a value such that <code>a</code> is partitioned (25.4) with respect to <code>c(r, kl)</code>,
+      with <code>r</code> the key value of <code>e</code> and <code>e</code> in <code>a</code>;
+    <code>ku</code> is <code>a</code> value such that a is partitioned with respect to <code>!c(ku, r)</code>;
+    <code>ke</code> is a value such that <code>a</code> is partitioned with respect to <code>c(r, ke)</code> and <code>!c(ke, r)</code>,
+      with <code>c(r, ke)</code> implying <code>!c(ke, r)</code>.
+    <code>A</code> denotes the storage allocator used by <code>X</code>, if any, or <code>std::allocator&lt;X::value_type&gt;</code> otherwise,
+    and <code>m</code> denotes an allocator of a type convertible to <code>A</code>.</p></dd>
+
+  </dl>
+
+</blockquote>
+
 
 
 <h2><a name="feature-testing">Feature-testing recommendation</a></h2>
@@ -278,7 +352,6 @@ namespace std
 }
 #endif</pre>
 
-<h2><a name="wording">Proposed wording</a></h2>
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
