@@ -87,7 +87,8 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>This proposal discusses an alternative design for enabling a heterogeneous lookup function in the associative containers in the form of a metafunction.</p>
+<p>This proposal discusses an alternative design for enabling a heterogeneous lookup function in the associative
+containers, that relies on use of metafunction.</p>
 
 <p>This paper is result of the LWG recommendation provided in the resolution of the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>.</p>
 
@@ -102,8 +103,8 @@ type ($23.2.4 [associative.reqmts]).</p>
 
 <h3><a name="motivation.backward-compatibility">Preserving backward compatibility</a></h3>
 
-<p>The addition of the heterogeneous lookup to the container may silently change the behavior of the existing code,
-and to avoid such situations it was designed as an opt-in feature. However, the mechanism created for the purpose
+<p>The addition of the heterogeneous lookup to the container may silently change the behavior of the existing code
+and, to avoid such situations, it was designed as an opt-in feature. However, the mechanism created for the purpose
 is not always working correctly - existing programs may define <code>is_transparent</code> nested type in their
 comparator types, and as a consequence the meaning of such programs will be changed.</p>
 
@@ -123,9 +124,8 @@ subsection of the proposal.</p>
 <h3><a name="motivation.third-party">Support for third party comparators</a></h3>
 
 <p>In the current design enabling heterogeneous lookup requires a modification of the comparator class to 
-declare a nested type. As a consequence of this intrusiveness, the cannot enable this functionality
-for the third-party types that are outside of their control, even if they know that such operation is 
-supported.</p>
+declare a nested type. As a consequence of this intrusiveness, discussed functionality cannot be enabled
+for the third-party types that are outside of their control, even if they support such operations.</p>
 
 <p>In contrast, the use of a type trait allows the new lookup mechanism to be enabled in the program without any
 modification to the third party libraries.</p>
@@ -186,7 +186,7 @@ of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</co
 </ol>
 <p>Although we may point out types that fulfills only one of above criteria. For example diamond version
 <code>logical_not</code> or <code>plus</code> are transparently wrapping some build-in operators, 
-but usually the cannot be used as comparators. From the other side we may imagine the <code>icase_less</code>
+but usually they cannot be used as comparators. From the other side we may imagine the <code>icase_less</code>
 comparator that would provides overloads for <code>std::string</code> and <code>char*</code>.</p>
 
 <p>The trait proposed in this paper is designed to identify only the types in the second category. 
@@ -201,7 +201,7 @@ The relation with the existing <code>is_transparent</code> is preserved only for
   Names that was rejected because of this criteria: <code>is_generic</code>, <code>is_polymorphic</code>,
   <code>is_transparent</code>.</li>
   <li>The name should match the semantics of the metafunction: if its returns true, the container specialized
-  with given functor will expose  heterogeneous lookup function, not the functor object itself.
+  with given functor will expose heterogeneous lookup function, not the functor object itself.
   Names that was rejected because of this criteria: <code>supports_heterogeneous_lookup</code>, 
   <code>provides_heterogeneous_lookup</code>,  <code>allows_heterogeneous_lookup</code> and 
   <code>enables_heterogeneous_lookup</code>.</li>
@@ -238,13 +238,14 @@ that relies on presence of the nested type.</p>
 
 <p>As a consequence of this decision, two ways of enabling heterogeneous lookup are provided by the standard:
 via the declaration of the nested type, and the explicit specialization of the trait. The author strongly believes
-that new mechanism provides an better alternative and decides to express this view via non normative note.</p>
+that new mechanism provides an better alternative and decides to express this view via non normative note in
+the wording.</p>
 
 <h3><a name="design.header">Place of declaration</a></h3>
 
-<p>The semantics of <code>permits_heterogeneous_lookup</code> new trait is directly related to the associative containers
-and as consequence it would be preferred to declare it in related header. However currently no common utility header
-for associative container is defined in the standard. Furthermore the scale of the proposed changes does not not justify
+<p>The semantics of new <code>permits_heterogeneous_lookup</code> trait is directly related to the associative containers
+and it would be preferable to declare it in related header. However currently no common utility header for associative 
+container is defined in the standard. Furthermore the scale of the proposed changes does not not justify
 introduction of the new header. As consequence we propose that <code>permits_heterogeneous_lookup</code> should be included 
 in <code>&lt;functional&gt;</code> header, as it contains definitions of default hash function and comparators that currently
 enables heterogeneous lookup.</p>
@@ -278,16 +279,23 @@ namespace std {
 }</pre>
 
   <dl class="attribute">
-    <dd><p>The associative containers defined in 23.3 use <code>permits_heterogeneous_lookup</code> to detect if method providing
+    <dd><p>The associative containers defined in 23.3 use <code>permits_heterogeneous_lookup</code> to detect if methods exposing
            heterogeneous container lookup should be enabled for given comparator type.</p></dd>
 
-    <dd><p>Instantiations of the <code>permits_heterogeneous_lookup</code> template shall meet the <code>UnaryTypeTrait</code> requirements (20.10.1).
-           The implementation shall provide a definition of <code>permits_heterogeneous_lookup&lt;F&gt;</code> that has the <code>BaseCharacteristic</code> 
-           of <code>true_type</code> if the <em>qualified-id</em> <code>F::is_transparent</code> is valid and denotes a type (14.8.2),
+    <dd><p>Instantiations of the <code>permits_heterogeneous_lookup</code> template shall meet the <code>UnaryTypeTrait</code>
+           requirements (20.10.1).
+           The implementation shall provide a definition of <code>permits_heterogeneous_lookup&lt;F&gt;</code> that has the 
+           <code>BaseCharacteristic</code> of <code>true_type</code> if the <em>qualified-id</em> <code>F::is_transparent</code> 
+           is valid and denotes a type (14.8.2),
            otherwise it shall have a <code>BaseCharacteristic</code> of <code>false_type</code>.</p></dd>
 
-    <dd><p>A program may specialize this template for a user-defined type <code>T</code> to have a <code>BaseCharacteristic</code> of <code>true_type</code>
-           to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type with associative containers.</p></dd>
+    <dd><p>A program may specialize this template for a user-defined type <code>T</code> to have a <code>BaseCharacteristic</code> 
+           of <code>true_type</code> to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type 
+           with associative containers.</p></dd>
+
+
+   <dd><p>[ <em>Note:</em> Use of i<code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
+          declaring <code>is_transparent</code> nested type. <em> — end note</em> ]</p></dd> 
 
   </dl>
 
