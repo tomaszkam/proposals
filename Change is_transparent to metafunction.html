@@ -105,11 +105,11 @@ type ($23.2.4 [associative.reqmts]).</p>
 <p>The addition of the heterogeneous lookup to the container may silently change the behavior of the existing code,
 and to avoid such situations it was designed as an opt-in feature. However, the mechanism created for the purpose
 is not always working correctly - existing programs may define <code>is_transparent</code> nested type in their
-comparator type, and as a consequence the meaning of such programs will be changed.</p>
+comparator types, and as a consequence the meaning of such programs will be changed.</p>
 
 <p>The introduction of the type trait allows the users to resolve the backward compatibility problem described above
-via providing an explicit specialization of the trait that derives from the <code>std::false_type</code>. 
-It is worth noting that this is only a viable resolution for the situation when the programmer does not have the
+via providing an explicit specialization of the trait that derives from <code>std::false_type</code>. 
+It is worth noting that this is only a viable solution for the situation when the programmer does not have the
 control over the comparator's code.</p>
 
 <p>Furthermore, it is possible to avoid false positives via providing the default definition
@@ -123,9 +123,9 @@ subsection of the proposal.</p>
 <h3><a name="motivation.third-party">Support for third party comparators</a></h3>
 
 <p>In the current design enabling heterogeneous lookup requires a modification of the comparator class to 
-declare a nested type. As a consequence of this intrusiveness, the users cannot enable this functionality
-for the third-party comparison types that are outside of their control, even if they know that such operation
-is supported.</p>
+declare a nested type. As a consequence of this intrusiveness, the cannot enable this functionality
+for the third-party types that are outside of their control, even if they know that such operation is 
+supported.</p>
 
 <p>In contrast, the use of a type trait allows the new lookup mechanism to be enabled in the program without any
 modification to the third party libraries.</p>
@@ -165,7 +165,7 @@ struct call_wrapper : detail::is_transparent_base&lt;F&gt;
 { /*<i>...</i>*/ };</pre>
 
 <p>In addition to being longer and intrusive, the nested type implementation requires of type <code>F</code> to 
-be complete and becomes the point of instantiation of <code>call_wrapper&lt;F&gt;</code>.
+be complete at the point of instantiation of <code>call_wrapper&lt;F&gt;</code>.
 As a consequence, it is impossible to create a reference wrapper class that would support both incomplete types and
 heterogeneous container lookup.</p>
 
@@ -181,39 +181,43 @@ of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</co
 <p>Existing <code>is_transparent</code> nested was used to mark classes that has one of the following characteristics:</p>
 <ol>
   <li>Transparently wraps operation expressed using build-in operators.</li>
-  <li>Represents weak total order relation heterogeneous types and as consequence
+  <li>Represents weak total order relation on heterogeneous types and as consequence
   support lookup thought a different type.</li>
 </ol>
-<p>However we may point out existence of the types that does match one of above criteria. For example diamond version
-<code>logical_not</code> or <code>plus</code> are transparently wrapping some build-in operators, but usually the cannot
-be used as comparators. From the other side we may imagine the <code>icase_less</code> comparator that would provides
-overloads for <code>std::string</code> and <code>char*</code>.</p>
+<p>Although we may point out types that fulfills only one of above criteria. For example diamond version
+<code>logical_not</code> or <code>plus</code> are transparently wrapping some build-in operators, 
+but usually the cannot be used as comparators. From the other side we may imagine the <code>icase_less</code>
+comparator that would provides overloads for <code>std::string</code> and <code>char*</code>.</p>
 
-<p>The trait proposed in this is designed to identify only the types in the second category. The relation with the
-existing <code>is_transparent</code> is preserved only for backward compatibility reasons.</p>
+<p>The trait proposed in this paper is designed to identify only the types in the second category. 
+The relation with the existing <code>is_transparent</code> is preserved only for backward compatibility reasons.</p>
 
 <h3><a name="design.naming">Naming</a></h3>
 
 <p>Following criteria was considered in the process of name selection for new metafunction:</p>
 <ul>
-  <li>The name should not be too generic, to not collide with existing trait or reserve name that would be more suitable in other context.
-  Names that was rejected because of this criteria: <code>is_generic</code>, <code>is_polymorphic</code>, <code>is_transparent</code>.</li>
-  <li>The name should match the semantics of the metafunction: if its returns true, the container specialized with given functor will expose
-  heterogeneous lookup function, not the functor object itself.
-  Names that was rejected because of this criteria: <code>supports_heterogeneous_lookup</code>, <code>provides_heterogeneous_lookup</code>,
-  <code>allows_heterogeneous_lookup</code> and <code>enables_heterogeneous_lookup</code>.</li>
-  <li>The name should allow usage of metafunction for future extension that may provide heterogeneous lookup for other container types
-  like <code>unordered_set</code>, as consequence it should refer to concept of specific implementation.
+  <li>The name should not be too generic, to not collide with existing trait or reserve name that
+  would be more suitable in other context.
+  Names that was rejected because of this criteria: <code>is_generic</code>, <code>is_polymorphic</code>,
+  <code>is_transparent</code>.</li>
+  <li>The name should match the semantics of the metafunction: if its returns true, the container specialized
+  with given functor will expose  heterogeneous lookup function, not the functor object itself.
+  Names that was rejected because of this criteria: <code>supports_heterogeneous_lookup</code>, 
+  <code>provides_heterogeneous_lookup</code>,  <code>allows_heterogeneous_lookup</code> and 
+  <code>enables_heterogeneous_lookup</code>.</li>
+  <li>The name should allow usage of metafunction for future extension that may provide heterogeneous lookup
+  for other container types like <code>unordered_set</code>, as consequence it should not refer to concept specific
+  to one implementation.
   Names that was rejected because of this criteria: <code>is_heterogeneous_comparator</code>.</li>
-  <li>The metafunction represents an opt-in functionality, so it is not automatically enabled for every functor thats support 
-  heterogeneous comparison. As consequence set of types for which this functionality is enabled is subset of types that could be potentially
-  used in this context.
+  <li>The metafunction represents an opt-in functionality, so it is not automatically enabled for every functor
+  thats support heterogeneous comparison. As consequence set of types for which this functionality is enabled is
+  subset of types that could be potentially used in this context.
   Names that was rejected because of this criteria: <code>is_compatible_with_heterogeneous_lookup</code>.</li>
 </ul>
 
-<p>This paper propose a new name for the trait <code>permits_heterogeneous_lookup</code>, instead of keeping the name used for nested type.
-This resolution was selected because the original name (<code>is_transparent</code>) is not acceptable, as it does not fulfill criteria
-for a good name listed above.</p>
+<p>This paper propose a new name for the trait <code>permits_heterogeneous_lookup</code>, instead of keeping the
+name used for nested type. This resolution was selected because the original name (<code>is_transparent</code>)
+does not fulfill criteria of a good name listed above.</p>
 
 <h3><a name="design.backward-compatibility">Backward compatibility</a></h3>
 
@@ -222,19 +226,19 @@ must carefully decide to choose one of the following:</p>
   <ol>
     <li>Fix the pre-C++14 code compatibility problem that may be the result of silently enabling heterogeneous container lookup for
     existing comparators that have coincidentally provided the declaration of <code>is_transparent</code> nested type.
-    To achieve that, the default implementation of the metafunction should always return false.</li>
+    To achieve that, the default implementation of the metafunction should always return <code>false</code>.</li>
     <li>Preserve the support for post-C++14 user-defined comparator types that intentionally enable heterogeneous
     container lookup via the declaration of <code>is_transparent</code> nested type. To achieve that, the default
-    implementation of the metafunction should return true for the functors with this type present.</li>
+    implementation of the metafunction should return <code>true</code> for the functors with this type present.</li>
   </ol>
 
-<p>Considering the fact that we are addressing a rare problem, and the fact the harm was already done
+<p>Considering small possibility of occurrence of compatibility problems and the fact the harm was already done
 (C++14 was shipped), the proposal decides to choose second option and provide the default implementation
 that relies on presence of the nested type.</p>
 
 <p>As a consequence of this decision, two ways of enabling heterogeneous lookup are provided by the standard:
 via the declaration of the nested type, and the explicit specialization of the trait. The author strongly believes
-that new mechanism provides an better alternative and decides to express it via non normative note.</p>
+that new mechanism provides an better alternative and decides to express this view via non normative note.</p>
 
 <h3><a name="design.header">Place of declaration</a></h3>
 
@@ -302,7 +306,7 @@ namespace std {
     <code>a_eq</code> denotes a value of <code>X</code> when <code>X</code> supports multiple keys,
     <code>a_tran</code> denotes a value of <code>X</code> when the
     <del><em>qualified-id</em> <code>X::key_compare::is_transparent</code> is valid and denotes a type (14.8.2)</del>
-    <ins>value of <code>permits_heterogeneous_lookup&lt;X::key_compare&gt;::value</code> is <code>true</code> (20.9.14)</ins>,
+    <ins>value of <code>permits_heterogeneous_lookup&lt;typename X::key_compare&gt;::value</code> is <code>true</code> (20.9.14)</ins>,
     <code>i</code> and <code>j</code> satisfy input iterator requirements and refer to elements implicitly convertible to <code>value_type</code>,
     <code>[i,j)</code> denotes a valid range, 
     <code>p</code> denotes a valid const iterator to <code>a</code>,
@@ -331,15 +335,9 @@ namespace std {
 <p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_permits_heterogeneous_lookup</code> to be defined in the
 <code>&lt;functional&gt;</code> header.</p>
 
-<p>Example use:</p>
+<p>Usage example:</p>
 <pre>
 #if __cpp_lib_permits_heterogeneous_lookup
-struct icase_less
-{
-  using is_transparent = void;
-  bool operator()(std::string_view, std::string_view);
-};
-#else
 struct icase_less
 {
   bool operator()(std::string_view, std::string_view);
@@ -349,14 +347,20 @@ namespace std
 {
   template&lt;&gt;
   struct permits_heterogeneous_lookup&lt;icase_less&gt;
-    : std::true_type {}
+    : std::true_type {};
 }
+#else
+struct icase_less
+{
+  using is_transparent = void;
+  bool operator()(std::string_view, std::string_view);
+};
 #endif</pre>
 
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Jonathan Wakely provided an improved wording for the LWG issue #2430, from which this paper originates.</p>
+<p>Jonathan Wakely provided an improved wording for the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>, from which this paper originates.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 
