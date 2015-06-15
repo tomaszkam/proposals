@@ -294,7 +294,7 @@ namespace std {
            with associative containers.</p></dd>
 
 
-   <dd><p>[ <em>Note:</em> Use of i<code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
+   <dd><p>[ <em>Note:</em> Use of <code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
           declaring <code>is_transparent</code> nested type. <em> — end note</em> ]</p></dd> 
 
   </dl>
@@ -348,7 +348,7 @@ namespace std {
 #if __cpp_lib_permits_heterogeneous_lookup
 struct icase_less
 {
-  bool operator()(std::string_view, std::string_view);
+  bool operator()(std::string_view, std::string_view) const;
 };
 
 namespace std
@@ -361,7 +361,7 @@ namespace std
 struct icase_less
 {
   using is_transparent = void;
-  bool operator()(std::string_view, std::string_view);
+  bool operator()(std::string_view, std::string_view) const;
 };
 #endif</pre>
 
