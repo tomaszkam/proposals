@@ -176,7 +176,7 @@ of the traits like: <code>is_placeholder</code> and <code>is_bind_expression</co
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<h3><a name="design.semantics">Semantic of new trait</a></h3>
+<h3><a name="design.semantics">Semantics of the new trait</a></h3>
 
 <p>Existing <code>is_transparent</code> nested was used to mark classes that has one of the following characteristics:</p>
 <ol>
@@ -263,7 +263,7 @@ enables heterogeneous lookup.</p>
 <p>After the declaration of <code>hash&lt;T*&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 </p><blockquote class="stdins">
 <pre>  // 20.9.14, <em>heterogeneous container lookup</em>
-  template &lt;class F&gt; permits_heterogeneous_lookup;
+  template &lt;class F&gt; struct permits_heterogeneous_lookup;
 </pre>
 
 </blockquote>
@@ -275,26 +275,26 @@ enables heterogeneous lookup.</p>
 
 <pre>
 namespace std {
-  template&lt;class F&gt; struct permits_heterogeneous_lookup; // see below
+  template &lt;class F&gt; struct permits_heterogeneous_lookup; // see below
 }</pre>
 
   <dl class="attribute">
-    <dd><p>The associative containers defined in 23.3 use <code>permits_heterogeneous_lookup</code> to detect if methods exposing
+    <dd><p>The associative containers defined in 23.3 use <code>permits_heterogeneous_lookup</code> to detect if member functions exposing
            heterogeneous container lookup should be enabled for given comparator type.</p></dd>
 
-    <dd><p>Instantiations of the <code>permits_heterogeneous_lookup</code> template shall meet the <code>UnaryTypeTrait</code>
+    <dd><p>Instantiations of class template <code>permits_heterogeneous_lookup</code> shall meet the <code>UnaryTypeTrait</code>
            requirements (20.10.1).
-           The implementation shall provide a definition of <code>permits_heterogeneous_lookup&lt;F&gt;</code> that has the 
-           <code>BaseCharacteristic</code> of <code>true_type</code> if the <em>qualified-id</em> <code>F::is_transparent</code> 
-           is valid and denotes a type (14.8.2),
-           otherwise it shall have a <code>BaseCharacteristic</code> of <code>false_type</code>.</p></dd>
+           The implementation shall provide the specialization of <code>permits_heterogeneous_lookup</code> with the 
+           <code>BaseCharacteristic</code> of <code>true_type</code> for every type <code>F</code> where the <em>qualified-id</em> <code>F::is_transparent</code> 
+           is valid and denotes a type (14.8.2);
+           for any other type <code>F</code>, <code>permits_heterogeneous_lookup&lt;F&gt;</code> shall have a b<code>BaseCharacteristic</code> of <code>false_type</code>.</p></dd>
 
     <dd><p>A program may specialize this template for a user-defined type <code>T</code> to have a <code>BaseCharacteristic</code> 
            of <code>true_type</code> to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type 
            with associative containers.</p></dd>
 
 
-   <dd><p>[ <em>Note:</em> Use of <code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
+   <dd><p>[ <em>Note:</em> Use of i<code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
           declaring <code>is_transparent</code> nested type. <em> — end note</em> ]</p></dd> 
 
   </dl>
@@ -348,7 +348,7 @@ namespace std {
 #if __cpp_lib_permits_heterogeneous_lookup
 struct icase_less
 {
-  bool operator()(std::string_view, std::string_view) const;
+  bool operator()(std::string_view, std::string_view);
 };
 
 namespace std
@@ -361,7 +361,7 @@ namespace std
 struct icase_less
 {
   using is_transparent = void;
-  bool operator()(std::string_view, std::string_view) const;
+  bool operator()(std::string_view, std::string_view);
 };
 #endif</pre>
 
