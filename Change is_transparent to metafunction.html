@@ -252,7 +252,9 @@ enables heterogeneous lookup.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.</p>
+<p>The inclusion of variable template <code>permits_heterogeneous_lookup_v</code> proposed in the paper depends on the
+acceptance of the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm">N3854: Variable Templates For Type Traits</a>
+paper. Apart from that, this proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.</p>
 
 <p>Nothing depends on this proposal.</p>
 
@@ -263,10 +265,17 @@ enables heterogeneous lookup.</p>
 <p>After the declaration of <code>hash&lt;T*&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 </p><blockquote class="stdins">
 <pre>  // 20.9.14, <em>heterogeneous container lookup;</em>
-  template &lt;class F&gt; struct permits_heterogeneous_lookup;
-</pre>
+  template &lt;class F&gt; struct permits_heterogeneous_lookup;</pre>
 
 </blockquote>
+
+<p>If the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm">N3854: Variable Templates For Type Traits</a> will become part of the standard, follow above declaration by:
+</p><blockquote class="stdins">
+<pre>  template &lt;class F&gt; constexpr bool permits_heterogeneous_lookup_v
+    = permits_heterogeneous_lookup&lt;F&gt;::value;</pre>
+
+</blockquote>
+
 
 <p>After section 20.9.13 Class template <code>hash</code>, insert a new section.</p>
 
@@ -292,7 +301,6 @@ namespace std {
     <dd><p>A program may specialize this template for a user-defined type <code>T</code> to have a <code>BaseCharacteristic</code> 
            of <code>true_type</code> to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type 
            with associative containers.</p></dd>
-
 
    <dd><p>[ <em>Note:</em> Use of <code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
           declaring <code>is_transparent</code> nested type. <em> — end note</em> ]</p></dd> 
@@ -370,12 +378,13 @@ struct icase_less
 
 <p>Jonathan Wakely provided an improved wording for the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>, from which this paper originates.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
-<p>Stephan T. Lavavej suggested numerous corrections to the proposed wording.</p>
+<p>Stephan T. Lavavej suggested numerous corrections to the proposed wording and suggested addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p>
 
 
 <h2><a name="literature">References</a></h2>
 
 <ol>
+<li>Stephan T. Lavavej, "Variable Templates For Type Traits" (N3854, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm</a>)</li>
 <li>Marshall Clow, "C++ Standard Library Active Issues List (Revision R92)" (N4383, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html</a>)</li>
 <li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4527, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4527.pdf">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4527.pdf</a>)</li>
 </ol>
