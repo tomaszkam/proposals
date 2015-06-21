@@ -302,7 +302,7 @@ namespace std {
            of <code>true_type</code> to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type 
            with associative containers.</p></dd>
 
-   <dd><p>[ <em>Note:</em> Use of <code>permits_heterogeneous_lookup</code> specialization can usually provide a better solution than
+   <dd><p>[ <em>Note:</em> Specializing <code>permits_heterogeneous_lookup</code> usually provides a better solution than
           declaring <code>is_transparent</code> nested type. <em> — end note</em> ]</p></dd> 
 
   </dl>
@@ -376,9 +376,11 @@ struct icase_less
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Jonathan Wakely provided an improved wording for the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>, from which this paper originates.</p>
+<p>Jonathan Wakely provided an improved wording for the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>,
+   from which this paper originates. Futhermore he has offered many useful suggestions and corrections to the proposal.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
-<p>Stephan T. Lavavej suggested numerous corrections to the proposed wording and suggested addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p>
+<p>Stephan T. Lavavej suggested numerous corrections to the proposed wording and 
+   addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p>
 
 
 <h2><a name="literature">References</a></h2>
