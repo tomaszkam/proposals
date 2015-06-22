@@ -252,9 +252,7 @@ enables heterogeneous lookup.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>The inclusion of variable template <code>permits_heterogeneous_lookup_v</code> proposed in the paper depends on the
-acceptance of the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm">N3854: Variable Templates For Type Traits</a>
-paper. Apart from that, this proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.</p>
+<p>This proposal has no dependencies beyond a C++11 compiler and Standard Library implementation.</p>
 
 <p>Nothing depends on this proposal.</p>
 
@@ -269,14 +267,6 @@ paper. Apart from that, this proposal has no dependencies beyond a C++11 compile
 
 </blockquote>
 
-<p>If the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm">N3854: Variable Templates For Type Traits</a> will become part of the standard, follow above declaration by:
-</p><blockquote class="stdins">
-<pre>  template &lt;class F&gt; constexpr bool permits_heterogeneous_lookup_v
-    = permits_heterogeneous_lookup&lt;F&gt;::value;</pre>
-
-</blockquote>
-
-
 <p>After section 20.9.13 Class template <code>hash</code>, insert a new section.</p>
 
 <blockquote class="stdins"> 
@@ -288,8 +278,8 @@ namespace std {
 }</pre>
 
   <dl class="attribute">
-    <dd><p>The associative containers defined in [associative] 23.4 use <code>permits_heterogeneous_lookup</code> to detect if member functions
-           exposing heterogeneous container lookup should be enabled for a given comparator type.</p></dd>
+    <dd><p>The associative containers defined in [associative] 23.4 use <code>permits_heterogeneous_lookup</code> to detect if member
+           functions exposing heterogeneous container lookup should be enabled for a given comparator type.</p></dd>
 
     <dd><p>Instantiations of the <code>permits_heterogeneous_lookup</code> template shall meet the <code>UnaryTypeTrait</code>
            requirements ([meta.rqmts] 20.10.1).
@@ -299,7 +289,7 @@ namespace std {
            otherwise it shall have a <code>BaseCharacteristic</code> of <code>false_type</code>.</p></dd>
 
     <dd><p>A program may specialize this template for a user-defined type <code>T</code> to have a <code>BaseCharacteristic</code> 
-           of <code>true_type</code> to indicate that <code>T</code> should enable heterogeneous lookup when used as comparator type 
+           of <code>true_type</code> to indicate that <code>T</code> should enable heterogeneous lookup when used as a comparator type 
            with associative containers.</p></dd>
 
    <dd><p>[ <em>Note:</em> Specializing <code>permits_heterogeneous_lookup</code> usually provides a better solution than
@@ -344,7 +334,19 @@ namespace std {
 
 </blockquote>
 
+<h2><a name="variable-template">Auxiliary proposal &mdash; <code>permits_heterogeneous_lookup_v</code> variable template</a></h2>
 
+<p>We propose <code>permits_heterogeneous_lookup_v</code> variable template as an auxiliary proposal.
+This is to give the Committee the freedom to make the decision to accept or not new metafunction independently of the acceptance of
+<a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2014/n3854.htm">N3854: Variable Templates For Type Traits</a> paper,
+that proposes inclusion of other variable templates for standard traits.</p>
+
+<p>After the declaration of <code>permits_heterogeneous_lookup&lt;T&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
+</p><blockquote class="stdins">
+<pre>  template &lt;class F&gt; constexpr bool permits_heterogeneous_lookup_v
+    = permits_heterogeneous_lookup&lt;F&gt;::value;</pre>
+
+</blockquote>
 
 <h2><a name="feature-testing">Feature-testing recommendation</a></h2>
 
