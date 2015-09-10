@@ -353,23 +353,28 @@ that defines variable templates for other standard traits.</p>
 
 <p>Usage example:</p>
 <pre>
-#if __cpp_lib_permits_heterogeneous_lookup
-struct icase_less
+namespace third_party
 {
-  bool operator()(std::string_view, std::string_view) const;
-};
+  struct icase_less
+  {
+    bool operator()(std::string const&amp;, std::string const&amp;) const;
+    bool operator()(std::string const&amp;, char const*) const;
+    bool operator()(char const*, std::string const&amp;) const;
+    bool operator()(char const*, char const*) const;
+  };
+}
 
+#if __cpp_lib_permits_heterogeneous_lookup
 namespace std
 {
   template&lt;&gt;
-  struct permits_heterogeneous_lookup&lt;icase_less&gt;
+  struct permits_heterogeneous_lookup&lt;third_party::icase_less&gt;
     : std::true_type {};
 }
 #else
-struct icase_less
+struct my_icase_less : third_party::icase_less
 {
   using is_transparent = void;
-  bool operator()(std::string_view, std::string_view) const;
 };
 #endif</pre>
 
