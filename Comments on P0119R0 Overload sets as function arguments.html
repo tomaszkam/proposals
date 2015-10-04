@@ -1,0 +1,272 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Comments on P0119R0: Overload sets as function arguments</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Comments on P0119R0: Overload sets as function arguments</a></h1>
+
+<h2><a name="intro">Introduction</a></h2>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+
+<h2><a name="usability">Scope and usability</a></h2>
+
+<p>The aim <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
+is to make following code to be well formed when multiple overloads of function <code>f</code> are
+found:</p>
+<pre>template&lt;typename  I&gt;
+void apply_f(I first, I last)
+{
+  transform(first, last, f);
+}</pre>
+
+<p>However this problem is only small fraction of more generic problem of creating a language feature that
+would allow to provide a concise and optimal way, to pass an overloaded function name to generic code.</p>
+
+<h3><a name="usability.default-arguments">Default arguments</a></h3>
+
+<p>In addition to usual means, like declaration of multiple overloads of single function name or declaring it
+as function template, there is one additional way to create a function that can be called with more than one
+set of arguments. We can declare function single function with default parameter:</p>
+<pre>
+void increment(int&amp; i, int n = 1)
+{ i += 1; }
+</pre>
+
+<p>Lets imagine that our goal is to produce a <code>increment_all</code> function that will increment by all
+elements in given range of integers. We could implement it using the <code>std::for_each</code> with 
+<code>increment</code> passed as argument. I would expect to be able to  use proposed feature for 
+proposed feature:</p>
+<pre>template&lt;typename I&gt;
+void increment_all(I first, I last)
+{
+  std::for_each(first, last, increment);
+}</pre>
+
+<p>At the first glance, we could expect that in place of functor argument the following lambda will be
+generated <code>[](auto&amp;&amp;... args) { return increment(std::forward&lt;decltype(args)&gt;(args)...); }</code>
+in place of third argument and will be invoked with only one <code>int&amp; i</code> argument and will
+call <code>increment(i)</code> inside.<p>
+
+<p>However this will not be the case for proposed feature, as it makes the generation of the lambda depended
+on the number of visible overloads of given function name. In our case we have only one declaration that can be
+called with variable number of arguments so it does not fulfill above criteria.</p>
+
+<h2><a name="fragility">Fragility of the program meaning</a></h2>
+
+<p>The wording presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a> 
+paper makes the meaning of the <code>function-id</code> passed as a argument to unconstrained template parameter,
+depended on the number of overloads of <code>function-id</code> visible at the point of use. 
+This make the meaning of the programs depended on the order of declaration, and leads to situation when meaning of
+the program is vastly changed, by even slight change, like reordering of the included headers.</p>
+
+<h3><a name="fragility.example">Example program</a></h3>
+<p>Let consider following example. The program is constructed out of following  files:</p>
+
+<p><b>File: <code>container1.hpp</code></b></p>
+<pre>namespace cont
+{
+  class C1 //container
+  {
+    /* ... */
+  };
+
+  bool empty(C1 const&amp;);
+};</pre>
+
+<p><b>File: <code>container2.hpp</code></b></p>
+<pre>namespace cont
+{
+  class C2 //container
+  {
+    /* ... */
+  };
+
+  bool empty(C2 const&);
+};</pre>
+
+<p><b>File: <code>remove_empty.hpp</code></b></p>
+<pre>#include <algorithm>
+
+namespace cont
+{
+  template&lt;typename I&gt;
+  I remove_empty(I first, I last)
+  { return std::remove(first, last, empty); //P: point of checking of visible overloads of empty.
+};</pre>
+
+
+<p><b>File: <code>main.cpp</code></b></p>
+<pre>#include "container1.hpp"
+#include "container2.hpp"
+#include "remove_empty.hpp"
+
+namespace my_cont
+{
+  class MC 
+  {
+    /* ... */
+  };
+
+  bool empty(MC const&);
+};
+
+int main()
+{
+  std::vector&lt;cont::C1&gt; vc1(10);
+  cont::remove_empty(vc1.begin(), vc1.end()); // 1
+
+  std::vector&lt;cont::C2&gt; vc2(10);
+  cont::remove_empty(vc2.begin(), vc2.end()); // 2
+
+  std::vector&lt;my_cont::MC&gt; vmc(10);
+  cont::remove_empty(vmc.begin(), vmc.end()); // 3
+}</pre>
+
+<p>In the case of the above program, there will be two overloads of <code>empty</code> visible thought normal
+lookup at the point of use of <code>empty</code> as template parameter (marked as //P).
+This according to the wording presented on the paper lead to generation of the code equivalent to:</p>
+<pre>
+  template&lt;typename I&gt;
+  I remove_empty(I first, I last)
+  { return std::remove(first, last, [](auto&amp;&amp;... args) { return empty(std::forward&lt;decltype(args)&gt;(args)...); });
+</pre>
+<p>The lambda generated in place of <code>empty</code> identifier, performs the unqualified call of the function, 
+so it will consider overloads of <code>empty</code> found by ADL. As consequence both lines marked as //1, //2 and //3 will compile,
+while for the //3 line the <code>my_cont::empty</code> declaration will be found thought ADL.</p>
+
+<p>However if the order of the includes in the <code>main.cpp</code> will be changed to:</p>
+<pre>#include "container1.hpp"
+#include "remove_empty.hpp"
+#include "container2.hpp"</pre>
+<p>At the point of //P only one declaration one of <code>empty</code> will be visible, so according to the wording paper, 
+this will lead to generation of following code.</p>
+<pre>
+  template&lt;typename I&gt;
+  I remove_empty(I first, I last)
+  { return std::remove(first, last, &amp;empty); }
+  //As the empty is not-overloaded, the <code>&amp;empty</code> is unambiguous and produces <code>bool (*)(cont::C1 const&amp;)</code> 
+</pre>
+<p>This resolution is selected to preserve backward compatibility that resolves <code>function-id</code> that points to single not overloaded function,
+to function pointer. However as consequence of this change, the lines //1 and //3 will not longer compiler as both <code>cont::C2</code> and <code>my_cont::MC</code> 
+will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
+
+<p>For similar reasons only line //2 will compile, if the header will be placed in following order:</code>
+<pre>#include "container2.hpp"
+#include "remove_empty.hpp"
+#include "container1.hpp"</pre>
+
+<p>Finally the program will produce error mentioning not unresolved name <code>empty</code>, if the header will be ordered as follows:</p> 
+<pre>
+#include "remove_empty.hpp"
+#include "container1.hpp"
+#include "container2.hpp"</pre>
+
+<h3><a name="fragility.summary">Summary</a></h3>
+
+<p>As the above example showed up, the use of the feature of passing overloaded functions sets as template arguments inside of function template lead to 
+fragile code that changes it meaning and validity depending on the subtle changes in the order of declarations (headers). This is caused by the fact
+that generation of lambda in proposed functionality, depends only on normal lookup, and ignores ADL and two phase lookup that was created to avoid such 
+problems in template code in first place.</p>
+
+<p>The resolution of the above problems would be to make generation of the lambda independent to the visible overloads, which can be achieved by introduction
+of special syntax <code>[]function-id</code> or changing the meaning of <code>function-id</code> in case when single or no overload is found.
+
+
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
+
+<!--p>Jonathan Wakely provided an improved wording for the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>,
+   from which this paper originates. Futhermore he has offered many useful suggestions and corrections to the proposal.</p>
+<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+<p>Stephan T. Lavavej suggested numerous corrections to the proposed wording and 
+   addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p>--
+
+
+<h2><a name="literature">References</a></h2>
+
+<ol>
+<li>Andrew Sutton, "Overload sets as function arguments" (P0119R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf</a>)</li>
+</ol>
+
+</body></html>
