@@ -90,7 +90,7 @@ td { text-align: left; vertical-align: top;
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 
-<h2><a name="usability">Scope and usability</a></h2>
+<h2><a name="usability">1. Scope and usability</a></h2>
 
 <p>The aim <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
 is to make following code to be well formed when multiple overloads of function <code>f</code> are
@@ -102,7 +102,27 @@ void apply_f(I first, I last)
 }</pre>
 
 <p>However this problem is only small fraction of more generic problem of creating a language feature that
-would allow to provide a concise and optimal way, to pass an overloaded function name to generic code.</p>
+would allow to provide a concise and optimal way, to pass an overloaded function name to generic component.</p>
+
+<h3><a name="usability.ADL">Argument Depended Lookup</a></h3>
+
+<p>Let consider following function example:</code>
+<pre>template&lt;typename  I&gt;
+I remove_empty(I first, I last)
+{ return std::remove_if(first, last, [](auto const&amp; arg) { return empty(arg): }</pre>
+
+<p>I think that it would be resonable to expect that invocation of above function (and
+function itself) can be replaced by the <code>std::remove_if(first, last, empty)</code> 
+without any loss of inefficienty and readability.</p>
+
+<p>However, The call <code>std::remove_if(first, last, empty)</code> will be equivalent
+to <code>remove_empty(first, last, empty)</code> only when the lambda will be generated 
+in place of <code>empty</code> in case of first invocation. According to the paper,
+this will only take place if declaration of <code>empty</code> found trought normal
+lookup will repesent overload set (multiple declarations or function template).
+This may be not be the case for every place, where invocation <code>remove_empty(first, last, empty)</code>
+compiled successfully, because as the unqalifed call to <code>empty(arg)</code> allow
+overloads to be found by ADL.</code>
 
 <h3><a name="usability.default-arguments">Default arguments</a></h3>
 
@@ -116,7 +136,7 @@ void increment(int&amp; i, int n = 1)
 
 <p>Lets imagine that our goal is to produce a <code>increment_all</code> function that will increment by all
 elements in given range of integers. We could implement it using the <code>std::for_each</code> with 
-<code>increment</code> passed as argument. I would expect to be able to  use proposed feature for 
+<code>increment</code> passed as argument. I would expect to be able to use proposed feature for 
 proposed feature:</p>
 <pre>template&lt;typename I&gt;
 void increment_all(I first, I last)
@@ -126,14 +146,27 @@ void increment_all(I first, I last)
 
 <p>At the first glance, we could expect that in place of functor argument the following lambda will be
 generated <code>[](auto&amp;&amp;... args) { return increment(std::forward&lt;decltype(args)&gt;(args)...); }</code>
-in place of third argument and will be invoked with only one <code>int&amp; i</code> argument and will
-call <code>increment(i)</code> inside.<p>
+and it will be invoked with only one <code>int&amp; i</code> argument, leading to following <code>increment(i)</code>.<p>
 
 <p>However this will not be the case for proposed feature, as it makes the generation of the lambda depended
 on the number of visible overloads of given function name. In our case we have only one declaration that can be
-called with variable number of arguments so it does not fulfill above criteria.</p>
+called with variable number of arguments so it does not fulfill above criteria and <code>void(*)(int&amp;, int)</code>
+will be passed instead.</p>
 
-<h2><a name="fragility">Fragility of the program meaning</a></h2>
+
+<h3><a name="usability.sumamry">Summary</a></h3>
+
+<p>If we aim to provide language exntesion that will allow us to pass overloaded function name as functor to generic component,
+we should desing most generic solution, that will cover vast majority of the uses, instead of single specific case. As presented
+in the example above the functionality proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
+fails to achieve this goal.</p>
+
+<p>It is worth noticing that the problems descriped above is caused by rules that determines if the <code>function-id</code>
+would be interpreded as taking of address of function or generation of closure. And all of them would be generated independently
+of set of visible overloads, by use of new <code>[]function-id</code> syntax.</p>
+
+
+<h2><a name="fragility">2. Fragility of the program validity</a></h2>
 
 <p>The wording presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a> 
 paper makes the meaning of the <code>function-id</code> passed as a argument to unconstrained template parameter,
@@ -142,7 +175,7 @@ This make the meaning of the programs depended on the order of declaration, and 
 the program is vastly changed, by even slight change, like reordering of the included headers.</p>
 
 <h3><a name="fragility.example">Example program</a></h3>
-<p>Let consider following example. The program is constructed out of following  files:</p>
+<p>Let consider following example. The program is constructed out of following files:</p>
 
 <p><b>File: <code>container1.hpp</code></b></p>
 <pre>namespace cont
@@ -251,7 +284,7 @@ that generation of lambda in proposed functionality, depends only on normal look
 problems in template code in first place.</p>
 
 <p>The resolution of the above problems would be to make generation of the lambda independent to the visible overloads, which can be achieved by introduction
-of special syntax <code>[]function-id</code> or changing the meaning of <code>function-id</code> in case when single or no overload is found.
+of special syntax <code>[]function-id</code>.</p>
 
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
@@ -260,7 +293,7 @@ of special syntax <code>[]function-id</code> or changing the meaning of <code>fu
    from which this paper originates. Futhermore he has offered many useful suggestions and corrections to the proposal.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 <p>Stephan T. Lavavej suggested numerous corrections to the proposed wording and 
-   addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p>--
+   addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p-->
 
 
 <h2><a name="literature">References</a></h2>
