@@ -111,15 +111,15 @@ would allow to provide a concise and optimal way, to pass an overloaded function
 I remove_empty(I first, I last)
 { return std::remove_if(first, last, [](auto const&amp; arg) { return empty(arg): }</pre>
 
-<p>I think that it would be resonable to expect that invocation of above function (and
+<p>I think that it would be reasonable to expect that invocation of above function (and
 function itself) can be replaced by the <code>std::remove_if(first, last, empty)</code> 
-without any loss of inefficienty and readability.</p>
+without any loss of efficiency and readability.</p>
 
-<p>However, The call <code>std::remove_if(first, last, empty)</code> will be equivalent
+<p>However, the call <code>std::remove_if(first, last, empty)</code> will be equivalent
 to <code>remove_empty(first, last, empty)</code> only when the lambda will be generated 
 in place of <code>empty</code> in case of first invocation. According to the paper,
-this will only take place if declaration of <code>empty</code> found trought normal
-lookup will repesent overload set (multiple declarations or function template).
+this will only take place if declaration of <code>empty</code> found thought normal
+lookup will represent overload set (multiple declarations or function template).
 This may be not be the case for every place, where invocation <code>remove_empty(first, last, empty)</code>
 compiled successfully, because as the unqalifed call to <code>empty(arg)</code> allow
 overloads to be found by ADL.</code>
@@ -136,8 +136,7 @@ void increment(int&amp; i, int n = 1)
 
 <p>Lets imagine that our goal is to produce a <code>increment_all</code> function that will increment by all
 elements in given range of integers. We could implement it using the <code>std::for_each</code> with 
-<code>increment</code> passed as argument. I would expect to be able to use proposed feature for 
-proposed feature:</p>
+<code>increment</code> passed as argument. I we try to use proposed feature in implementation:</p>
 <pre>template&lt;typename I&gt;
 void increment_all(I first, I last)
 {
@@ -153,6 +152,13 @@ on the number of visible overloads of given function name. In our case we have o
 called with variable number of arguments so it does not fulfill above criteria and <code>void(*)(int&amp;, int)</code>
 will be passed instead.</p>
 
+<h3><a name="usability.indirect-call">Avoiding indirection thought function pointers</a></h3>
+
+<p>Currently the call in the form <code>std::find_if(first, last, func)</code> compiles and works
+correctly when the <code>func</code> can be unambiguously resolved to single function call.
+In such situation function pointer will be passed to the invoked algorithm and indirect
+call will be performed for each element. This is not changed in case of proposed feature to preserve
+backward compatibility with old code.</p>
 
 <h3><a name="usability.sumamry">Summary</a></h3>
 
@@ -166,7 +172,7 @@ would be interpreded as taking of address of function or generation of closure. 
 of set of visible overloads, by use of new <code>[]function-id</code> syntax.</p>
 
 
-<h2><a name="fragility">2. Fragility of the program validity</a></h2>
+<h2><a name="fragility">2. Fragility of the program semantics</a></h2>
 
 <p>The wording presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a> 
 paper makes the meaning of the <code>function-id</code> passed as a argument to unconstrained template parameter,
@@ -275,6 +281,14 @@ will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 #include "remove_empty.hpp"
 #include "container1.hpp"
 #include "container2.hpp"</pre>
+
+<h3><a name="fragility.odr">Violation One Definition Rule</a></h3>
+
+<p>The above example showed how the semantics of thei same instatiation of the <code>filter_empty</code> changes depending of the order of the
+headers in the program. However this only exposes an deaper problem with proposed resolution: depending on the order of the header included
+in the translaction unit, the semantic of the same instatiation of <code>filter_empty</code> will change the meaning, with according to the standard
+(14.6.4.1 [temp.point] p8) leads to the ill-formed programs.</p>
+
 
 <h3><a name="fragility.summary">Summary</a></h3>
 
