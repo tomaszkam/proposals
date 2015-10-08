@@ -102,7 +102,7 @@ with keeping the same rules for functor generation.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
-<h2><a name="fragility">2. Fragility of the program semantics</a></h2>
+<h2><a name="fragility">Fragility of the program semantics</a></h2>
 
 <p>The wording presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a> 
 paper makes the meaning of the <code>id-expression</code> passed as a argument for unconstrained template parameter,
@@ -242,8 +242,8 @@ void apply_f(I first, I last)
   transform(first, last, f);
 }</pre>
 
-<p>However this problem is only small fraction of more generic problem of creating a language feature that
-would allow to provide a concise and optimal way, to pass an overloaded function name to generic component.</p>
+<p>However the author believes that we should we aim to provide more generic extension that will allow us to pass
+overloaded function name as functor.</p>
 
 <h3><a name="usability.ADL">Argument Depended Lookup</a></h3>
 
@@ -261,9 +261,11 @@ to <code>remove_empty(first, last, empty)</code> only when the lambda will be ge
 in place of <code>empty</code> in case of first invocation. According to the paper,
 this will only take place if declaration of <code>empty</code> found thought normal
 lookup will represent overload set (multiple declarations or function template).
-This may be not be the case for every place, where invocation <code>remove_empty(first, last, empty)</code>
-compiled successfully, because as the unqalifed call to <code>empty(arg)</code> allow
-overloads to be found by ADL.</p>
+
+However, at the point of declaration of <code>remove_empty</code> function, even
+no declaration of <code>empty</code> may be visible, as the unqualified call to 
+<code>empty(arg)</code> allow overloads to be found by ADL at point of <code>remove_empty</code>
+instantiation.</p>
 
 <h3><a name="usability.default-arguments">Default arguments</a></h3>
 
@@ -286,34 +288,32 @@ void increment_all(I first, I last)
 
 <p>At the first glance, we could expect that in place of functor argument the following lambda will be
 generated <code>[](auto&amp;&amp;... args) { return increment(std::forward&lt;decltype(args)&gt;(args)...); }</code>
-and it will be invoked with only one <code>int&amp; i</code> argument, leading to following <code>increment(i)</code>.<p>
-
-<p>However this will not be the case for proposed feature, as it makes the generation of the lambda depended
-on the number of visible overloads of given function name. In our case we have only one declaration that can be
-called with variable number of arguments so it does not fulfill above criteria and <code>void(*)(int&amp;, int)</code>
-will be passed instead.</p>
+and it will be invoked with only one <code>int&amp; i</code> argument, leading to following <code>increment(i)</code>.
+However this will not be the case for proposed feature, because in presented case only one declaration
+of <code>increment</code> functioniis visible and this identifier will be resolved to <code>void(*)(int&amp;, int)</code>
+function pointer.</p>
 
 <h3><a name="usability.indirect-call">Avoiding indirection thought function pointers</a></h3>
 
-<p>Currently the call in the form <code>std::find_if(first, last, func)</code> compiles and works
-correctly when the <code>func</code> can be unambiguously resolved to single function call.
-In such situation function pointer will be passed to the invoked algorithm and indirect
-call will be performed for each element. This is not changed in case of proposed feature to preserve
-backward compatibility with old code.</p>
+<p>Even in situation when the <code>std::find_if(first, last, func)</code> compiler correctly,
+function pointer will be passed to the invoked algorithm and indirect call will be performed
+for each element of the collection. As this may negatively affect performance, the user
+may want to pass functor object instead.
 
-<h3><a name="usability.sumamry">Summary</a></h3>
-
-<p>If we aim to provide language extension that will allow us to pass overloaded function name as functor to generic component,
-we should desing most generic solution, that will cover vast majority of the uses, instead of single specific case. As presented
-in the example above the functionality proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
-fails to achieve this goal.</p>
+However this change cannot be performed unconditionally, as code may depend on additional
+semantic that is provided by the function pointers when compared to closure object:
+nullability and assignability for pointer to function with same signature.</p>
 
 
+<h3><a name="usability.summary">Summary</a></h3>
+
+<p>Examples presented above shows that the rules for the lambda generation proposed in the discussed paper,
+will not always and cannot provide result indented by the programmer.</p>
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>I would like to thank Philipp Juschka for originally proposing the idea of lifting expression and Andrew Sutton for reopening the discussion on
-this features. This paper is just mere commentary for their works.</p>
+<p>I would like to thank Philipp Juschka for originally proposing the idea of lifting expression and Andrew Sutton for continuing
+work on this features. This paper is just mere commentary for their works.</p>
 <!--p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p-->
 
 
@@ -321,7 +321,7 @@ this features. This paper is just mere commentary for their works.</p>
 
 <ol>
 <li>Andrew Sutton, "Overload sets as function arguments" (P0119R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf</a>)</li>
-<li>Philipp Juschka, "Lifting overload sets into function objects" (P0119R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm</a>)</li>
+<li>Philipp Juschka, "Lifting overload sets into function objects" (N3617, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm</a>)</li>
 </ol>
 
 </body></html>
