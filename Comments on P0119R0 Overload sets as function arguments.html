@@ -136,7 +136,7 @@ the program is vastly changed, by even slight change, like reordering of the inc
 };</pre>
 
 <p><b>File: <code>remove_empty.hpp</code></b></p>
-<pre>#include <algorithm>
+<pre>#include &lt;algorithm&gt;
 
 namespace cont
 {
@@ -201,7 +201,7 @@ this will lead to generation of following code.</p>
 to function pointer. However as consequence of this change, the lines //1 and //3 will not longer compiler as both <code>cont::C2</code> and <code>my_cont::MC</code> 
 will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 
-<p>For similar reasons only line //2 will compile, if the header will be placed in following order:</code>
+<p>For similar reasons only line //2 will compile, if the header will be placed in following order:</p>
 <pre>#include "container2.hpp"
 #include "remove_empty.hpp"
 #include "container1.hpp"</pre>
@@ -214,11 +214,14 @@ will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 
 <h3><a name="fragility.odr">ODR Violation</a></h3>
 
-<p>The above example showed how the semantics of thei same instatiation of the <code>filter_empty</code> changes depending of the order of the
-headers in the program. However this only exposes an deaper problem with proposed resolution: depending on the order of the header included
-in the translaction unit, the semantic of the same instatiation of <code>filter_empty</code> will change the meaning, with according to the standard
+<p>The above example showed how the semantics of the same instantiation of the <code>filter_empty</code> changes depending of the order of the
+headers in the program. However this only exposes an deeper problem with proposed resolution: depending on the order of the header included
+in the transaction unit, the semantic of the same instantiation of <code>filter_empty</code> will change the meaning, with according to the standard
 (14.6.4.1 [temp.point] p8) leads to the ill-formed programs.</p>
 
+<p>It may be pointed out that similar problems already occurs in case of not-overloaded function. However the problem occurs only when situation
+when the same name resolves to two different functions in different translation unit, so it may be considered as result of another violation of 
+ODR.</p>
 
 <h3><a name="fragility.summary">Summary</a></h3>
 
@@ -244,7 +247,7 @@ would allow to provide a concise and optimal way, to pass an overloaded function
 
 <h3><a name="usability.ADL">Argument Depended Lookup</a></h3>
 
-<p>Let consider following function example:</code>
+<p>Let consider following function example:</p>
 <pre>template&lt;typename  I&gt;
 I remove_empty(I first, I last)
 { return std::remove_if(first, last, [](auto const&amp; arg) { return empty(arg): }</pre>
@@ -260,7 +263,7 @@ this will only take place if declaration of <code>empty</code> found thought nor
 lookup will represent overload set (multiple declarations or function template).
 This may be not be the case for every place, where invocation <code>remove_empty(first, last, empty)</code>
 compiled successfully, because as the unqalifed call to <code>empty(arg)</code> allow
-overloads to be found by ADL.</code>
+overloads to be found by ADL.</p>
 
 <h3><a name="usability.default-arguments">Default arguments</a></h3>
 
@@ -300,24 +303,18 @@ backward compatibility with old code.</p>
 
 <h3><a name="usability.sumamry">Summary</a></h3>
 
-<p>If we aim to provide language exntesion that will allow us to pass overloaded function name as functor to generic component,
+<p>If we aim to provide language extension that will allow us to pass overloaded function name as functor to generic component,
 we should desing most generic solution, that will cover vast majority of the uses, instead of single specific case. As presented
 in the example above the functionality proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
 fails to achieve this goal.</p>
-
-<p>It is worth noticing that the problems descriped above is caused by rules that determines if the <code>function-id</code>
-would be interpreded as taking of address of function or generation of closure. And all of them would be generated independently
-of set of visible overloads, by use of new <code>[]function-id</code> syntax.</p>
 
 
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<!--p>Jonathan Wakely provided an improved wording for the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>,
-   from which this paper originates. Futhermore he has offered many useful suggestions and corrections to the proposal.</p>
-<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
-<p>Stephan T. Lavavej suggested numerous corrections to the proposed wording and 
-   addition of <code>permits_heterogeneous_lookup_v</code> variable template.</p-->
+<p>I would like to thank Philipp Juschka for originally proposing the idea of lifting expression and Andrew Sutton for reopening the discussion on
+this features. This paper is just mere commentary for their works.</p>
+<!--p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p-->
 
 
 <h2><a name="literature">References</a></h2>
