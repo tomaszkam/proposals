@@ -104,11 +104,17 @@ with keeping the same rules for functor generation.</p>
 
 <h2><a name="fragility">Fragility of the program semantics</a></h2>
 
-<p>The wording presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a> 
-paper makes the meaning of the <code>id-expression</code> passed as a argument for unconstrained template parameter,
-depended on the if it represent overload sets.
-This make the meaning of the programs depended on the order of declaration, and leads to situation when meaning of
-the program is vastly changed by even slight change, like reordering of the included headers.</p>
+<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
+proposes that <em>id-expression</em> passed as argument for an unconstrained template parameter
+means two different things based on whether <em>id-expression</em> refers to a unique
+function or a function overload set, as seen at the point of processing the template body.
+In other words, whether we intepret <em>id-expression</em> as a pointer-to-function or
+as an implicitly declared lambda-expression depends on how many declarations of function with name  
+<em>id-expression</em> have been seen prior to parsing the template body.</p>
+
+<p>This makes the meaning of the program dependent on the order of declarations,
+and leads to situations when the meaning of the program is vastly changed by even a slight change in declaration order,
+like reordering of the included headers.</p>
 
 <h3><a name="fragility.example">Example program</a></h3>
 <p>Let consider following example of program constructed out of following files:</p>
