@@ -112,11 +112,11 @@ In other words, whether we intepret <code><em>id-expression</em></code> as a poi
 as an implicitly declared lambda-expression depends on number and type of declarations of function
 with name <code><em>id-expression</em></code> have been seen prior to parsing the template body.</p>
 
-<p>This makes the meaning of the program dependent on the order of declarations,
-and leads to situations when the meaning of the program is vastly changed by even a slight change. like reordering of the included headers.</p>
+<p>This makes the meaning of the program sensitive to the order of declarations, 
+and even a change as slight as the order of included headers may alter the behavior of the program.</p>
 
 <h3><a name="fragility.example">Example program</a></h3>
-<p>Let consider following example of program constructed out of following files:</p>
+<p>Let's consider the program comosed of the following files:</p>
 
 <p><b>File: <code>container1.hpp</code></b></p>
 <pre>namespace cont
