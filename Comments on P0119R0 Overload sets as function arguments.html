@@ -95,9 +95,9 @@ to easily create an lambda expression that wrap polymorphic calls to function wi
 <p>Observations and comments gathered in this paper are related to only one of aspect of the feature that makes the compiler
 responsible for decision in which situation the lambda generation will actually be performed. As consequence all of 
 them would be voided by using the design that would allow programmer explicitly request the generation of the functor
-object. This may be achieved, for example by using <code>[]id-expression</code> syntax proposed in
+object. This may be achieved, for example by using <code>[]<em>id-expression</em></code> syntax proposed in
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">N3617: Lifting overload sets into function objects</a>
-with keeping the same rules for functor generation.</p>
+while keeping the same rules for functor generation.</p>
 
 
 <!--h2><a name="toc">Table of contents</a></h2-->
@@ -105,12 +105,12 @@ with keeping the same rules for functor generation.</p>
 <h2><a name="fragility">Fragility of the program semantics</a></h2>
 
 <p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
-proposes that <em>id-expression</em> passed as argument for an unconstrained template parameter
-means two different things based on whether <em>id-expression</em> refers to a unique
+proposes that <code><em>id-expression</em></code> passed as argument for an unconstrained template parameter
+means two different things based on whether <code><em>id-expression</em></code> refers to a unique
 function or a function overload set, as seen at the point of processing the template body.
-In other words, whether we intepret <em>id-expression</em> as a pointer-to-function or
-as an implicitly declared lambda-expression depends on how many declarations of function with name  
-<em>id-expression</em> have been seen prior to parsing the template body.</p>
+In other words, whether we intepret <code><em>id-expression</em></code> as a pointer-to-function or
+as an implicitly declared lambda-expression depends on number and type of declarations of function
+with name <code><em>id-expression</em></code> have been seen prior to parsing the template body.</p>
 
 <p>This makes the meaning of the program dependent on the order of declarations,
 and leads to situations when the meaning of the program is vastly changed by even a slight change in declaration order,
@@ -179,9 +179,9 @@ int main()
   cont::remove_empty(vmc.begin(), vmc.end()); // 3
 }</pre>
 
-<p>In the case of the above program, there will be two overloads of <code>empty</code> visible thought normal
+<p>In the case of the above program there will be two overloads of <code>empty</code> visible thought normal
 lookup at the point of use of <code>empty</code> as template parameter (marked as //P).
-This according to the wording presented on the paper lead to generation of the code equivalent to:</p>
+This according to the wording presented in the paper lead to generation of the code equivalent to:</p>
 <pre>
   template&lt;typename I&gt;
   I remove_empty(I first, I last)
@@ -203,9 +203,9 @@ this will lead to generation of following code.</p>
   { return std::remove(first, last, &amp;empty); }
   //As the empty is not-overloaded, the <code>&amp;empty</code> is unambiguous and produces <code>bool (*)(cont::C1 const&amp;)</code> 
 </pre>
-<p>This resolution is selected to preserve backward compatibility that resolves <code>function-id</code> that points to single not overloaded function,
-to function pointer. However as consequence of this change, the lines //1 and //3 will not longer compiler as both <code>cont::C2</code> and <code>my_cont::MC</code> 
-will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
+<p>This resolution is selected to preserve current compatibility that resolves <code>function-id</code> pointing to single not
+overloaded function, to function pointer. However as consequence of this change, the lines //1 and //3 will not longer compile
+as both <code>cont::C2</code> and <code>my_cont::MC</code> will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 
 <p>For similar reasons only line //2 will compile, if the header will be placed in following order:</p>
 <pre>#include "container2.hpp"
@@ -222,7 +222,7 @@ will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 
 <p>The above example showed how the semantics of the same instantiation of the <code>filter_empty</code> changes depending of the order of the
 headers in the program. However this only exposes an deeper problem with proposed resolution: depending on the order of the header included
-in the transaction unit, the semantic of the same instantiation of <code>filter_empty</code> will change, which according to the standard
+in the transaction units, the semantic of the same instantiation of <code>filter_empty</code> will change, which according to the standard
 (14.6.4.1 [temp.point] p8) leads to the ill-formed programs.</p>
 
 <p>Similar problems already occurs in case of not-overloaded function. However the problem occurs only when situation
@@ -233,9 +233,8 @@ ODR.</p>
 
 <p>As the above example shows up, the use of the feature of passing overloaded functions sets as template arguments inside of function template
 lead to fragile code that changes it meaning and validity depending on the subtle changes in the order of declarations (headers). This is 
-caused by the fact that generation of lambda in proposed functionality, depends only on normal lookup, and ignores ADL and two phase lookup
-that was created to avoid such problems in template code in first place.</p>
-
+caused by the fact that generation of lambda depends only on normal lookup and ignores ADL and two phase lookup, that were created to avoid
+such problems in template code in first place.</p>
 
 <h2><a name="usability">Scope and usability</a></h2>
 
@@ -269,7 +268,7 @@ According to the paper this will only take place if declaration of <code>empty</
 thought normal lookup will represent overload set (multiple overloads or function template).
 
 But it is possible that at the point of declaration of <code>remove_empty</code> function, 
-no declaration of <code>empty</code> may be visible, as the unqualified call to 
+even no declaration of <code>empty</code> may be visible, as the unqualified call to 
 <code>empty(arg)</code> allow overloads to be found by ADL at point of <code>remove_empty</code>
 instantiation.</p>
 
@@ -302,7 +301,7 @@ However this will not be the case, because case only one declaration of <code>in
 at the point of <code>increment_all</code> and this identifier will be resolved to <code>void(*)(int&amp;, int)</code>
 function pointer.</p>
 
-<h3><a name="usability.indirect-call">Avoiding indirection thought function pointers</a></h3>
+<h3><a name="usability.indirect-call">Avoiding indirection through function pointers</a></h3>
 
 <p>Even in situation when the <code>std::find_if(first, last, func)</code> compiler correctly,
 function pointer will be passed to the invoked algorithm and indirect call will be performed
@@ -321,9 +320,9 @@ will not always lead to expected result.</p>
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>I would like to thank Philipp Juschka for originally proposing the idea of lifting expression and Andrew Sutton
-for continuing work on this features. This paper is just mere commentary on their works.</p>
-<!--p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p-->
+<p>I would like to thank Philipp Juschka for originally proposing the idea of lifting expression
+and Andrew Sutton for continuing work on this features.</p>
+<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 
 <h2><a name="literature">References</a></h2>
