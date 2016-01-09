@@ -63,17 +63,17 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>Change is_transparent to metafunction</title>
+<title>Change is_transparent to metafunction (Revision 1)</title>
 </head>
 
 <body>
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;<th> <td>P0046R0</td>
+    <th>Document number:&nbsp;&nbsp;<th> <td>D0046R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2015-09-10</td>
+    <th>Date:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
@@ -83,7 +83,7 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">Change is_transparent to metafunction</a></h1>
+<h1><a name="title">Change is_transparent to metafunction (Revision 1)</a></h1>
 
 <h2><a name="intro">Introduction</a></h2>
 
@@ -93,6 +93,16 @@ containers, that relies on use of metafunction.</p>
 <p>This paper is result of the LWG recommendation provided in the resolution of the <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html#2430">LWG issue #2430</a>.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="revision">Revision History</a></h2>
+
+<h3><a name="revision.1">Revision 1</a></h3>
+
+<ul>
+  <li>Wording is now relative to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</li>
+  <li>Incorporated <code>permits_heterogeneous_lookup_v</code> variable template into main proposal
+      to follow inclusion of other variable templates for type traits into standard.</li>
+</ul>
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
@@ -258,17 +268,23 @@ enables heterogeneous lookup.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4527.pdf">N4527</a> (C++ Working Draft, 2015-05-22).</p>
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
 
 <p>After the declaration of <code>hash&lt;T*&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
 </p><blockquote class="stdins">
 <pre>  // 20.9.14, <em>heterogeneous container lookup;</em>
   template &lt;class F&gt; struct permits_heterogeneous_lookup;</pre>
-
 </blockquote>
 
-<p>After section 20.9.13 Class template <code>hash</code>, insert a new section.</p>
+<p>After the declaration of <code>is_placeholder_v&lt;T*&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
+</p><blockquote class="stdins">
+<pre>  // 20.9.14, <em>heterogeneous container lookup;</em>
+  template &lt;class F&gt; constexpr bool permits_heterogeneous_lookup_v
+    = permits_heterogeneous_lookup&lt;F&gt;::value;</pre>
+</blockquote>
 
+
+<p>After section 20.9.13 Class template <code>hash</code>, insert a new section.</p>
 <blockquote class="stdins"> 
 <h4>20.9.14 Class template <code>permits_heterogeneous_lookup</code> <span style="float:right">[containers.heterlookup]</span></h4>
 
@@ -294,7 +310,6 @@ namespace std {
           declaring <code>is_transparent</code> nested type. <em> — end note</em> ]</p></dd> 
 
   </dl>
-
 </blockquote>
 
 <p>Change the paragraph 23.2.4 Associative containers [associative.reqmts] p8.</p>
@@ -329,20 +344,6 @@ namespace std {
     and <code>m</code> denotes an allocator of a type convertible to <code>A</code>.</p></dd>
 
   </dl>
-
-</blockquote>
-
-<h2><a name="variable-template">Auxiliary proposal &mdash; <code>permits_heterogeneous_lookup_v</code> variable template</a></h2>
-
-<p>We propose <code>permits_heterogeneous_lookup_v</code> variable template as an auxiliary proposal.
-This is to give the Committee the freedom to make the decision to accept or not new metafunction independently of the inclusion into standard
-of <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4480.html">C++ Extensions for Library Fundamentals</a>,
-that defines variable templates for other standard traits.</p>
-
-<p>After the declaration of <code>permits_heterogeneous_lookup&lt;T&gt;</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
-</p><blockquote class="stdins">
-<pre>  template &lt;class F&gt; constexpr bool permits_heterogeneous_lookup_v
-    = permits_heterogeneous_lookup&lt;F&gt;::value;</pre>
 
 </blockquote>
 
@@ -391,9 +392,8 @@ struct my_icase_less : third_party::icase_less
 <h2><a name="literature">References</a></h2>
 
 <ol>
-<li>Jeffrey Yasskin, "Programming Languages — C++ Extensions for Library Fundamentals DTS" (N4480, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4480.html">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4480.html</a>)</li>
 <li>Marshall Clow, "C++ Standard Library Active Issues List (Revision R92)" (N4383, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4383.html</a>)</li>
-<li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4527, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4527.pdf">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4527.pdf</a>)</li>
+<li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4567, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4567.pdf">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4567.pdf</a>)</li>
 </ol>
 
 </body></html>
