@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td>D0046R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td></td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2016-01-30</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
@@ -100,8 +100,8 @@ containers, that relies on use of metafunction.</p>
 
 <ul>
   <li>Wording is now relative to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</li>
-  <li>Incorporated <code>permits_heterogeneous_lookup_v</code> variable template into main proposal
-      to follow inclusion of other variable templates for type traits into standard.</li>
+  <li>Incorporated <code>permits_heterogeneous_lookup_v</code> variable template into main proposal.</li>
+  <li>Replaced <code>permits_heterogeneous_lookup&lt;T&gt;::value</code> with <code>permits_heterogeneous_lookup_v&lt;T&gt;</code>.</li>
 </ul>
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
@@ -213,7 +213,7 @@ The relation with the existing <code>is_transparent</code> is preserved only for
   <li>The name should match the semantics of the metafunction: if its returns true, the container specialized
   with given functor will expose heterogeneous lookup function, not the functor object itself.
   Names that was rejected because of this criteria: <code>supports_heterogeneous_lookup</code>, 
-  <code>provides_heterogeneous_lookup</code>,  <code>allows_heterogeneous_lookup</code> and 
+  <code>provides_heterogeneous_lookup</code>, <code>allows_heterogeneous_lookup</code> and 
   <code>enables_heterogeneous_lookup</code>.</li>
   <li>The name should allow usage of metafunction for future extension that may provide heterogeneous lookup
   for other container types like <code>unordered_set</code>, as consequence it should not refer to concept specific
@@ -325,7 +325,7 @@ namespace std {
     <code>a_eq</code> denotes a value of <code>X</code> when <code>X</code> supports multiple keys,
     <code>a_tran</code> denotes a value of <code>X</code> when the
     <del><em>qualified-id</em> <code>X::key_compare::is_transparent</code> is valid and denotes a type (14.8.2)</del>
-    <ins><code>permits_heterogeneous_lookup&lt;typename X::key_compare&gt;::value</code> is <code>true</code> ([containers.heterlookup] 20.9.14)</ins>,
+    <ins><code>permits_heterogeneous_lookup_v&lt;typename X::key_compare&gt;</code> is <code>true</code> ([containers.heterlookup] 20.9.14)</ins>,
     <code>i</code> and <code>j</code> satisfy input iterator requirements and refer to elements implicitly convertible to <code>value_type</code>,
     <code>[i,j)</code> denotes a valid range, 
     <code>p</code> denotes a valid const iterator to <code>a</code>,
