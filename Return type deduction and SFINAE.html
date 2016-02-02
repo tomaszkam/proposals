@@ -284,7 +284,7 @@ auto foo(T&amp;&amp; t) -&amp; decltype(foo(std::forward&lt;T&gt;(t))
 { return foo(std::forward&lt;T&gt;(t); }</pre>
 
 <p>Example use case of such feauture would be implemenetation of the binary <code>overload</code> function
-(as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051R1: C++ generic overload function (R1)</a>).</p>
+(as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051R1: C++ generic overload function (Revision 1)</a>).</p>
 
 <p>If we consider implementation presented in the paper:</p>
 <pre>template&lt;class F1, class F2&gt; struct overloaded : F1, F2
@@ -364,6 +364,7 @@ the unevaluated context, like lambda experssion. However no mangling support for
 
 <ol>
   <li>Marshall Clow, "C++ Standard Library Defect Report List (Revision R93)" (N4485, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html</a>)</li>
+  <li>Vicente J. Botet Escriba, "C++ generic overload function (Revision 1)" (P0051R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf</a>)</li>
 </ol>
 
 </body></html>
