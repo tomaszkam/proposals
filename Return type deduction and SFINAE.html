@@ -317,6 +317,30 @@ template&lt;class F1, class F2&gt; struct overloaded : F1, F2
 };
 </pre>
 
+<h3><a name="design.build-times">Impact on build times</a></h3>
+
+<p>The increase of build times caused by additional failed function template instantiation may be considered as the main argument against
+introduction of proposed change. This section discuss in detail scope of potential impact compared to alternatives.</p>
+
+<p>Firstly lets consider the impact on build time of existing valid programs. By definition every return type deduction preformed in such
+program was successful (otherwise hard-error would be emitted and program would be invalid), so no additional instantiations will be introduced.
+As consequence build time of existing code should not be affected.</p>
+
+<p>Secondly lets out consider the program for which one of return type deduction failed. If failed instantiation was not triggered in unevaluated
+context, such program will remain ill-formed. Lets assume that above deduction failure occurred during overload resolution from the set
+of candidate that contains <i>N</i> function using return type deduction, out of which <i>K</i> would be instantiated without any error. According
+the current rules the hard error will be emitted during the first failed deduction, so depending on the implementation program may already
+perform between <i>1</i> (1s checked candidate failed) and <i>K + 1</i> (all well-formed candidates were checked before failure) template instantiations.
+In case of the proposed change up-to <i>N</i> instantiations may be performed.</p>
+
+<p>As showed above, acceptance of this change will increase the limit of potential functions template instantiations and by consequence increase
+response time. However we should also consider the cost of currently existing alternative, that will make such program well-formed. The simplest
+approach would be to change the definition of existing function to use <code>decltype(expr)</code>, where <code>expr</code> would be valid
+if the function body would be well formed. Such transformation may be already done by transforming statement into coma-separated list of expression
+(local lambda should be transformed to functions object declared outside of function scope). It is not unreasonable to assume that the cost of checking
+validity of such expression would be comparable to potential cost of function body instantiations. In addition the use of <code>decltype(expr)</code>
+approach incurs additional cost of mangling of function signature.</p>
+
 <h2><a name="standard">Impact On The Standard</a></h2>
 
 <p>This proposal has no dependencies beyond a C++14 compiler.</p>
