@@ -330,7 +330,7 @@ As consequence build time of existing code should not be affected.</p>
 context, such program will remain ill-formed. Lets assume that above deduction failure occurred during overload resolution from the set
 of candidate that contains <i>N</i> function using return type deduction, out of which <i>K</i> would be instantiated without any error. According
 the current rules the hard error will be emitted during the first failed deduction, so depending on the implementation program may already
-perform between <i>1</i> (1s checked candidate failed) and <i>K + 1</i> (all well-formed candidates were checked before failure) template instantiations.
+perform between <i>1</i> (1st checked candidate failed) and <i>K + 1</i> (all well-formed candidates were checked before failure) template instantiations.
 In case of the proposed change up-to <i>N</i> instantiations may be performed.</p>
 
 <p>As showed above, acceptance of this change will increase the limit of potential functions template instantiations and by consequence increase
@@ -349,9 +349,9 @@ approach incurs additional cost of mangling of function signature.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<!--p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
 
-<p>Change the paragraph 7.1.6.4 <code>auto</code> specifier [dcl.spec.auto]- p8.</p>
+<p>Change the paragraph 7.1.6.4 <code>auto</code> specifier [dcl.spec.auto] p8.</p>
 
 <blockquote class="std"> 
 
@@ -359,11 +359,13 @@ approach incurs additional cost of mangling of function signature.</p>
 
    <dd><p>Return type deduction for a function template with a placeholder in its declared type occurs when the
    definition is instantiated even if the function body contains a <code>return</code> statement with a
-   non-type-dependent operand. [ <i>Note:</i> Therefore, any use of a specialization of the function template
-   will cause an implicit instantiation. Any errors that arise from this instantiation are not in the immediate
-   context of the function type and can result in the program being ill-formed. <i>— end note</i> ]</p></dl>
+   non-type-dependent operand. 
+   [ <i>Note:</i> Therefore, any use of a specialization of the function template
+     will cause an implicit instantiation. <ins><i>— end note</i>]</ins>
+   Any errors that arise from this instantiation <del>are not</del><ins>should be treated as occuring</ins>
+   in the immediate context of the function type<ins>.</ins> <del>and can result in the program being ill-formed. <i>— end note</i> ]</del></p></dl>
 
-</blockquote-->
+</blockquote>
 
 <h2><a name="implementability">Implementability</a></h2>
 
