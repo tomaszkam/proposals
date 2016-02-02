@@ -87,8 +87,8 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>The aim of this paper is to improve the usability of return type deduction feature, by allowing the validity of
-expressions involving functions that uses this feature to be checked in the SFINAE context.</p>
+<p>The aim of this paper is to improve the usability of return type deduction feature, by making return type deduction
+failure a SFINAEable error instead of a hard error.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -298,7 +298,7 @@ overloaded&lt;F1, F2&gt; overload(F1 f1, F2 f2)
 { return overloaded&lt;F1, F2&gt;(f1, f2); 
 </pre>
 <p>For this implementation very call to the functor <code>f = overload([](auto t) { return t == 0; }, [](auto t) { return t.empty(); })</code> will
-be lead to ambiguity error, as each lambda can accept any movable type. However with the proposed change with slight of the <code>overloaded</code>
+be lead to ambiguity error, as each lambda can accept any movable type. However with the proposed change with slight change of the <code>overloaded</code>
 we would be able to make such call unambiguous unless passed object is both comparable with <code>0</code> and have <code>empty()</code> method.</p>
 <pre>
 template&lt;class F1, class F2&gt; struct overloaded : F1, F2
@@ -327,38 +327,17 @@ template&lt;class F1, class F2&gt; struct overloaded : F1, F2
 
 <!--p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
 
-<p>Change the paragraph 23.2.4 Associative containers [associative.reqmts] p8.</p>
+<p>Change the paragraph 7.1.6.4 <code>auto</code> specifier [dcl.spec.auto]- p8.</p>
 
 <blockquote class="std"> 
 
   <dl class="attribute">
 
-    <dd><p>In Table 102,
-    <code>X</code> denotes an associative container class,
-    <code>a</code> denotes a value of <code>X</code>,
-    <code>a_uniq</code> denotes a value of <code>X</code> when <code>X</code> supports unique keys, 
-    <code>a_eq</code> denotes a value of <code>X</code> when <code>X</code> supports multiple keys,
-    <code>a_tran</code> denotes a value of <code>X</code> when the
-    <del><em>qualified-id</em> <code>X::key_compare::is_transparent</code> is valid and denotes a type (14.8.2)</del>
-    <ins><code>permits_heterogeneous_lookup_v&lt;typename X::key_compare&gt;</code> is <code>true</code> ([containers.heterlookup] 20.9.14)</ins>,
-    <code>i</code> and <code>j</code> satisfy input iterator requirements and refer to elements implicitly convertible to <code>value_type</code>,
-    <code>[i,j)</code> denotes a valid range, 
-    <code>p</code> denotes a valid const iterator to <code>a</code>,
-    <code>q</code> denotes a valid dereferenceable const iterator to <code>a</code>, 
-    <code>[q1, q2)</code> denotes a valid range of const iterators in <code>a</code>,
-    <code>il</code> designates an object of type <code>initializer_list&lt;value_type&gt;</code>,
-    <code>t</code> denotes a value of <code>X::value_type</code>, 
-    <code>k</code> denotes a value of <code>X::key_type</code> and 
-    <code>c</code> denotes a value of type <code>X::key_compare</code>; 
-    <code>kl</code> is a value such that <code>a</code> is partitioned (25.4) with respect to <code>c(r, kl)</code>,
-      with <code>r</code> the key value of <code>e</code> and <code>e</code> in <code>a</code>;
-    <code>ku</code> is <code>a</code> value such that a is partitioned with respect to <code>!c(ku, r)</code>;
-    <code>ke</code> is a value such that <code>a</code> is partitioned with respect to <code>c(r, ke)</code> and <code>!c(ke, r)</code>,
-      with <code>c(r, ke)</code> implying <code>!c(ke, r)</code>.
-    <code>A</code> denotes the storage allocator used by <code>X</code>, if any, or <code>std::allocator&lt;X::value_type&gt;</code> otherwise,
-    and <code>m</code> denotes an allocator of a type convertible to <code>A</code>.</p></dd>
-
-  </dl>
+   <dd><p>Return type deduction for a function template with a placeholder in its declared type occurs when the
+   definition is instantiated even if the function body contains a <code>return</code> statement with a
+   non-type-dependent operand. [ <i>Note:</i> Therefore, any use of a specialization of the function template
+   will cause an implicit instantiation. Any errors that arise from this instantiation are not in the immediate
+   context of the function type and can result in the program being ill-formed. <i>— end note</i> ]</p></dl>
 
 </blockquote-->
 
