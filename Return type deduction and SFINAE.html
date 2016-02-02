@@ -232,17 +232,16 @@ prog.cc:12:6: note:   concept 'Predicate&lt;bool (*)(int), std::__cxx11::string&
 <p>In addition similiar error would be produced for invocation of STL algorithm, e.g. <code>std::all_of(begin(v), end(b), [](auto x) { return x == 2; })</code> 
 with <code>v</code> being declared as <code>std::vector&lt;std::string&gt;</code>.</p> 
 
-
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>The changes proposed in this paper proposes that any error occuring in function template instation required be return
-type deduction triggered in unveluated context should lead to substitution failure instead of hard error. As consequence
-affects only situations when such instatiation is already occuring and does not require new one.</p>
+<p>The changes proposed in this paper proposes that any error occurring in function template instantiation required be return
+type deduction triggered in unevaluated context should lead to substitution failure instead of hard error. As consequence
+affects only situations when such instantiation is already occurring and does not require new one.</p>
 
 <h3><a name="design.overloading-on-function-body">Overloading on function body</a></h3>
 
-<p>During overload resolution for the call to the function <code>foo</code> no return type deduction is preformed
-for the candidate delcarations of the function <code>foo</code> that uses return type deducion. As consequence
+<p>During overload resolution for the call to the function <code>foo</code> no return type deduction is performed
+for the candidate declarations of the function <code>foo</code> that uses return type deduction. As consequence
 this change does not affect such cases.</p>
 
 <p>For example in the case of the following declarations:</p>
@@ -254,7 +253,7 @@ template&lt;typename F&gt;
 auto apply(F f, std::string s) { return f(s); }  // 2
 </pre>
 <p>Overload resolution for the invocation in the form <code>apply([](int x) { return x; }, std::string())</code> will still select
-second candidate and hard error will be produced by its instatiation. In addition the following two declarations will still lead
+second candidate and hard error will be produced by its instantiation. In addition the following two declarations will still lead
 to double definition error:</p>
 <pre>
 template&lt;typename T&gt;
@@ -264,14 +263,14 @@ template&lt;typename T&gt;
 auto foo(T t) { return t == "0"; }
 </pre>
 
-<p>To summarize this paper does not require the compiler to eliminate the function overload based of validy of their body
+<p>To summarize this paper does not require the compiler to eliminate the function overload based of validity of their body
 in case when return type deduction is used and, as consequence, does not impose need to support mangling of whole function body
 into signature.</p>
 
 <h3><a name="design.introducing-overload">Introducing new overloads</a></h3>
 
 <p>In some situations the user may still want to eliminate function overload based on the whole function body and
-changed proposed in this paper support such use cases by introducing additional level of inderiction. For example
+changed proposed in this paper support such use cases by introducing additional level of indirection. For example
 following function:</p>
 <pre>template&lt;typename T&gt;
 decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
@@ -280,10 +279,10 @@ decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
 decltype(auto) foo_impl(T&amp;&amp; t) { <i>...</i> }
 
 template&lt;typename T&gt;
-auto foo(T&amp;&amp; t) -&gt; decltype(foo(std::forward&lt;T&gt;(t))
+auto foo(T&amp;&amp; t) -&gt; decltype(foo(std::forward&lt;T&gt;(t)))
 { return foo(std::forward&lt;T&gt;(t); }</pre>
 
-<p>Example use case of such feauture would be implemenetation of the binary <code>overload</code> function
+<p>Example use case of such feature would be implementation of the binary <code>overload</code> function
 (as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051R1: C++ generic overload function (Revision 1)</a>).</p>
 
 <p>If we consider implementation presented in the paper:</p>
@@ -318,7 +317,6 @@ template&lt;class F1, class F2&gt; struct overloaded : F1, F2
 };
 </pre>
 
-
 <h2><a name="standard">Impact On The Standard</a></h2>
 
 <p>This proposal has no dependencies beyond a C++14 compiler.</p>
@@ -327,44 +325,59 @@ template&lt;class F1, class F2&gt; struct overloaded : F1, F2
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<!--p>After the declaration of <code>binary_function</code> in the section 20.9 [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:
+<!--p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
 
-</p><blockquote class="stdins"> 
-<pre>  // 20.9.3, <em>invoke</em>
-  template &lt;class F, class... Args&gt; result_of_t&lt;F&amp;&amp;(Args&amp;&amp;...)&gt; invoke(F&amp;&amp; f, Args&amp;&amp;... args);
-</pre>
- 
-</blockquote>
+<p>Change the paragraph 23.2.4 Associative containers [associative.reqmts] p8.</p>
 
-<p>After paragraph 20.9.2 Requirements [func.require], insert a new paragraph. (Chapter [refwrap] (Class template <code>reference_wrapper</code>) becomes 20.9.?)</p>
-  
-<blockquote class="stdins"> 
-<h4><a name="invoke">20.9.3 Function template <code>invoke</code> <span style="float:right">[func.invoke]</span></a></h4>
+<blockquote class="std"> 
 
-<pre>  template &lt;class F, class... Args&gt;
-    result_of_t&lt;F&amp;&amp;(Args&amp;&amp;...)&gt; invoke(F&amp;&amp; f, Args&amp;&amp;... args);
-</pre>
   <dl class="attribute">
-    <dt>Returns:</dt> <dd><p><code><em>INVOKE</em>(std::forward&lt;F&gt;(f), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.9.2).</p> </dd>
+
+    <dd><p>In Table 102,
+    <code>X</code> denotes an associative container class,
+    <code>a</code> denotes a value of <code>X</code>,
+    <code>a_uniq</code> denotes a value of <code>X</code> when <code>X</code> supports unique keys, 
+    <code>a_eq</code> denotes a value of <code>X</code> when <code>X</code> supports multiple keys,
+    <code>a_tran</code> denotes a value of <code>X</code> when the
+    <del><em>qualified-id</em> <code>X::key_compare::is_transparent</code> is valid and denotes a type (14.8.2)</del>
+    <ins><code>permits_heterogeneous_lookup_v&lt;typename X::key_compare&gt;</code> is <code>true</code> ([containers.heterlookup] 20.9.14)</ins>,
+    <code>i</code> and <code>j</code> satisfy input iterator requirements and refer to elements implicitly convertible to <code>value_type</code>,
+    <code>[i,j)</code> denotes a valid range, 
+    <code>p</code> denotes a valid const iterator to <code>a</code>,
+    <code>q</code> denotes a valid dereferenceable const iterator to <code>a</code>, 
+    <code>[q1, q2)</code> denotes a valid range of const iterators in <code>a</code>,
+    <code>il</code> designates an object of type <code>initializer_list&lt;value_type&gt;</code>,
+    <code>t</code> denotes a value of <code>X::value_type</code>, 
+    <code>k</code> denotes a value of <code>X::key_type</code> and 
+    <code>c</code> denotes a value of type <code>X::key_compare</code>; 
+    <code>kl</code> is a value such that <code>a</code> is partitioned (25.4) with respect to <code>c(r, kl)</code>,
+      with <code>r</code> the key value of <code>e</code> and <code>e</code> in <code>a</code>;
+    <code>ku</code> is <code>a</code> value such that a is partitioned with respect to <code>!c(ku, r)</code>;
+    <code>ke</code> is a value such that <code>a</code> is partitioned with respect to <code>c(r, ke)</code> and <code>!c(ke, r)</code>,
+      with <code>c(r, ke)</code> implying <code>!c(ke, r)</code>.
+    <code>A</code> denotes the storage allocator used by <code>X</code>, if any, or <code>std::allocator&lt;X::value_type&gt;</code> otherwise,
+    and <code>m</code> denotes an allocator of a type convertible to <code>A</code>.</p></dd>
+
   </dl>
 
 </blockquote-->
 
 <h2><a name="implementability">Implementability</a></h2>
 
-<p>This paper requires compiler implementers to be able to turn instatiation error from arbitrally function body into substitution error. This intrdouces need to support expression that was not previously allowed to in
-the unevaluated context, like lambda experssion. However no mangling support for this expression is required.</p>
+<p>This paper requires compiler implementers to be able to turn instantiation error from function body into substitution error. As consequence
+the compiler vendors would be required to implement the ability to backtrack from the errors occurring in expression that are not allowed
+in unevaluated context (like lambda expression), however no mangling support for this expression is required.</p>
 
-<!--h2><a name="acknowledgements">Acknowledgements</a></h2>
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Joe Gottman originally proposed <code>invoke</code> function in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/?fromgroups#%21topic/std-proposals/InJClAiLXcI">ISO C++ Standard - Future Proposals</a>.</p>
-<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p-->
+<p>Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">References</a></h2>
 
 <ol>
   <li>Marshall Clow, "C++ Standard Library Defect Report List (Revision R93)" (N4485, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html</a>)</li>
   <li>Vicente J. Botet Escriba, "C++ generic overload function (Revision 1)" (P0051R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf</a>)</li>
+  <li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4567, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4567.pdf">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4567.pdf</a>)</li>
 </ol>
 
 </body></html>
