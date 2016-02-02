@@ -125,7 +125,7 @@ declaration and used as the return of the function. We could avoid this necessar
 normal function and declare return type as <code>decltype(auto)</code>. As consequence of this change we would affect overload
 resolution for calls of the <code>operator()</code>: in case of <code>decltype(expr)</code> this candidate was not considered to be
 viable in case when the <code>f</code> was is not callable with <code>args...</code> or result of the invocation cannot
-be negated, while in case of use of <code>decltype(auto)</code> this candidate is always viable.</code>
+be negated, while in case of use of <code>decltype(auto)</code> this candidate is always viable.</p>
 
 <p>In context of discussed class for very invocation <code>variadic_negator(f)(args...)</code> there is only function candidate and
 at first glance we may consider this change to be acceptable, as it will only change the error messages caused by invalid invocations of
@@ -216,7 +216,7 @@ concept bool Predicate = requires(F f, T... t) {
 bool invoke(Predicate&lt;std::string&gt;);
 bool is_even(int x) { return x == 2; }
 </pre>
-<p>The expression <code>invoke(&is_even)</code> produces short and concise message on GCC 6.0 branch:</p>
+<p>The expression <code>invoke(&amp;is_even)</code> produces short and concise message on GCC 6.0 branch:</p>
 <pre>
 prog.cc: In function 'int main()':
 prog.cc:17:19: error: cannot call function 'bool invoke(auto:1) [with auto:1 = bool (*)(int)]'
@@ -280,7 +280,7 @@ decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
 decltype(auto) foo_impl(T&amp;&amp; t) { <i>...</i> }
 
 template&lt;typename T&gt;
-auto foo(T&amp;&amp; t) -&amp; decltype(foo(std::forward&lt;T&gt;(t))
+auto foo(T&amp;&amp; t) -&gt; decltype(foo(std::forward&lt;T&gt;(t))
 { return foo(std::forward&lt;T&gt;(t); }</pre>
 
 <p>Example use case of such feauture would be implemenetation of the binary <code>overload</code> function
