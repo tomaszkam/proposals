@@ -16,6 +16,7 @@ namespace test_classes
   {
     void normal() {}
     void reference()& {}
+    void rreference()&& {}
     int member;
   };
 

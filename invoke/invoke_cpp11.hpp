@@ -7,6 +7,7 @@
 #define INVOKE_CPP11_HPP
 
 #include "type_traits.hpp"
+#include <utility>
 
 namespace functional
 {
@@ -22,10 +23,10 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype((object.*functor)(std::forward<Args>(args)...))
+            decltype((std::forward<Object>(object).*functor)(std::forward<Args>(args)...))
           >::type
     {
-      return (object.*functor)(std::forward<Args>(args)...);
+      return (std::forward<Object>(object).*functor)(std::forward<Args>(args)...);
     }
 
     template<typename Functor, typename Object, typename... Args>
