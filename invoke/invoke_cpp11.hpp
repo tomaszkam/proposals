@@ -55,10 +55,10 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype(object.*functor)
+            decltype(std::forward<Object>(object).*functor)
           >::type
     {
-      return object.*functor;
+      return std::forward<Object>(object).*functor;
     }
 
     template<typename Functor, typename Object>

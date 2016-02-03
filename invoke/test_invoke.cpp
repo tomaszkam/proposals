@@ -43,7 +43,6 @@ int main()
   //invoke(&Class::reference, valueConversion);
   invoke(&Class::reference, referenceConversion);
   invoke(&Class::reference, mixed);
-  invoke(&Class::rreference, std::move(clazz));
   //invoke(&Class::reference, constMixed);
 
   invoke(&Class::member, Class{});
@@ -56,6 +55,18 @@ int main()
   invoke(&Class::member, referenceConversion);
   invoke(&Class::member, mixed);
   //invoke(&Class::member, constMixed);
+
+  invoke(&Class::rreference, Class{});
+  //invoke(&Class::rreference, base);
+  invoke(&Class::rreference, std::move(clazz));
+  invoke(&Class::rreference, std::move(derived));
+  //invoke(&Class::rreference, rawPointer);
+  //invoke(&Class::rreference, smartPointer);
+  invoke(&Class::rreference, valueConversion);
+  //invoke(&Class::rreference, referenceConversion);
+  //invoke(&Class::rreference, mixed);
+  //invoke(&Class::rreference, constMixed);
+
 
   invoke([](int) {}, 1);
 }
