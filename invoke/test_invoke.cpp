@@ -43,6 +43,7 @@ int main()
   //invoke(&Class::reference, valueConversion);
   invoke(&Class::reference, referenceConversion);
   invoke(&Class::reference, mixed);
+  invoke(&Class::rreference, std::move(clazz));
   //invoke(&Class::reference, constMixed);
 
   invoke(&Class::member, Class{});
