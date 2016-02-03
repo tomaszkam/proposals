@@ -279,8 +279,8 @@ decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
 decltype(auto) foo_impl(T&amp;&amp; t) { <i>...</i> }
 
 template&lt;typename T&gt;
-auto foo(T&amp;&amp; t) -&gt; decltype(foo(std::forward&lt;T&gt;(t)))
-{ return foo(std::forward&lt;T&gt;(t); }</pre>
+auto foo(T&amp;&amp; t) -&gt; decltype(fooi_impl(std::forward&lt;T&gt;(t)))
+{ return foo_impl(std::forward&lt;T&gt;(t); }</pre>
 
 <p>Example use case of such feature would be implementation of the binary <code>overload</code> function
 (as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051R1: C++ generic overload function (Revision 1)</a>).</p>
@@ -334,7 +334,7 @@ perform between <i>1</i> (1st checked candidate failed) and <i>K + 1</i> (all we
 In case of the proposed change up-to <i>N</i> instantiations may be performed.</p>
 
 <p>As showed above, acceptance of this change will increase the limit of potential functions template instantiations and by consequence increase
-response time. However we should also consider the cost of currently existing alternative, that will make such program well-formed. The simplest
+compilation time. However we should also consider the cost of currently existing alternative, that will make such program well-formed. The simplest
 approach would be to change the definition of existing function to use <code>decltype(expr)</code>, where <code>expr</code> would be valid
 if the function body would be well formed. Such transformation may be already done by transforming statement into coma-separated list of expression
 (local lambda should be transformed to functions object declared outside of function scope). It is not unreasonable to assume that the cost of checking
@@ -349,7 +349,7 @@ approach incurs additional cost of mangling of function signature.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
+<!--p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
 
 <p>Change the paragraph 7.1.6.4 <code>auto</code> specifier [dcl.spec.auto] p8.</p>
 
@@ -365,7 +365,7 @@ approach incurs additional cost of mangling of function signature.</p>
    Any errors that arise from this instantiation <del>are not</del><ins>should be treated as occuring</ins>
    in the immediate context of the function type<ins>.</ins> <del>and can result in the program being ill-formed. <i>— end note</i> ]</del></p></dl>
 
-</blockquote>
+</blockquote-->
 
 <h2><a name="implementability">Implementability</a></h2>
 
