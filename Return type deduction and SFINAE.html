@@ -87,8 +87,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">Introduction</a></h2>
 
-<p>The aim of this paper is to improve the usability of return type deduction feature, by making return type deduction
-failure a SFINAEable error instead of a hard error.</p>
+<p>This paper proposes to make return type deduction failure a SFINAEable error instead of a hard error.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -279,7 +278,7 @@ decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
 decltype(auto) foo_impl(T&amp;&amp; t) { <i>...</i> }
 
 template&lt;typename T&gt;
-auto foo(T&amp;&amp; t) -&gt; decltype(fooi_impl(std::forward&lt;T&gt;(t)))
+auto foo(T&amp;&amp; t) -&gt; decltype(foo_impl(std::forward&lt;T&gt;(t)))
 { return foo_impl(std::forward&lt;T&gt;(t); }</pre>
 
 <p>Example use case of such feature would be implementation of the binary <code>overload</code> function
