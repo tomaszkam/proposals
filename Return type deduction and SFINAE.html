@@ -96,7 +96,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">Motivation and Scope</a></h2>
 
-<p>As example lets consider following implementation of the <code>variadic_negator</code>:</p>
+<p>For an example, let's consider the following implementation of <code>variadic_negator</code>:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -119,17 +119,17 @@ variadic_negator_functor&lt;F&gt; variadic_negator(F f)
 }
 </pre>
 
-<p>In the implementation we see obvious repetition of the function invocation that is placed both in the return type
-declaration and used as the return of the function. We could avoid this necessary repetition by using return type deduction for the 
-normal function and declare return type as <code>decltype(auto)</code>. As consequence of this change we would affect overload
+<p>In the implementation we can see an obvious repetition of the function invocation that is placed both in the return type
+declaration and in the return statement. We could avoid this necessary repetition by using return type deduction for the 
+normal function and declare return type as <code>decltype(auto)</code>. As consequence of this change we would affect the overload
 resolution for calls of the <code>operator()</code>: in case of <code>decltype(expr)</code> this candidate was not considered to be
 viable in case when the <code>f</code> was is not callable with <code>args...</code> or result of the invocation cannot
 be negated, while in case of use of <code>decltype(auto)</code> this candidate is always viable.</p>
 
-<p>In context of discussed class for very invocation <code>variadic_negator(f)(args...)</code> there is only function candidate and
+<p>In the context of the discussed class for evry invocation <code>variadic_negator(f)(args...)</code> there is only one function candidate, and
 at first glance we may consider this change to be acceptable, as it will only change the error messages caused by invalid invocations of
-the functor. However above reasoning omits situations when availability of the other functions depends on validity of the <code>variadic_negator</code>
-call. As example we may consider following exmaple:</p>
+the functor. However, such reasoning omits situations when the availability of other functions depends on the validity of the call to <code>variadic_negator</code>.
+As an example, we may consider the following:</p>
 <pre>
 template&lt;typename F&gt;
 auto invoke(F f) -&gt; decltype(f(0));             //1
@@ -152,9 +152,9 @@ hard-error. In case of our example the expression <code>invoke(variadic_negator(
 to instantiation of <code>operator()</code> with <code>std::string&amp;&amp;</code>, that is invalid as <code>&amp;test</code> accepts
 only integers.</p>
 
-<p>This paper proposes to address above issue by requiring that any error occurring during instantiation of function template triggered
-by return type deduction in unevaluated context should lead to substitution failure. As consequence programmers will be allowed to check
-validity of call toi any function even if it happen to use return type deduction feature.</p>
+<p>This paper proposes to address above issue by requiring that any error occurring during the instantiation of function template triggered
+by return type deduction in unevaluated context should lead to substitution failure. As a result, programmers will be allowed to check
+the validity of the call to any function even if it happens to use the return type deduction feature.</p>
 
 <h3><a name="motivation.std_function">Functions accepting <code>std::function</code> as parameter</a></h3>
 
