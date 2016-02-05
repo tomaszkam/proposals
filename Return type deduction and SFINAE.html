@@ -126,7 +126,7 @@ resolution for calls of the <code>operator()</code>: in case of <code>decltype(e
 viable in case when the <code>f</code> was is not callable with <code>args...</code> or result of the invocation cannot
 be negated, while in case of use of <code>decltype(auto)</code> this candidate is always viable.</p>
 
-<p>In the context of the discussed class for evry invocation <code>variadic_negator(f)(args...)</code> there is only one function candidate, and
+<p>In the context of the discussed class for every invocation <code>variadic_negator(f)(args...)</code> there is only one function candidate, and
 at first glance we may consider this change to be acceptable, as it will only change the error messages caused by invalid invocations of
 the functor. However, such reasoning omits situations when the availability of other functions depends on the validity of the call to <code>variadic_negator</code>.
 As an example, we may consider the following:</p>
@@ -240,8 +240,7 @@ affects only situations when such instantiation is already occurring and does no
 <h3><a name="design.overloading-on-function-body">Overloading on function body</a></h3>
 
 <p>During overload resolution for the call to the function <code>foo</code> no return type deduction is performed
-for the candidate declarations of the function <code>foo</code> that uses return type deduction. As consequence
-this change does not affect such cases.</p>
+for the candidate declarations of the function <code>foo</code> that uses return type deduction.</p>
 
 <p>For example in the case of the following declarations:</p>
 <pre>
@@ -342,7 +341,7 @@ approach incurs additional cost of mangling of function signature.</p>
 
 <h2><a name="standard">Impact On The Standard</a></h2>
 
-<p>This proposal has no dependencies beyond a C++14 compiler.</p>
+<p>This proposal has no dependencies beyond a C++14 standard.</p>
 
 <p>Nothing depends on this proposal.</p>
 
@@ -374,7 +373,7 @@ in unevaluated context (like lambda expression), however no mangling support for
 
 <h2><a name="acknowledgements">Acknowledgements</a></h2>
 
-<p>Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p>
+<p>Ville Voutilainen and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">References</a></h2>
 
