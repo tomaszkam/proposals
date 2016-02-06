@@ -347,7 +347,7 @@ approach incurs additional cost of mangling of function signature.</p>
 
 <h2><a name="wording">Proposed wording</a></h2>
 
-<!--p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
 
 <p>Change the paragraph 7.1.6.4 <code>auto</code> specifier [dcl.spec.auto] p8.</p>
 
@@ -356,14 +356,16 @@ approach incurs additional cost of mangling of function signature.</p>
   <dl class="attribute">
 
    <dd><p>Return type deduction for a function template with a placeholder in its declared type occurs when the
-   definition is instantiated even if the function body contains a <code>return</code> statement with a
+   definition is instantiated even if the function body contains a <code>return</code> statement with a 
    non-type-dependent operand. 
-   [ <i>Note:</i> Therefore, any use of a specialization of the function template
-     will cause an implicit instantiation. <ins><i>— end note</i>]</ins>
-   Any errors that arise from this instantiation <del>are not</del><ins>should be treated as occuring</ins>
-   in the immediate context of the function type<ins>.</ins> <del>and can result in the program being ill-formed. <i>— end note</i> ]</del></p></dl>
+   [ <i>Note:</i> Therefore, any use of a specialization of the function template will cause an implicit instantiation.
+     <del> Any errors that arise from this instantiation are not in the immediate context of the function type and can
+     result in the program being ill-formed.</del> <i>— end note</i> ]
+   <ins>If this instantiation occurs as part of template argument substitution, any errors that arise from it should
+   lead to deduction failure ([temp.deduct] 14.8.2).</ins></p></dd>
+  </dl>
 
-</blockquote-->
+</blockquote>
 
 <h2><a name="implementability">Implementability</a></h2>
 
