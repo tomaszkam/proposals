@@ -148,9 +148,8 @@ to <code>int</code>.</p>
 <p>To understand this situation we need to realize that expression in the form <code>decltype(foo(args...))</code> requires
 compiler to determine return type of selected overload of <code>foo</code> which in case of function template that uses return type
 deduction leads to its instantiation and according to current wording, any error occurring in such instantiation is considered to be 
-hard-error. In case of our example the expression <code>invoke(variadic_negator(&amp;test))</code> leads, during overload resolution.
-to instantiation of <code>operator()</code> with <code>std::string&amp;&amp;</code>, that is invalid as <code>&amp;test</code> accepts
-only integers.</p>
+hard-error. In case of our example the expression <code>invoke(variadic_negator(&amp;test))</code> leads to instantiation of 
+<code>operator()</code> with <code>std::string&amp;&amp;</code>, that is invalid as <code>&amp;test</code> accepts only integers.</p>
 
 <p>This paper proposes to address above issue by requiring that any error occurring during the instantiation of function template triggered
 by return type deduction in unevaluated context should lead to substitution failure. As a result, programmers will be allowed to check
@@ -189,7 +188,7 @@ identical expression that uses new generic lambda <code>[](auto x) { return x ==
 
 <p>In the light of advancement of the development of concept for C++ language, it may be argued that such problem will not 
 exists, as instead of use of unconstrained (<code>auto</code>) template argument user will use short concept syntax.
-Considering the fact that main motivation behind introduction lambda expression was introduced to create at-hoc functors
+Considering the fact that main motivation behind introduction lambda expression was simplification of creation of at-hoc functors
 that are used locally, then we can expect that in such cases lambda will be only constrained by ad-hoc requirements.
 However in contrast to lambda expression, such constrains cannot be declared locally and pursue to constrain every
 generic lambda in the code will lead to creation of small syntactic constrains (like <code>has_operator_plus&lt;T, U&gt;</code>)
@@ -233,7 +232,7 @@ with <code>v</code> being declared as <code>std::vector&lt;std::string&gt;</code
 
 <h2><a name="design">Design Decisions</a></h2>
 
-<p>The changes proposed in this paper proposes that any error occurring in function template instantiation required be return
+<p>This paper proposes that any error occurring in function template instantiation required be return
 type deduction triggered in unevaluated context should lead to substitution failure instead of hard error.</p>
 
 <h3><a name="design.overloading-on-function-body">Overloading on function body</a></h3>
@@ -271,7 +270,7 @@ changed proposed in this paper support such use cases by introducing additional 
 following function:</p>
 <pre>template&lt;typename T&gt;
 decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
-<p>Can be transformed into pair of following functions:</p>
+<p>Can be transformed into:</p>
 <pre>template&lt;typename T&gt;
 decltype(auto) foo_impl(T&amp;&amp; t) { <i>...</i> }
 
@@ -294,9 +293,9 @@ template&lt;class F1, class F2&gt;
 overloaded&lt;F1, F2&gt; overload(F1 f1, F2 f2)
 { return overloaded&lt;F1, F2&gt;(f1, f2); 
 </pre>
-<p>For this implementation very call to the functor <code>f = overload([](auto t) { return t == 0; }, [](auto t) { return t.empty(); })</code> will
-be lead to ambiguity error, as each lambda can accept any movable type. However with the proposed change with slight change of the <code>overloaded</code>
-we would be able to make such call unambiguous unless passed object is both comparable with <code>0</code> and have <code>empty()</code> method.</p>
+<p>For this implementation every call to the functor <code>f = overload([](auto t) { return t == 0; }, [](auto t) { return t.empty(); })</code> will
+be lead to ambiguity error, as each lambda can accept any movable type. However with the proposed change and slight change of the <code>overloaded</code>
+code, we would be able to make such call unambiguous unless passed object is both comparable with <code>0</code> and have <code>empty()</code> method.</p>
 <pre>
 template&lt;class F1, class F2&gt; struct overloaded : F1, F2
 {
