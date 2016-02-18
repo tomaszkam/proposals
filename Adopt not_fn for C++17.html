@@ -66,37 +66,37 @@
   <li><a href="#3.3">Allow Vendors to Support Customers</a></li>
   </ul>
  <li><a href="#4.0">Deprecate vs. Immediate Removal</a></li>
- <li><a href="#5.0">Future Extensions</a></li>
+ <li><a href="#6.0">Future Extensions</a></li>
   <ul>
-  <li><a href="#5.1"><tt>reference_wrapper</tt> for Incomplete Types</a></li>
-  <li><a href="#5.2">Negated <tt>bind</tt> Expressions</a></li>
+  <li><a href="#6.1"><tt>reference_wrapper</tt> for Incomplete Types</a></li>
+  <li><a href="#6.2">Negated <tt>bind</tt> Expressions</a></li>
   </ul>
-<li><a href="#6.0">Proposed Wording</a></li>
+<li><a href="#7.0">Proposed Wording</a></li>
   <ul>
-  <li><a href="#6.0">Proposed Wording</a></li>
-  <li><a href="#6.1">17.6.4.3.x Zombie names [zombie.names]</a></li>
-  <li><a href="#6.2">20.8.2.4 Class template <tt>owner_less</tt>   [util.smartptr.ownerless]</a></li>
-  <li><a href="#6.3">20.9.2 Requirements [func.require]</a></li>
-  <li><a href="#6.4">20.9.4 Class template reference_wrapper   [refwrap]</a></li>
-  <li><a href="#6.5">20.9.5 Arithmetic operations [arithmetic.operations]</a></li>
-  <li><a href="#6.6">20.9.6 Comparisons   [comparisons]</a></li>
-  <li><a href="#6.7">20.9.7 Logical operations [logical.operations]</a></li>
-  <li><a href="#6.8">20.9.8 Bitwise operations [bitwise.operations]</a></li>
-  <li><a href="#6.9">20.9.9 Negators [negators]</a></li>
-  <li><a href="#6.10">20.9.9 Function template <tt>not_fn</tt> [func.not_fn]</a>
-  </li><li><a href="#6.11">20.9.11 Function template <tt>mem_fn</tt>   [func.memfn]</a></li>
-  <li><a href="#6.12">20.9.12.2 Class template function   [func.wrap.func]</a></li>
-  <li><a href="#6.13">20.9.13 Class template hash  [unord.hash]</a></li>
-  <li><a href="#6.14">23.4.4.1 Class template <tt>map</tt> overview   [map.overview]</a></li>
-  <li><a href="#6.15">23.4.5.1 Class template <tt>multimap</tt> overview   [multimap.overview]</a></li>
-  <li><a href="#6.16">D.x Old Adaptable Function Bindings  [depr.func.adaptor.binding]</a></li>
+  <li><a href="#7.0">Proposed Wording</a></li>
+  <li><a href="#7.1">17.6.4.3.x Zombie names [zombie.names]</a></li>
+  <li><a href="#7.2">20.8.2.4 Class template <tt>owner_less</tt>   [util.smartptr.ownerless]</a></li>
+  <li><a href="#7.3">20.9.2 Requirements [func.require]</a></li>
+  <li><a href="#7.4">20.9.4 Class template reference_wrapper   [refwrap]</a></li>
+  <li><a href="#7.5">20.9.5 Arithmetic operations [arithmetic.operations]</a></li>
+  <li><a href="#7.6">20.9.6 Comparisons   [comparisons]</a></li>
+  <li><a href="#7.7">20.9.7 Logical operations [logical.operations]</a></li>
+  <li><a href="#7.8">20.9.8 Bitwise operations [bitwise.operations]</a></li>
+  <li><a href="#7.9">20.9.9 Negators [negators]</a></li>
+  <li><a href="#7.10">20.9.9 Function template <tt>not_fn</tt> [func.not_fn]</a>
+  </li><li><a href="#7.11">20.9.11 Function template <tt>mem_fn</tt>   [func.memfn]</a></li>
+  <li><a href="#7.12">20.9.12.2 Class template function   [func.wrap.func]</a></li>
+  <li><a href="#7.13">20.9.13 Class template hash  [unord.hash]</a></li>
+  <li><a href="#7.14">23.4.4.1 Class template <tt>map</tt> overview   [map.overview]</a></li>
+  <li><a href="#7.15">23.4.5.1 Class template <tt>multimap</tt> overview   [multimap.overview]</a></li>
+  <li><a href="#7.16">D.x Old Adaptable Function Bindings  [depr.func.adaptor.binding]</a></li>
     <ul>
-    <li><a href="#6.16.1">D.x.1 Weak Result Types [depr.weak.result_type]</a></li>
-    <li><a href="#6.16.2">D.x.2 Typedefs to Support Function Binders [depr.func.adaptor.typedefs]</a></li>
-    <li><a href="#6.16.3">D.x.3 Negators [depr.negators]</a></li>
+    <li><a href="#7.16.1">D.x.1 Weak Result Types [depr.weak.result_type]</a></li>
+    <li><a href="#7.16.2">D.x.2 Typedefs to Support Function Binders [depr.func.adaptor.typedefs]</a></li>
+    <li><a href="#7.16.3">D.x.3 Negators [depr.negators]</a></li>
     </ul>
   </ul>
-<li><a href="#7.0">References</a></li>
+<li><a href="#8.0">References</a></li>
 </ul>
 
 
@@ -302,9 +302,9 @@ on the majority of known systems at the time of their removal.
 </p>
 
 
-<h2><a name="5.0">Future Extensions</a></h2>
+<h2><a name="6.0">Future Extensions</a></h2>
 
-<h3><a name="5.1"><tt>reference_wrapper</tt> for Incomplete Types</a></h3>
+<h3><a name="6.1"><tt>reference_wrapper</tt> for Incomplete Types</a></h3>
 <p>
 Removing the <tt>result_type</tt> typedefs would enable support for incomplete
 types in <tt>reference_wrapper</tt>.  That is not possible today due to the
@@ -329,7 +329,7 @@ auto my_tie(T&amp; t, U&amp; u) {
 }
 </pre></blockquote>
 
-<h3><a name="5.2">Negated <tt>bind</tt> Expressions</a></h3>
+<h3><a name="6.2">Negated <tt>bind</tt> Expressions</a></h3>
 <p>
 A long-standing feature of the Boost library that contributed the original
 design for <tt>not_fn</tt> is an expansion of the <tt>bind</tt> language to
@@ -346,14 +346,14 @@ Fundamentals 3 TS.
 </p>
 
 
-<h2><a name="6.0">Proposed Wording</a></h2>
+<h2><a name="7.0">Proposed Wording</a></h2>
 <p>
 Insert a new section under <b>17.6.4.3 [reserved.names]</b>, between
 <b>17.6.4.3.1 [macro.names]</b> and <b>17.6.4.3.2 [extern.names]</b>:
 </p>
 
 <blockquote>
-<h3><a name="6.1"><ins>17.6.4.3.x Zombie names [zombie.names]</ins></a></h3>
+<h3><a name="7.1"><ins>17.6.4.3.x Zombie names [zombie.names]</ins></a></h3>
 
 <p><ins>
 In namespace <tt>std</tt>, the following names are reserved for previous
@@ -392,7 +392,7 @@ Strike the <tt>result_type</tt>, <tt>first_argument_type</tt>, and
 </p>
 
 <blockquote>
-<h3><a name="6.2">20.8.2.4 Class template <tt>owner_less</tt>   [util.smartptr.ownerless]</a></h3>
+<h3><a name="7.2">20.8.2.4 Class template <tt>owner_less</tt>   [util.smartptr.ownerless]</a></h3>
 <p>
 1 The class template owner_less allows ownership-based mixed comparisons of
 shared and weak pointers.
@@ -443,7 +443,7 @@ Strike the definition of <i>weak result type</i> from 20.9.2:
 </p>
 
 <blockquote>
-<h3><a name="6.3">20.9.2 Requirements [func.require]</a></h3>
+<h3><a name="7.3">20.9.2 Requirements [func.require]</a></h3>
 <ol>
   <li>Define <tt><i>INVOKE</i> (f, t1, t2, ..., tN)</tt> as follows:</li>
   <ol>
@@ -507,7 +507,7 @@ Simplify the definition of <tt>reference_wrapper</tt>:
 </p>
 
 <blockquote>
-<h3><a name="6.4">20.9.4 Class template reference_wrapper   [refwrap]</a></h3>
+<h3><a name="7.4">20.9.4 Class template reference_wrapper   [refwrap]</a></h3>
 <p></p><pre><blockquote>
 namespace std {
   template &lt;class T&gt; class reference_wrapper {
@@ -601,7 +601,7 @@ Strike the <tt>result_type</tt>, <tt>argument_type</tt>,
 </p>
 
 <blockquote>
-<h3><a name="6.5">20.9.5 Arithmetic operations [arithmetic.operations]</a></h3>
+<h3><a name="7.5">20.9.5 Arithmetic operations [arithmetic.operations]</a></h3>
 <p>
 1 The library provides basic function object classes for all of the arithmetic
 operators in the language (5.6, 5.7).  </p>
@@ -674,7 +674,7 @@ Strike the <tt>result_type</tt>, <tt>first_argument_type</tt>, and
 
 <blockquote>
 
-<h3><a name="6.6">20.9.6 Comparisons   [comparisons]</a></h3>
+<h3><a name="7.6">20.9.6 Comparisons   [comparisons]</a></h3>
 <p>
 1 The library provides basic function object classes for all of the comparison
 operators in the language (5.9, 5.10).  </p>
@@ -753,7 +753,7 @@ Strike the <tt>result_type</tt>, <tt>argument_type</tt>,
 </p>
 
 <blockquote>
-<h3><a name="6.7">20.9.7 Logical operations [logical.operations]</a></h3>
+<h3><a name="7.7">20.9.7 Logical operations [logical.operations]</a></h3>
 <p>
 1 The library provides basic function object classes for all of the logical
 operators in the language (5.14, 5.15, 5.3.1).
@@ -799,7 +799,7 @@ Strike the <tt>result_type</tt>, <tt>argument_type</tt>,
 </p>
 
 <blockquote>
-<h3><a name="6.8">20.9.8 Bitwise operations [bitwise.operations]</a></h3>
+<h3><a name="7.8">20.9.8 Bitwise operations [bitwise.operations]</a></h3>
 <p>
 1 The library provides basic function object classes for all of the bitwise
 operators in the language (5.11, 5.13, 5.12, 5.3.1).
@@ -856,7 +856,7 @@ than the struck-out note:
 </p>
 
 <blockquote>
-<h3><a name="6.9"><del>20.9.9 Negators [negators]</del></a></h3>
+<h3><a name="7.9"><del>20.9.9 Negators [negators]</del></a></h3>
 <p><del>
 1 Negators <tt>not1</tt> and <tt>not2</tt> take a unary and a binary predicate,
 respectively, and return their complements (5.3.1).
@@ -912,7 +912,7 @@ respectively, and return their complements (5.3.1).
 5 <i>Returns:</i> <tt>binary_negate&lt;Predicate&gt;(pred)</tt>.
 </del></p>
 
-<h3><a name="6.10"><ins>20.9.9 Function template <tt>not_fn</tt> [func.not_fn]</ins></a></h3>
+<h3><a name="7.10"><ins>20.9.9 Function template <tt>not_fn</tt> [func.not_fn]</ins></a></h3>
 <p></p><pre><blockquote>
 <ins>template &lt;class F&gt; <i>unspecified</i> not_fn(F&amp;&amp; f);</ins>
 </blockquote></pre><p></p>
@@ -1038,7 +1038,7 @@ Strike the unnecessary typedefs from the unspecified return-type of
 </p>
 
 <blockquote>
-<h3><a name="6.11">20.9.11 Function template <tt>mem_fn</tt>   [func.memfn]</a></h3>
+<h3><a name="7.11">20.9.11 Function template <tt>mem_fn</tt>   [func.memfn]</a></h3>
 <blockquote><pre>template&lt;class R, class T&gt; <i>unspecified</i> mem_fn(R T::* pm);
 </pre></blockquote>
 <p>
@@ -1074,7 +1074,7 @@ Strike the relevant typedefs from the class definition of <tt>function</tt>:
 </p>
 
 <blockquote>
-<h3><a name="6.12">20.9.12.2 Class template function   [func.wrap.func]</a></h3>
+<h3><a name="7.12">20.9.12.2 Class template function   [func.wrap.func]</a></h3>
 <p></p><pre><blockquote>
 namespace std {
 template&lt;class&gt; class function; <i>// undefined</i>
@@ -1100,7 +1100,7 @@ Strike bullet (1.3), on the definition of standard <tt>hash</tt> functors:
 </p>
 
 <blockquote>
-<h3><a name="6.13">20.9.13 Class template hash  [unord.hash]</a></h3>
+<h3><a name="7.13">20.9.13 Class template hash  [unord.hash]</a></h3>
 <p>
 1 The unordered associative containers defined in 23.5 use specializations of
 the class template <tt>hash</tt> as the default hash function. For all object
@@ -1146,7 +1146,7 @@ member-class of <tt>map</tt> in <b>23.4.4.1 [map.overview]</b>.
 <blockquote>
 
 <h3>23.4.4 Class template <tt>map</tt>              [map]</h3>
-<h3><a name="6.14">23.4.4.1 Class template <tt>map</tt> overview   [map.overview]</a></h3>
+<h3><a name="7.14">23.4.4.1 Class template <tt>map</tt> overview   [map.overview]</a></h3>
 <blockquote><pre>namespace std {
   template &lt;class Key, class T, class Compare = less&lt;Key&gt;,
             class Allocator = allocator&lt;pair&lt;const Key, T&gt; &gt; &gt;
@@ -1186,7 +1186,7 @@ member-class of <tt>multimap</tt> in <b>23.4.5.1 [multimap.overview]</b>.
 <blockquote>
 
 <h3>23.4.5 Class template <tt>multimap</tt>              [multimap]</h3>
-<h3><a name="6.15">23.4.5.1 Class template <tt>multimap</tt> overview   [multimap.overview]</a></h3>
+<h3><a name="7.15">23.4.5.1 Class template <tt>multimap</tt> overview   [multimap.overview]</a></h3>
 <blockquote><pre>namespace std {
   template &lt;class Key, class T, class Compare = less&lt;Key&gt;,
             class Allocator = allocator&lt;pair&lt;const Key, T&gt; &gt; &gt;
@@ -1222,9 +1222,9 @@ Insert a new clause into Annex D:
 </p>
 
 <blockquote>
-<h3><a name="6.16"><ins>D.x Old Adaptable Function Bindings  [depr.func.adaptor.binding]</ins></a></h3>
+<h3><a name="7.16"><ins>D.x Old Adaptable Function Bindings  [depr.func.adaptor.binding]</ins></a></h3>
 
-<h4><a name="6.16.1"><ins>D.x.1 Weak Result Types [depr.weak.result_type]</ins></a></h4>
+<h4><a name="7.16.1"><ins>D.x.1 Weak Result Types [depr.weak.result_type]</ins></a></h4>
 <ol>
   <li><ins>If a call wrapper (20.9.1) has a <i>weak result type</i>, the type of its member
       type <tt>result_type</tt> is based on the type <tt>T</tt> of the wrapper's target object
@@ -1242,7 +1242,7 @@ Insert a new clause into Annex D:
 </ol>
 
 
-<h4><a name="6.16.2"><ins>D.x.2 Typedefs to Support Function Binders [depr.func.adaptor.typedefs]</ins></a></h4>
+<h4><a name="7.16.2"><ins>D.x.2 Typedefs to Support Function Binders [depr.func.adaptor.typedefs]</ins></a></h4>
 
 <ol>
 <li><ins>
@@ -1521,7 +1521,7 @@ The following member names are defined in addition to names specified in Clause 
 </li>
 </ol>
 
-<h4><a name="6.16.3"><ins>D.x.3 Negators [depr.negators]</ins></a></h4>
+<h4><a name="7.16.3"><ins>D.x.3 Negators [depr.negators]</ins></a></h4>
 <ol>
 <li><ins>
 The header <tt>&lt;functional&gt;</tt> has the following additional declarations:</ins>
@@ -1596,9 +1596,9 @@ respectively, and return their complements (5.3.1).
 </blockquote>
 
 
-<h2><a name="7.0">References</a></h2><a name="7.0">
-</a><ul><a name="7.0">
-  </a><li><a name="7.0"></a><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2194.html">N2194</a> decltype for the C++0x Standard Library, Douglas Gregor, Jaakko Järvi</li>
+<h2><a name="8.0">References</a></h2><a name="8.0">
+</a><ul><a name="8.0">
+  </a><li><a name="8.0"></a><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2194.html">N2194</a> decltype for the C++0x Standard Library, Douglas Gregor, Jaakko Järvi</li>
   <li><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4076.html">N4076</a> A proposal to add a generalized callable negator, Tomasz Kamiński</li>
   <li><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4086">N4086</a> Removing trigraphs??!, Richard Smith</li>
   <li><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4168">N4168</a> Removing <tt>auto_ptr</tt>, Billy Baker</li>
