@@ -55,6 +55,7 @@
   <li><a href="#0.2">Revision 1</a></li>
   <li><a href="#0.3">Revision 2</a></li>
   <li><a href="#0.4">Revision 3</a></li>
+  <li><a href="#0.5">Revision 4</a></li>
   </ul>
 <li><a href="#1.0">Introduction</a></li>
 <li><a href="#2.0">Recommended for Immediate Adoption</a></li>
@@ -147,6 +148,10 @@ in the Zombie Names clause, as this revision does not remove any old names, and
 so creates no compatibility concerns.
 </p>
 
+<h3><a name="0.5">Revision 4</a></h3>
+<p>
+Improvement of proposed wording for <code>not_fn</code>.
+</p>
 
 <h2><a name="1.0">Introduction</a></h2>
 <p>
@@ -911,43 +916,86 @@ respectively, and return their complements (5.3.1).
 <p></p><pre><blockquote>
 <ins>template &lt;class F&gt; <i>unspecified</i> not_fn(F&amp;&amp; f);</ins>
 </blockquote></pre><p></p>
-<p><ins>
-1 In the text that follows:
-</ins></p><p>
-</p><ul>
-<li><ins><tt>FD</tt> is the type <tt>decay_t&lt;F&gt;</tt>,</ins></li>
-<li><ins><tt>fd</tt> is an lvalue of type <tt>FD</tt> constructed from <tt>std::forward&lt;F&gt;(f)</tt>,</ins></li>
-<li><ins><tt>g</tt> is a forwarding call wrapper created as a result of <tt>not_fn(f)</tt>,</ins></li>
-</ul>
 
 <p><ins>
-2 <i>Requires:</i>
-<tt>is_constructible&lt;FD, F&gt;::value</tt> shall be <tt>true</tt>.
-<tt>fd</tt> shall be a callable object (§20.9.1).
+1 <i>Effects:</i> Equivalent to: <tt>return call_wrapper(std::forward&lt;F&gt;(f))</tt>, where <tt>call_wrapper</tt> is exposition only class defined as follows:
 </ins></p>
+
+<pre><blockquote>
+<ins>class call_wrapper
+{
+   using FD = decay_t&lt;F&gt;;
+public:
+   call_wrapper(F&amp;&amp; f) noexcept(<i>see below</i>);
+
+   call_wrapper(call_wrapper&amp;&amp;) = default;
+   call_wrapper(call_wrapper const&amp;) = default;
+   call_wrapper&amp; operator=(call_wrapper&amp;&amp;) = default;
+   call_wrapper&amp; operator=(call_wrapper const&amp;) = default;
+
+   template&lt;typename... Args&gt;
+     auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
+
+   template&lt;typename... Args&gt;
+     auto operator()(Args&amp;&amp;...) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());
+
+   template&lt;typename... Args&gt;
+     auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());
+
+   template&lt;typename... Args&gt;
+     auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());
+
+private:
+  FD fd;
+};</ins>
+</blockquote></pre><p></p>
+
+<p></p><pre><blockquote>
+<ins>call_wrapper(F&amp;&amp; f) noexcept(<i>see below</i>);</ins>
+</blockquote></pre><p></p>
+
 <p><ins>
-3 <i>Returns:</i>
-A forwarding call wrapper <tt>g</tt> such that the expression
-<tt>g(a1, a2, ..., aN)</tt> is equivalent to
-<tt>!<i>INVOKE</i>(fd, a1, a2, ..., aN)</tt> (§20.9.2).
+1.1 <i>Requires:</i> 
+    <tt>FD</tt> shall satisfy the requirements of <tt>MoveConstructible</tt>. 
+    <tt>is_constructible_v&lt;FD, F&gt;</tt> shall be true. 
+    <tt>fd</tt> shall be a callable object (20.9.1).
 </ins></p>
+
 <p><ins>
-4 <i>Throws:</i>
-Nothing unless the construction of <tt>fd</tt> throws an exception.
+1.2 <i>Effects:</i> Initializes <tt>fd</tt> from <tt>std::forward&lt;F&gt;(f)</tt>.   
 </ins></p>
+
 <p><ins>
-5 <i>Remarks:</i>
-The return type shall satisfy the requirements of <tt>MoveConstructible</tt>.
-If <tt>FD</tt> satisfies the requirements of <tt>CopyConstructible</tt>, then
-the return type shall satisfy the requirements of <tt>CopyConstructible</tt>.
-[ <i>Note:</i> This implies that <tt>FD</tt> is <tt>MoveConstructible</tt>. —
-<i>end note</i> ]
+1.3 <i>Throws:</i> Any exception thrown by construction of <tt>fd</tt>.
 </ins></p>
-<p><del>
-[ <i>Note:</i> Function template <tt>not_fn</tt> can usually provide a better
-solution than using the negators <tt>not1</tt> and <tt>not2</tt> — <i>end
-note</i> ]
-</del></p>
+
+<p><ins>
+1.4 <i>Remarks:</i> The expression inside <tt>noexcept</tt> is equivalent to: <tt>is_nothrow_constructible_v&lt;FD, F&gt;.</tt>
+</ins></p>
+
+<p></p><pre><blockquote>
+<ins>
+template&lt;typename... Args&gt;
+  auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
+template&lt;typename... Args&gt;
+  auto operator()(Args&amp;&amp;...) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());</ins>
+</blockquote></pre><p></p>
+
+<p><ins>
+  1.5 <i>Effects:</i> Equivalent to: <tt>return !<i>INVOKE</i>(fd, std::forward&lt;Args&gt;(args)...)</tt>  (20.9.2).
+</ins></p>
+
+<p></p><pre><blockquote>
+<ins>
+template&lt;typename... Args&gt;
+  auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());
+template&lt;typename... Args&gt;
+  auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());
+</blockquote></pre><p></p>
+
+<p><ins>
+  1.6 <i>Effects:</i> Equivalent to: <tt>return !<i>INVOKE</i>(std::move(fd), std::forward&lt;Args&gt;(args)...)</tt>  (20.9.2).
+</ins></p>
 </blockquote>
 
 
