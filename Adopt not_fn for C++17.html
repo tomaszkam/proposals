@@ -926,7 +926,7 @@ respectively, and return their complements (5.3.1).
 {
    using FD = decay_t&lt;F&gt;;
 public:
-   call_wrapper(F&amp;&amp; f) noexcept(<i>see below</i>);
+   call_wrapper(F&amp;&amp; f) noexcept(is_nothrow_constructible_v&lt;FD, F&gt;);
 
    call_wrapper(call_wrapper&amp;&amp;) = default;
    call_wrapper(call_wrapper const&amp;) = default;
@@ -951,7 +951,7 @@ private:
 </blockquote></pre><p></p>
 
 <p></p><pre><blockquote>
-<ins>call_wrapper(F&amp;&amp; f) noexcept(<i>see below</i>);</ins>
+<ins>call_wrapper(F&amp;&amp; f) noexcept(is_nothrow_constructible_v&lt;FD, F&gt;);</ins>
 </blockquote></pre><p></p>
 
 <p><ins>
@@ -967,10 +967,6 @@ private:
 
 <p><ins>
 1.3 <i>Throws:</i> Any exception thrown by construction of <tt>fd</tt>.
-</ins></p>
-
-<p><ins>
-1.4 <i>Remarks:</i> The expression inside <tt>noexcept</tt> is equivalent to: <tt>is_nothrow_constructible_v&lt;FD, F&gt;.</tt>
 </ins></p>
 
 <p></p><pre><blockquote>
