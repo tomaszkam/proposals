@@ -83,7 +83,7 @@
   <li><a href="#6.7">20.9.7 Logical operations [logical.operations]</a></li>
   <li><a href="#6.8">20.9.8 Bitwise operations [bitwise.operations]</a></li>
   <li><a href="#6.9">20.9.9 Negators [negators]</a></li>
-  <li><a href="#6.10">20.9.9 Function template not_fn [func.not_fn]</a>
+  <li><a href="#6.10">20.9.9 Function template <tt>not_fn</tt> [func.not_fn]</a>
   </li><li><a href="#6.11">20.9.11 Function template <tt>mem_fn</tt>   [func.memfn]</a></li>
   <li><a href="#6.12">20.9.12.2 Class template function   [func.wrap.func]</a></li>
   <li><a href="#6.13">20.9.13 Class template hash  [unord.hash]</a></li>
@@ -380,7 +380,7 @@ Amend the <tt>&lt;function&gt;</tt> header synopsis in <b>20.0p2 [function.objec
   <del>template &lt;class Predicate&gt;</del>
     <del>constexpr binary_negate&lt;Predicate&gt; not2(const Predicate&amp;);</del>
 
-  <ins><i>// 20.9.9, Function template not_fn</i></ins>
+  <ins><i>// 20.9.9, Function template <tt>not_fn</tt></i></ins>
   <ins>template &lt;class F&gt; <i>unspecified</i> not_fn(F&amp;&amp; f);</ins>
 </pre><p></p>
 </blockquote>
@@ -912,7 +912,7 @@ respectively, and return their complements (5.3.1).
 5 <i>Returns:</i> <tt>binary_negate&lt;Predicate&gt;(pred)</tt>.
 </del></p>
 
-<h3><a name="6.10"><ins>20.9.9 Function template not_fn [func.not_fn]</ins></a></h3>
+<h3><a name="6.10"><ins>20.9.9 Function template <tt>not_fn</tt> [func.not_fn]</ins></a></h3>
 <p></p><pre><blockquote>
 <ins>template &lt;class F&gt; <i>unspecified</i> not_fn(F&amp;&amp; f);</ins>
 </blockquote></pre><p></p>
