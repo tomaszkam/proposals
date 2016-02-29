@@ -25,7 +25,7 @@
 </tr>
 <tr>
   <td align="left">Date:</td>
-  <td align="left">2016-02-20</td>
+  <td align="left">2016-02-29</td>
 </tr>
 <tr>
   <td align="left">Project:</td>
@@ -309,9 +309,8 @@ on the majority of known systems at the time of their removal.
 <h2><a name="5.0">Wording Improvements for <tt>not_fn</tt></a></h2>
 <p>
 This revision of the paper proposes an revised wording of for the <tt>not_fn</tt>
-that specifies aspect of behaviour of returned functor and provides better
-integration with existing standard features. Proposed specification, instead
-of describing the behaviour of <tt>not_fn</tt> result indirectly, fully specifies
+that provides better integration with existing standard features. Proposed specification,
+instead of describing the behaviour of <tt>not_fn</tt> result indirectly, specifies
 it in terms of exposition only <tt>call_wrapper</tt> class.
 </p>
 
@@ -319,10 +318,9 @@ it in terms of exposition only <tt>call_wrapper</tt> class.
 <p>
 In the original wording we have expressed requirement that the function call wrapper
 produced by <tt>not_fn</tt> will provide the same copy/move operations as wrapper
-functor, but it is unspecified if these operation will infer <code>noexcept</code>
-specification. Lack of such specification will prevent <tt>std::function</tt>
-specialization for employing small object optimization and incur cost of memory
-allocation for all callable wrappers produced <tt>not_fn</tt>.
+functor, but it is unspecified if whether operation will have <code>noexcept</code>.
+Lack of such specification implementations for small object optimization for
+polymorphic wrappers (<tt>std::function</tt>, <tt>any</tt>).
 </p>
 
 <h3><a name="5.2">Reference Qualified <tt>operator()</tt></a></h3>
@@ -331,9 +329,9 @@ Previous specification of <tt>not_fn</tt> is requiring that invocation of the
 created call wrapper, will always evaluate <i>INVOKE</i> expression
 on lvalue reference for stored callable. As consequence invocation of the
 temporary object created by <tt>not_fn(f)</tt> will lead to call to 
-lvalue (<tt>&amp;</tt>) qualified <tt>operator()</tt>, against of intent of this
-qualification. In addition such invocation will ignore rvalue (<tt>&amp;&amp;</tt>) 
-overloads of function call operator that may be defined in <tt>f</tt>.
+lvalue (<tt>&amp;</tt>) qualified <tt>operator()</tt>, breaking the intent 
+qualification. In addition such invocation will ignore rvalue reference
+(<tt>&amp;&amp;</tt>) overloads of function call operator, that may be defined in <tt>f</tt>.
 </p>
 
 <h3><a name="5.3"><tt>std::result_of</tt> support</a></h3>
