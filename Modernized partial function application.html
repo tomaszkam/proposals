@@ -1,0 +1,414 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Modernized partial function application</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Modernized partial function application</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This document proposes and introduction of the new library function that would allow to perform partial
+   function application. The proposes function allow to pass the set of the arguments that would be either
+   passed before call args of after them.</p>
+
+<p>This paper addresses <a href="https://issues.isocpp.org/show_bug.cgi?id=40">LEWG Bug 40: variadic bind</a>.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="history">2. History</a></h2>
+
+<p>This proposal is successor of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">N4171: Parameter group placeholders for bind</a>,
+   that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
+   instead of one.</p>
+  
+<p>In this paper new two new <code>bind_front</code> and <code>bind_back</code> are proposed that allow user to provide a values that will be passed
+   as first or last arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for the original paper, 
+   that suggested to introduce only <code>_all</code> placeholder.</p>
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>This paper proposes two new functions for partial function application:</p>
+<ul>
+  <li><code>bind_front</code> for binding values of first arguments</li>
+  <li><code>bind_back</code> for binding values of last arguments</li>
+</ul>
+<p>In other worlds <code>bind_front(f, bound_args...)(call_args...)</code> is equivalent to <code>std::invoke(f, bound_args..., call_args....)</code>
+and <code>bind_back(f, bound_args...)(call_args...)</code> is equivalent to <code>std::invoke(f, call_args..., bound_args...)</code>.</p>
+
+<p>It is worth to notice that proposed functions provide both superset of existing <code>std::bind</code> functionality:
+it supports passing variable number of arguments, but does not allow arbitrary reordering or removal of the arguments.
+However author believes that proposed simplified functionality covers most of uses cases for original <code>std::bind</code>.</p>
+
+<h3><a name="motivation.arguments-passing">3.1. Passing arguments</a></h3>
+
+<p>Let consider an example task of writing the functor that will invoke <code>process</code> method on copy of <code>strategy</code>
+   object:</p>
+<pre>struct Strategy { double process(std:string, std::string, double, double); };
+std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
+
+<p>Firstly, such functor should not cause any additional overhead caused by passing the argument values form the call
+   side to the stored callable. To achieve desired effect in case of lambda based solution, we can use forwarding
+   reference in combination with variadic number arguments:</p>
+<pre>[s = createStrategy()] (auto&amp;&amp;... args) { return s-&gt;process(std::forward&lt;decltype(args)&gt;(args)...); }</pre>
+
+<p>In case of the functors produced by <code>std::bind</code>, perfect forwarding is used by default for the all call
+   arguments that are passed in place on the placeholders, so same effect may be achieved using:</p>
+<pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
+   
+<p>However use of the named placeholders, has is own drawbacks. Firstly change to the functor code is required each
+   time when the number of arguments is changed. Secondly, it allow user to write a code that will bass same value
+   to the function multiple times, by using same placeholder twice, which in case of use of move semantics may lead
+   to passing of unspecified values as the arguments. For example values of first and second argument are unspecified
+   in case of following invocation:</p>
+<pre>auto f = std::bind(std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
+f(std::string("same_string"), 1);</pre>
+ 
+<p>In contrast in case of proposed <code>bind_front/bind_back</code> function, all argument provided on the call side
+   are forwarded to the callable. As consequence the user is not required to manually write boilerplate code for
+   perfect forwarding nor are exposed to potential errors caused by use of placeholders:</p>
+<pre>bind_front(&amp;Strategy::process, createStrategy())</pre>
+
+<h3><a name="motivation.propagating-constness">3.2. Propagating mutability</a></h3>
+
+<p>In our previous example the strategy object was passed stored in the callable indirectly by the use of the smart pointer,
+   so it mutability was not affected by the functor. However in case of storing object by value we would like to propagate
+   constness from the functor. That means for each of the following declarations:<p>
+<pre>auto f = [s = Strategy{}] (auto&amp;&amp;... args) { return s.process(std::forward&lt;decltype(args)&gt;(args)...); }; // 1
+auto f = std::bind(&amp;Strategy::process, Strategy{}, _1, _2, _3, _4); // 2
+auto f = bind_front(&amp;Strategy::process, Strategy{}); // 3</pre>
+
+<p>Invocation on mutable version of the functor (<code>f</code>) shall invoke <code>process</code> method on mutable object
+   (call well-formed), however in case of const qualified one (<code>std::as_const(f)</code>) <code>process</code> method
+   shall be invoked on const object (call ill-formed). This functionality is supported both by existing <code>std::bind</code> (2)
+   and proposed <code>bind_front/bind_back</code> (3), however it is not in case of the lambda (1). This is caused by the
+   fact that closure created by the lambda has only one overload of the call operator that is const qualified by default.</p>
+
+<p>As consequence, in case of use of lambda based solution, user must decide if he want to pass each object as const 
+   and allow only on const object, by use of:</p>
+<pre>[s = Strategy{}] (auto&amp;&amp;... args) { return s.process(std::forward&lt;decltype(args)&gt;(args)...); };</pre>
+<p>Or pass allow modification of he stored objects by allowing only calls on non-const functor, by us of:</p>
+<pre>[s = Strategy{}] (auto&amp;&amp;... args) mutable { return s.process(std::forward&lt;decltype(args)&gt;(args)...); };</pre>
+
+<p>Same problems may occurs in situation when stored function supports non-const calls via appropriate overloads of 
+   <code>operator()</code>. For example in case of following class:</p>
+<pre>struct Mapper
+{
+  auto operator()(int i, int j) -&gt; std::string&amp; { return _mapping[{i, j}]; }
+  auto operator()(int i, int j) const -&gt; std::string const&amp; { return _mapping[{i, j}]; }
+
+private:
+  std::map&lt;std::pair&lt;int, int&gt;, std::string&gt; _mapping;
+};</pre>
+
+<p>Functors produced by <code>std::bind(Mapper{}, _1, 10)</code> and <code>bind_back(Mapper{}, 10)</code> will call
+   both const and non-const overloads, depending on their qualification. While in case of lambda, user will need
+   to decide to support only one of them, by using one of:</p>
+<pre>[m = Mapper{}](int i) -&gt; std::string const&amp; { return m(i, 10); }
+[m = Mapper{}](int i) mutable -&gt; std::string&amp; { return m(i, 10); }</pre>
+    
+
+<h3><a name="motivation.preserving-return">3.3. Preserving return type</a></h3>
+
+<p>The reader may notice that lambda functions used in previous section, are explicitly specifying their return type,
+   instead omitting. This is caused by the fact that lambda is using the <code>auto</code> deduction for the return
+   type, as default. That means that the following slightly changed declaration would return <code>std::string</code>
+   object by value:</p>
+<pre>auto fc = [m = Mapper{}](int i) { return m(i, 10); };
+auto fm = [m = Mapper{}](int i) mutable { return m(i, 10); };</pre>
+
+<p>Such slight changed in behaviour may lead to various changes in the behaviour of  the program. Firstly additional
+   move construction will be invoked in addition to copy, if the object returned by the lambda is stored by value:</p>
+<pre>auto s1 = fc(2);
+auto s2 = fm(2);</pre>
+<p>Secondly, the lifetime of object returned from the functor, will not longer be tied to the lifetime of the <code>Mapper</code>
+   object, which may to creation of dangling references:</p>
+<pre>auto f = [m = Mapper{}](int i) { return m(i, 10); };
+std::string* ps = nullptr;
+{
+  auto const&amp; s = f(2);
+  ps = &s;
+}
+// *ps is dangling
+</pre>
+<p>Lastly in case of the mutable version of functor, changing the result of the invocation, would modify the temporary not the
+   mapped value:</p>
+<pre>fm(2) = "something";</pre>
+
+<p>To avoid such problems, we may use <code>decltype</code>-based return type deduction, as it is done in case of
+   <code>std::bind</code> and proposed <code>bind_front/bind_back</code>:</p>
+<pre>[m = Mapper{}](int i) -&gt; decltype(auto) { return m(i, 10); }</pre>
+
+<h3><a name="motivation.preserving-value-category">3.4. Preserving value category</h3>
+
+<p>If we consider following example implementation of the functor that performs memoization of the expensive
+   to compute function <code>func</code>:</pre>
+<pre>struct CachedFunc
+{
+  std::string const&amp; operator()(int i, int j) &amp;
+  {
+     key_type key(i, j);
+
+     auto it = _cache.find(key);
+     if (it == _cache.end())
+       it = _cache.emplace(std::move(key), func(i, j)).first;
+
+     return it-&gt;second;
+  } 
+
+private:
+  using key_type = std::pair&lt;int, int&gt;;
+  std::map&lt;key_type, std::string&gt; _cache;
+};</pre>
+
+<p>As we can see <code>CachedFunc::operator()</code> is using reference qualification to allow it to be only called
+   on the lvalue. Use of this qualification allows us to avoid dangling reference problems, in situation when reference
+   returned by temporary <code>CachedFunc</code> object would be stored. In addition it signals that use of <code>CachedFunc</code>
+   makes sense only in situation when it is invoked multiple times and for one-shot invocation invoking <code>func</code>
+   directly is more optimal solution.</p>
+
+<p>As in case of the <code>const</code> propagation, we would like to preserve/propagate value category from the functor
+   to stored callable. That means that for the following declarations:</p>
+<pre>auto f = [cache = CachedFunc{}] (int j) mutable -&gt; std::string&amp; { return cache(10, j); }; // 1
+auto f = std::bind(CachedFunc{}, 10, _1); // 2
+auto f = bind_front(CachedFunc{}, 10); // 3</pre>
+<p>Invocation on the lvalue (<code>f(1)</code>) shall perform call on the lvalue of <code>CachedFunc</code> and be 
+   well-formed, while invocation on the rvalue (<code>std::move(f)(1)</code>) shall lead to call on the rvalue and be 
+   ill-formed.</p>
+
+<p>Out of discussed option, only proposed <code>bind_front/bind_back</code> (3) functions are preserving value category.
+   In case of existing <code>std::bind</code> and lambda solutions, the call is always performed on lvalue regardless
+   of the category of function object, and essentially bypass reference qualification</p>
+
+<p>Same problems also occurs in case of the bound arguments, even if the callable does not differentiate between calls
+   on lvalues and rvalues. For example if we consider following function declarations</p>
+<pre>void foo(std::string&amp;);
+auto make_bind(std::string s)       { return std::bind(&amp;foo, s); }
+auto make_lambda(std::string s)     { return [s] { return foo(s); }; }
+auto make_bind_front(std::string s) { return bind_front(&amp;foo, s); }
+auto make_bind_back(std::string s)  { return bind_back(&amp;foo, s); }
+</pre>
+<p>Invocations in the form <code>make_bind("a")()</code> and <code>make_lambda("a")()</code> and well-formed and are 
+   invoking function <code>foo</code> with lvalue reference to temporary string. In case of proposed functions, value
+   category of the functor also affects stored argument and corresponding calls <code>make_bind_front("a")()</code> 
+   and <code>make_bind_back("a")()</code> are ill-formed.</p>
+
+<h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</h3>
+
+<p>As as consequence of the lack of propagation of the value category, existing partial function application solutions
+   are unable to support function that provides one-shot invocation, via rvalue qualified call operator.</p>
+
+<p>As consequence for the following declarations:</p>
+<pre>struct CallableOnce
+{
+  void operator()(int) &amp;&amp;;
+};
+
+auto make_bind(int i)       { return std::bind(CallableOnce{}, i); }
+auto make_lambda(int i)     { return [f = CallableOnce{}, i] { return f(i); }; }
+auto make_bind_front(int i) { return bind_front(CallableOnce{}, i); }
+auto make_bind_back(int i)  { return bind_back(CallableOnce{}, i); }
+</pre>
+
+<p>Only the invocation <code>make_bind_front(1)()</code> and <code>make_bind_back(1)()</code> are well formed,
+   as the other two (<code>make_bind(1)()</code> and <code>make_lambda(1)()</code>) leads to unsupported call
+   on the lvalue of <code>CallableOnce</code>.</p>
+
+<p>It case of use of lambda expression it would be possible to workaround the problem by explicit use of the 
+   <code>std::move</code>:</p>
+<pre>[f = CallableOnce{}, i] { return std::move(f)(i); }</pre>
+<p>However above code is forcing calls on rvalue of <code>CallableOnce</code>, even if lvalue functor is invoked.
+   As consequence multiple calls may be performed on single instances of <code>CallableOnce</code> class.</p>
+
+<p>It is worth to notice that supporting one-shot invocation for the argument binders, is leading for the improved performance.
+   For example let consider that we want to bind a vector <code>v</code> as the first argument to the following function:</p>
+<pre>void bar(std::vector&lt;int&gt;, int i)</pre>
+<p>Depending on the scenario, at the point of the call of the bind-wrapper (<code>bw</code>) that we will create, we may want to:</p>
+<ul>
+  <li>move stored vector to <code>bar</code> function, if <code>bw</code> will be called only once (one-shot)</li>
+  <li>copy stored vector to <code>bar</code> function, if <code>bw</code> will be called multiple times</li>
+</ul>
+<p>Proposed <code>bind_front</code> function support both scenarios, via  rvalue and lvalue overloads of call operator.
+   Consequently if <code>bw</code> is created using <code>bind_front(&amp;bar, v)</code>:</p>
+<ul>
+  <li><code>std::move(bw)(10)</code> will move stored vector (pass as rvalue reference)</li>
+  <li><code>bw(10)</code> will copy stored vector (pass as lvalue reference)</li>
+</ul>
+
+<h2><a name="design">4. Design Decisions</a></h2>
+
+
+<h2><a name="wording">5. Proposed Wording</a></h2>
+
+<p>To be determined.</p>
+
+<h2><a name='implementability'>6. Implementability</a></h2>
+
+<p>Example implementation of proposed <code>bind_front</code>:</p>
+<pre>template&lt;typename Func, typename BoundArgsTuple, typename... CallArgs&gt;
+decltype(auto) bind_front_caller(Func&amp;&amp; func, BoundArgsTuple&amp;&amp; boundArgsTuple, CallArgs&amp;&amp;... callArgs)
+{
+  return std::apply([&amp;func, &amp;callArgs...](auto&amp;&amp;... boundArgs)
+         {
+           return std::invoke(std::forward&lt;Func&gt;(func), std::forward&lt;decltype(boundArgs)&gt;(boundArgs)..., std::forward&lt;CallArgs&gt;(callArgs)...);
+         }, std::forward&lt;BoundArgsTuple&gt;(boundArgsTuple));
+}
+
+template&lt;typename Func, typename... BoundArgs&gt;
+class bind_front_t
+{
+public:
+  template&lt;typename F, typename... BA,
+           std::enable_if_t&lt;!std::is_base_of_v&lt;bind_front_t, std::decay_t&lt;F&gt;&gt;, bool&gt; = true&gt;
+  explicit bind_front_t(F&amp;&amp; f, BA&amp;&amp;... ba)
+    : func(std::forward&lt;F&gt;(f))
+    , boundArgs(std::forward&lt;BA&gt;(ba)...)
+  {}
+    
+  template&lt;typename... CallArgs&gt;
+  auto operator()(CallArgs&amp;&amp;... callArgs) &amp;
+    -&gt; std::result_of_t&lt;Func&amp;(BoundArgs&amp;..., CallArgs...)&gt;
+  { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
+
+  template&lt;typename... CallArgs&gt;
+  auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;
+    -&gt; std::result_of_t&lt;Func const&amp;(BoundArgs const&amp;..., CallArgs...)&gt;
+  { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
+
+  template&lt;typename... CallArgs&gt;
+  auto operator()(CallArgs&amp;&amp;... callArgs) &amp;&amp;
+    -&gt; std::result_of_t&lt;Func(BoundArgs..., CallArgs...)&gt;
+  { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
+    
+  template&lt;typename... CallArgs&gt;
+  auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;&amp;
+    -&gt; std::result_of_t&lt;Func const(BoundArgs const..., CallArgs...)&gt;
+  { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
+
+private:
+  Func func;
+  std::tuple&lt;BoundArgs...&gt; boundArgs;
+};
+    
+template&lt;typename Func, typename... BoundArgs&gt;
+auto bind_front(Func&amp;&amp; func, BoundArgs&amp;&amp;... boundArgs)
+{
+  return bind_front_t&lt;decay_unwrap_t&lt;Func&gt;, decay_unwrap_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
+}</pre>
+
+<p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary trait, which is defined as follows:</p>
+<pre>template&lt;typename T&gt;
+struct decay_unwrap;
+
+template&lt;typename T&gt;
+struct decay_unwrap&lt;std::reference_wrapper&lt;T&gt;&gt;
+{
+  using type = T&amp;;
+};
+
+template&lt;typename T&gt;
+struct decay_unwrap 
+  : std::conditional_t&lt;
+      !std::is_same&lt;std::decay_t&lt;T&gt;, T&gt;::value,
+      decay_unwrap&lt;std::decay_t&lt;T&gt;&gt;,
+      std::decay&lt;T&gt;
+   &gt;
+{};
+
+template&lt;typename T&gt;
+using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
+
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+
+<!--p>Jonathan Wakely originally proposed idea of multi parameter placeholders in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/#!msg/std-proposals/CxpGVY1APcs/_RYAajMGhcUJ">ISO C++ Standard - Future Proposals</a>.</p>
+<p>Andrzej Krzemieński and Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p-->
+
+
+<h2><a name="literature">8. References</a></h2>
+
+<ol>
+  <li>Chris Jefferson, Ville Voutilainen, "Bug 40 - variadic bind" (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
+  <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
+  <li>Tomasz Kamiński, "Parameter group placeholders for bind" (N4171, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html</a>)</li>
+</ol>
+
+</body></html>
