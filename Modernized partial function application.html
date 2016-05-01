@@ -87,9 +87,8 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This document proposes and introduction of the new library function that would allow to perform partial
-   function application. The proposes function allow to pass the set of the arguments that would be either
-   passed before call args of after them.</p>
+<p>This document proposes and introduction of the new library functions for performing partial function
+   application and act as replacement for existing <code>std::bind</code>.</p>
 
 <p>This paper addresses <a href="https://issues.isocpp.org/show_bug.cgi?id=40">LEWG Bug 40: variadic bind</a>.</p>
 
@@ -143,7 +142,7 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
 <pre>auto f = std::bind(std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
 f(std::string("same_string"), 1);</pre>
  
-<p>In contrast in case of proposed <code>bind_front/bind_back</code> function, all argument provided on the call side
+<p>In contrast in case of proposed <code>bind_front</code>/<code>bind_back</code> function, all argument provided on the call side
    are forwarded to the callable. As consequence the user is not required to manually write boilerplate code for
    perfect forwarding nor are exposed to potential errors caused by use of placeholders:</p>
 <pre>bind_front(&amp;Strategy::process, createStrategy())</pre>
@@ -160,7 +159,7 @@ auto f = bind_front(&amp;Strategy::process, Strategy{}); // 3</pre>
 <p>Invocation on mutable version of the functor (<code>f</code>) shall invoke <code>process</code> method on mutable object
    (call well-formed), however in case of const qualified one (<code>std::as_const(f)</code>) <code>process</code> method
    shall be invoked on const object (call ill-formed). This functionality is supported both by existing <code>std::bind</code> (2)
-   and proposed <code>bind_front/bind_back</code> (3), however it is not in case of the lambda (1). This is caused by the
+   and proposed <code>bind_front</code>/<code>bind_back</code> (3), however it is not in case of the lambda (1). This is caused by the
    fact that closure created by the lambda has only one overload of the call operator that is const qualified by default.</p>
 
 <p>As consequence, in case of use of lambda based solution, user must decide if he want to pass each object as const 
@@ -215,7 +214,7 @@ std::string* ps = nullptr;
 <pre>fm(2) = "something";</pre>
 
 <p>To avoid such problems, we may use <code>decltype</code>-based return type deduction, as it is done in case of
-   <code>std::bind</code> and proposed <code>bind_front/bind_back</code>:</p>
+   <code>std::bind</code> and proposed <code>bind_front</code>/<code>bind_back</code>:</p>
 <pre>[m = Mapper{}](int i) -&gt; decltype(auto) { return m(i, 10); }</pre>
 
 <h3><a name="motivation.preserving-value-category">3.4. Preserving value category</h3>
@@ -255,7 +254,7 @@ auto f = bind_front(CachedFunc{}, 10); // 3</pre>
    well-formed, while invocation on the rvalue (<code>std::move(f)(1)</code>) shall lead to call on the rvalue and be 
    ill-formed.</p>
 
-<p>Out of discussed option, only proposed <code>bind_front/bind_back</code> (3) functions are preserving value category.
+<p>Out of discussed option, only proposed <code>bind_front</code>/<code>bind_back</code> (3) functions are preserving value category.
    In case of existing <code>std::bind</code> and lambda solutions, the call is always performed on lvalue regardless
    of the category of function object, and essentially bypass reference qualification</p>
 
@@ -316,6 +315,61 @@ auto make_bind_back(int i)  { return bind_back(CallableOnce{}, i); }
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
+<p>The section provides rationale for deprecating existing <code>std::bind</code> even in the situation
+   when proposed new functions does not strictly supersede its functionality.</p>
+
+<h3><a name="design.placeholders">4.1. No arbitrary argument rearrangements</h3>
+
+<p>In contrast to the <code>std::bind</code> proposed <code>bind_front</code>/<code>bind_back</code> does not support
+   rearrangements or dropping of the call arguments, that was supported by <code>std::bind</code>. The reasoning two drop
+   this functionality was twofold.</p>
+
+<p>Firstly, handling of the placeholder was requiring a large amount of the meta-programing, to only determine types
+   and values of the argument that will be actually passed to stored callable. However in this case required complexity
+   of the implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
+   user.</p>
+
+<p>Secondly, repeated uses of the placeholder leads to double move of the object and unspecified values of the argument.
+   In addition the occurrence of this problems depends both of the bound arguments passed to the bind and once provided
+   on the call side. This problem could potentially be fixed by introducing another type of placeholder that would pass
+   rvalues as const rvalue reference or additional logic that will detect duplicated arguments on compile them and
+   modify their value category. However both solutions would only increase the complexity of implementation and use.</p> 
+   
+
+<h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></h3>
+
+<p>Both proposed function does not give provide any special meaning to the nested <i>bind expressions</i> (functors produced
+   by <code>std::bind</code>) and their are passed directly to the stored callable in case of the invocation.</p>
+
+<p>Firstly, in the author opinion, use of nested bind leads to unreadable code that are clearly improved by being replaced
+   with customer functor, especially in situation when such functor can be created in place using lambda expression.</p>
+
+<p>Secondly, special treatment of nested <i>bind expressions</i> and placeholders hardens the reasoning about the bind
+   expression, by leading to the situations when <code>std::bind(f, a, b, c)()</code> is not invoking <code>f(a, b, c)</code>, 
+   despite the user intent. This may occur in situation when type of argument passed to <code>std::bind</code> as not know
+   by the programmer at point of binding, like in case when argument of function template are used:</p>
+<pre>
+struct apply_twice
+{
+  template&lt;typename F, typename V&gt;
+  auto operator()(F const&amp; f, V const&amp; v) const
+    -&gt; decltype(f(f(v)))
+  { return f(f(v)); }
+};
+
+template&lt;typename F&gt;
+auto twicer(F&amp;&amp; f)
+{ return std::bind(apply_twice{}, std::forward&lt;F&gt;(f), _1); }
+
+double cust_sqrt(double x) { return std::sqrt(x); }
+double cust_pow(double x, double n) { return std::pow(x, n); }
+</pre>
+
+<p>Invocation of <code>twicer(&amp;cust_sqrt)(16)</code> is valid and return 2, while <code>twicer(std::bind(&amp;cust_pow, _1, 2))(2))</code>
+is invalid.</p>
+
+
+<h3><a name="design.way_of_fixing">4.3. No path for fixing</i></h3>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
