@@ -392,7 +392,7 @@ class bind_front_t
 {
 public:
   template&lt;typename F, typename... BA,
-           std::enable_if_t&lt;!std::is_base_of_v&lt;bind_front_t, std::decay_t&lt;F&gt;&gt;, bool&gt; = true&gt;
+           std::enable_if_t&lt;!(sizeof...(BA) == 0 &amp;&amp; std::is_base_of_v&lt;bind_front_t, std::decay_t&lt;F&gt;&gt;), bool&gt; = true&gt;
   explicit bind_front_t(F&amp;&amp; f, BA&amp;&amp;... ba)
     : func(std::forward&lt;F&gt;(f))
     , boundArgs(std::forward&lt;BA&gt;(ba)...)
