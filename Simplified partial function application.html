@@ -447,7 +447,7 @@ auto bind_front(Func&amp;&amp; func, BoundArgs&amp;&amp;... boundArgs)
   return bind_front_t&lt;std::decay_t&lt;Func&gt;, decay_unwrap_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
 }</pre>
 
-<p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary trait, which is defined as follows:</p>
+<p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary metafunction, which is defined as follows:</p>
 <pre>template&lt;typename T&gt;
 struct decay_unwrap;
 
