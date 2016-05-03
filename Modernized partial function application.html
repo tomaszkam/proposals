@@ -273,9 +273,8 @@ auto make_bind_back(std::string s)  { return bind_back(&amp;foo, s); }
 <h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</h3>
 
 <p>Lack of propagation of the value category in existing partial function application solutions, prevents
-   them from supporting functors that provide one-shot invocation, via rvalue qualified call operator.</p>
-
-<p>As consequence for the following declarations:</p>
+   them from supporting functors that provide one-shot invocation, via rvalue qualified call operator.
+   As consequence for the following declarations:</p>
 <pre>struct CallableOnce
 {
   void operator()(int) &amp;&amp;;
@@ -297,9 +296,25 @@ auto make_bind_back(int i)  { return bind_back(CallableOnce{}, i); }
 <p>However above code is forcing calls on rvalue of <code>CallableOnce</code>, even if lvalue functor is invoked.
    As consequence multiple calls may be performed on single instances of <code>CallableOnce</code> class.</p>
 
-<p>It is worth to notice that supporting one-shot invocation for the argument binders, is leading to improved performance.
+<p>It is also worth to notice, that one-shot callable functors, may also be produced as a result on 
+   binding an non-moveable type. For example in situation, when we want to bind arguments to a function <code>consume</code> 
+   that accepts <code>std::unique_ptr&lt;Obj&gt;</code> by value:</p>
+<pre>struct ConsumeBinder
+{
+  ConsumeBinder(std::unique_ptr&lt;Obj&gt; p)
+    : ptr(std::move(p)) 
+  {}
+
+  void operator()() &amp;&amp;
+  { return cosume(std::move(ptr)); }
+  
+private:
+  std::unique_ptr&lt;Obj&gt; ptr;
+};</pre>
+
+<p>In addition support for one-shot invocation is leading to improved performance.
    For example let consider situation, when we want to bind a vector <code>v</code> as the first argument to the following function:</p>
-<pre>void bar(std::vector&lt;int&gt;, int i)</pre>
+<pre>void bar(std::vector&lt;int&gt;, int)</pre>
 <p>Depending on the scenario, at the point of the call of the bind-wrapper (<code>bw</code>) that we will create, we may want to:</p>
 <ul>
   <li>move stored vector to <code>bar</code> function, if <code>bw</code> will be called only once (one-shot)</li>
