@@ -140,7 +140,7 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
    to passing of unspecified values as the arguments. For example values of first and second argument are unspecified
    in case of following invocation:</p>
 <pre>auto f = std::bind(std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
-f(std::string("same_string"), 1);</pre>
+f(std::string("some_string"), 1);</pre>
  
 <p>In contrast in case of proposed <code>bind_front</code>/<code>bind_back</code> function, all argument provided on the call side
    are forwarded to the callable. As consequence the user is not required to manually write boilerplate code for
@@ -444,7 +444,7 @@ private:
 template&lt;typename Func, typename... BoundArgs&gt;
 auto bind_front(Func&amp;&amp; func, BoundArgs&amp;&amp;... boundArgs)
 {
-  return bind_front_t&lt;decay_unwrap_t&lt;Func&gt;, decay_unwrap_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
+  return bind_front_t&lt;std::decay_t&lt;Func&gt;, decay_unwrap_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
 }</pre>
 
 <p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary trait, which is defined as follows:</p>
