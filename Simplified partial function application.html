@@ -382,7 +382,12 @@ double cust_pow(double x, double n) { return std::pow(x, n); }
 <p>Invocation of <code>twicer(&amp;cust_sqrt)(16)</code> is valid and return 2, while <code>twicer(std::bind(&amp;cust_pow, _1, 2))(2))</code>
 is invalid.</p>
 
-<h3><a name="design.way_of_fixing">4.3. No path for fixing</i></h3>
+<h3><a name="design.fixing_bind">4.3. Fixing <code>std::bind</code></i></h3>
+
+<p>Additional motivation for introduction of then new function, is that fixing the problems mentioned above in <code>std::bind</code> would
+   require introduction of breaking changes to the existing codebase. Furthermore such changes would not only take verbose form, when
+   previously valid code will no longer compile, but may also silently change its meaning, by selecting different overload of underlining
+   functor. The author believes that in such case introduction of new functions would be required anyway.</p>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
