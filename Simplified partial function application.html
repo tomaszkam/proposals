@@ -389,11 +389,18 @@ is invalid.</p>
    previously valid code will no longer compile, but may also silently change its meaning, by selecting different overload of underlining
    functor. The author believes that in such case introduction of new functions would be required anyway.</p>
 
-<h2><a name="wording">5. Proposed Wording</a></h2>
+<h2><a name="standard">5. Impact On The Standard</a></h2>
+
+<p>This proposal has no dependencies beyond a C++14 compiler and Standard Library implementation.</p>
+
+<p>Nothing depends on this proposal.</p>
+
+
+<h2><a name="wording">6. Proposed Wording</a></h2>
 
 <p>To be determined.</p>
 
-<h2><a name='implementability'>6. Implementability</a></h2>
+<h2><a name='implementability'>7. Implementability</a></h2>
 
 <p>Example implementation of proposed <code>bind_front</code>:</p>
 <pre>template&lt;typename Func, typename BoundArgsTuple, typename... CallArgs&gt;
@@ -469,13 +476,13 @@ struct decay_unwrap
 template&lt;typename T&gt;
 using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
-<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
 <!--p>Jonathan Wakely originally proposed idea of multi parameter placeholders in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/#!msg/std-proposals/CxpGVY1APcs/_RYAajMGhcUJ">ISO C++ Standard - Future Proposals</a>.</p>
 <p>Andrzej Krzemieński and Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p-->
 
 
-<h2><a name="literature">8. References</a></h2>
+<h2><a name="literature">9. References</a></h2>
 
 <ol>
   <li>Chris Jefferson, Ville Voutilainen, "Bug 40 - variadic bind" (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
