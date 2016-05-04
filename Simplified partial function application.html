@@ -139,7 +139,7 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
    to the function multiple times, by using same placeholder twice, which in case of use of move semantics may lead
    to passing of unspecified values as the arguments. For example values of first and second argument are unspecified
    in case of following invocation:</p>
-<pre>auto f = std::bind(std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
+<pre>auto f = std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
 f(std::string("some_string"), 1);</pre>
  
 <p>In contrast in case of proposed <code>bind_front</code>/<code>bind_back</code> function, all argument provided on the call side
