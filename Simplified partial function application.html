@@ -100,7 +100,7 @@ td { text-align: left; vertical-align: top;
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
    instead of one.</p>
   
-<p>In this paper new two new <code>bind_front</code> and <code>bind_back</code> are proposed that allow user to provide a values that will be passed
+<p>In this paper new two new <code>bind_front</code> and <code>bind_back</code> are proposed that allow user to provide values that will be passed
    as first or last arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for the original paper, 
    that suggested to introduce only <code>_all</code> placeholder.</p>
 
@@ -116,11 +116,12 @@ and <code>bind_back(f, bound_args...)(call_args...)</code> is equivalent to <cod
 
 <p>It is worth to notice that proposed functions provide both superset of existing <code>std::bind</code> functionality:
 their support passing variable number of arguments, but does not allow arbitrary reordering or removal of the arguments.
-However author believes that proposed simplified functionality covers most of uses cases for original <code>std::bind</code>.</p>
+However author believes that proposed simplified functionality covers most of use cases for original <code>std::bind</code>.</p>
 
 <h3><a name="motivation.arguments-passing">3.1. Passing arguments</a></h3>
 
-<p>Let consider an example task of writing the functor that will invoke <code>process</code> method on copy of <code>strategy</code>
+<p>Let consider an example task of writing the functor that will invoke <code>process</code> method on copy of
+   <code>strategy</code>
    object:</p>
 <pre>struct Strategy { double process(std:string, std::string, double, double); };
 std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
@@ -135,16 +136,16 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
    
 <p>However use of the named placeholders, has is own drawbacks. Firstly change to the functor code is required each
-   time when the number of arguments is changed. Secondly, it allow user to write a code that will pass same value
+   time when the number of arguments is changed. Secondly, it allows user to write a code that will pass same value
    to the function multiple times, by using same placeholder twice, which in case of use of move semantics may lead
-   to passing of unspecified values as the arguments. For example values of first and second argument are unspecified
+   to passing of unspecified values as arguments. For example values of first and second argument are unspecified
    in case of following invocation:</p>
 <pre>auto f = std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
 f(std::string("some_string"), 1);</pre>
  
-<p>In contrast in case of proposed <code>bind_front</code>/<code>bind_back</code> function, all argument provided on the call side
-   are forwarded to the callable. As consequence the user is not required to manually write boilerplate code for
-   perfect forwarding nor are exposed to potential errors caused by use of placeholders:</p>
+<p>In contrast in case of proposed <code>bind_front</code>/<code>bind_back</code> function, all arguments provided
+   on the call side are forwarded to the callable. As consequence the user is not required to manually write
+   boilerplate code for perfect forwarding nor are exposed to potential errors caused by use of placeholders:</p>
 <pre>bind_front(&amp;Strategy::process, createStrategy())</pre>
 
 <h3><a name="motivation.propagating-constness">3.2. Propagating mutability</a></h3>
@@ -195,9 +196,9 @@ private:
 auto fm = [m = Mapper{}](int i) mutable { return m(i, 10); };</pre>
 
 <p>Such slight change of code may lead to various changes in the behaviour of the program. Firstly additional
-   move construction will be invoked in addition to copy, if the object returned by the lambda is stored by value:</p>
-<pre>auto s1 = fc(2);
-auto s2 = fm(2);</pre>
+   copy construction will be invoked, if the refernce object returned by the lambda is created:</p>
+<pre>auto const&amp; s1 = fc(2);
+auto const&amp; s2 = fm(2);</pre>
 <p>Secondly, the lifetime of object returned from the functor, will not longer be tied to the lifetime of the <code>Mapper</code>
    object, which may lead to creation of dangling references:</p>
 <pre>auto f = [m = Mapper{}](int i) { return m(i, 10); };
@@ -253,9 +254,9 @@ auto f = bind_front(CachedFunc{}, 10); // 3</pre>
    well-formed, while invocation on the rvalue (<code>std::move(f)(1)</code>) shall lead to call on the rvalue and be 
    ill-formed.</p>
 
-<p>Out of discussed option, only proposed <code>bind_front</code>/<code>bind_back</code> (3) functions are preserving value category.
-   In case of existing <code>std::bind</code> and lambda solutions, the call is always performed on lvalue regardless
-   of the category of function object, and essentially bypass reference qualification.</p>
+<p>Out of discussed option, only proposed <code>bind_front</code>/<code>bind_back</code> (3) functions are preserving
+   value category. In case of existing <code>std::bind</code> and lambda solutions, the call is always performed on 
+   lvalue regardless of the category of function object, and essentially bypass reference qualification.</p>
 
 <p>Same problems also occurs in case of the bound arguments, even if the callable does not differentiate between calls
    on lvalues and rvalues. For example if we consider following function declarations</p>
