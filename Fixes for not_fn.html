@@ -213,23 +213,66 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
    may disable optimizations that are requiring nothrowing move operations, like using small
    object optimization to avoid allocation in <code>std::function</code> construction.</p> 
 
-<h2><a name="wording.alternatvie">4. Alternative wording</a></h2>
 
-<p>This section present the alternative wording for the <code>not_fn</code> that was created by 
-   author of this paper. This wording, present alternative approach that instead of trying
-   to indirectly describe requirements of created functor, describes them in terms of exposition
-   only class.</p>
+<h2><a name="wording.minimal">4. Minimal wording</a></h2>
+
+<p>This section presents a minimalistic wording change that will address only lack of the 
+   value category propagation for the <code>not_fn</code>, which in author opinion is
+   most important issue amongst all discussed in this paper.</p>
+
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
+
+<p>Apply following changes to section 20.12.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
+<blockquote class="std"> 
+<pre>  template &lt;class F&gt;
+    <em>unspecified</em> not_fn(F&amp;&amp; f);
+</pre>
+
+  <dl class="attribute">
+
+    <dd><p>In the text that follows:
+    </p><ul>
+      <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
+      <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code>
+      </li><li><code>g</code> is a forwarding call wrapper created as a result of <code>not_fn(f)</code>,</li>
+    </ul><p></p></dd>
+
+    <dt>Requires:</dt> 
+    <dd><code>is_constructible&lt;FD, F&gt;::value</code> shall be <code>true</code>.
+        <code>fd</code> shall be a callable object ([func.def] 20.9.1).<p></p></dd>
+
+    <dt>Returns:</dt>
+    <dd><p>A forwarding call wrapper <code>g</code> such that the expression <code>fn(a1, a2, ..., aN)</code> 
+           is equivalent to <code>!<em>INVOKE</em>(<ins>static_cast&lt;FD <em>cv</em> <em>ref</em>&gt;(</ins>fd<ins>)</ins>, a1, a2, ..., aN)</code> ([func.require] 20.9.2)
+           <ins>, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers and <code><em>ref</em></code> represents <em>ref</em>-qualifier of <code>g</code>.
+           The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code></ins>.</p></dd>
+
+    <dt>Throws:</dt>
+    <dd><p>Nothing unless the construction of <code>fd</code> throws an exception.</p></dd>
+
+    <dt>Remarks:</dt>
+    <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
+        If <code>FD</code> satisfies the requirements of <code>CopyConstructible</code>, then 
+        the return type shall satisfy the requirements of <code>CopyConstructible</code>.
+        [ <em>Note:</em> This implies that <code>FD</code> is MoveConstructible.
+          <em> — end note</em> ]</p></dd>
+
+  </dl>
+</blockquote>
+
+
+<h2><a name="wording.comprehesive">5. Comprehensive wording</a></h2>
+
+<p>This wording, present alternative approach that instead of trying to indirectly describe requirements
+   of created functor, describes them in terms of exposition only class. The author belives that
+   such approach leads to cleaner specification.</p>
 
 <p class="comment">In addition the wording is accompanied with authors drafting notes, that
    uses same formating as this paragraph.</p>
 
-<p>This section is intentionally named "Alternative wording" instead of usual "Proposed wording",
-   as wording that may be found in it was was already discussed and reject by the committee. 
-   However the author was unable to come up with alternate correction for existing wording.</p>
-
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
 
-<p>Change the section 20.12.9 [func.not_fn] to:</p>
+<p>Change the section 20.12.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
 <blockquote class="std"> 
 
 <pre>  template &lt;class F&gt;
@@ -322,16 +365,14 @@ public:
     </dl>
     <p class="comment">For the rvalue qualified call operators, invocation is performed on rvalue reference of <code>FD</code> type.</p>
 
-
   </dl>
 </blockquote>
 
-<h2><a name="acknowledgements">5. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
-<p>Stephan T. Lavavej suggested numerous corrections to wording presented in alternative wording section.</p>
+<p>Stephan T. Lavavej suggested numerous corrections to wording presented in comprehensive wording section.</p>
 
-
-<h2><a name="literature">6. References</a></h2>
+<h2><a name="literature">7. References</a></h2>
 
 <ol>
 <li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4582, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf</a>)</li>
