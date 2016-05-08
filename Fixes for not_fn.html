@@ -298,8 +298,6 @@ public:
 
    <pre>   call_wrapper(call_wrapper&amp;&amp;) = default;
    call_wrapper(call_wrapper const&amp;) = default;
-   call_wrapper&amp; operator=(call_wrapper&amp;&amp;) = default;
-   call_wrapper&amp; operator=(call_wrapper const&amp;) = default;</pre>
    <p class="comment">Defaulting special member functions on first declaration, that they will
    have same affects and exception specification as the default generated ones. That is esentially
    saying that <code>call_wrapper</code> move construction will be same as for <code>FD</code> 
