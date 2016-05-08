@@ -205,7 +205,7 @@ auto const&amp; s2 = fm(2);</pre>
 std::string* ps = nullptr;
 {
   auto const&amp; s = f(2);
-  ps = &s;
+  ps = &amp;s;
 }
 // *ps is dangling
 </pre>
@@ -217,10 +217,10 @@ std::string* ps = nullptr;
    <code>std::bind</code> and proposed <code>bind_front</code>/<code>bind_back</code>:</p>
 <pre>[m = Mapper{}](int i) -&gt; decltype(auto) { return m(i, 10); }</pre>
 
-<h3><a name="motivation.preserving-value-category">3.4. Preserving value category</h3>
+<h3><a name="motivation.preserving-value-category">3.4. Preserving value category</a></h3>
 
 <p>If we consider following example implementation of the functor that performs memoization of the expensive
-   to compute function <code>func</code>:</pre>
+   to compute function <code>func</code>:</p>
 <pre>struct CachedFunc
 {
   std::string const&amp; operator()(int i, int j) &amp;
@@ -271,7 +271,7 @@ auto make_bind_back(std::string s)  { return bind_back(&amp;foo, s); }
    category of the functor also affects stored arguments and corresponding calls <code>make_bind_front("a")()</code> 
    and <code>make_bind_back("a")()</code> are ill-formed.</p>
 
-<h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</h3>
+<h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</a></h3>
 
 <p>Lack of propagation of the value category in existing partial function application solutions, prevents
    them from supporting functors that provide one-shot invocation, via rvalue qualified call operator.
@@ -333,7 +333,7 @@ private:
 <p>The section provides rationale for deprecating existing <code>std::bind</code> even in the situation
    when proposed new functions does not strictly supersede its functionality.</p>
 
-<h3><a name="design.placeholders">4.1. No arbitrary argument rearrangements</h3>
+<h3><a name="design.placeholders">4.1. No arbitrary argument rearrangements</a></h3>
 
 <p>In contrast to the <code>std::bind</code> proposed <code>bind_front</code>/<code>bind_back</code> does not support
    rearrangements or dropping of the call arguments, that was supported by <code>std::bind</code>. The reasoning behind
@@ -351,7 +351,7 @@ private:
    on compile them and modify their value category. However both solutions would only increase the complexity of implementation and use.</p> 
    
 
-<h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></h3>
+<h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></a></h3>
 
 <p>Both proposed function does not give provide any special meaning to the nested <i>bind expressions</i> (functors produced
    by <code>std::bind</code>) and their are passed directly to the stored callable in case of the invocation.</p>
@@ -383,7 +383,7 @@ double cust_pow(double x, double n) { return std::pow(x, n); }
 <p>Invocation of <code>twicer(&amp;cust_sqrt)(16)</code> is valid and return 2, while <code>twicer(std::bind(&amp;cust_pow, _1, 2))(2))</code>
 is invalid.</p>
 
-<h3><a name="design.fixing_bind">4.3. Fixing <code>std::bind</code></i></h3>
+<h3><a name="design.fixing_bind">4.3. Fixing <code>std::bind</code></a></h3>
 
 <p>Additional motivation for introduction of then new function, is that fixing the problems mentioned above in <code>std::bind</code> would
    require introduction of breaking changes to the existing codebase. Furthermore such changes would not only take verbose form, when
