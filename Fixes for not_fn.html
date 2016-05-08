@@ -122,7 +122,7 @@ auto rval = std::not_fn(RvalueCallable{});
 auto lval = std::not_fn(LvalueCallable{});</pre>
 <p>Both the invocation <code>rval()</code> and <code>std::move(rval)()</code> as ill-formed, as they will lead to call on the
    <code>RvalueCallable&amp;</code>. In addition the call <code>std::move(lval)()</code> will be well-formed despite explicit
-   qualification of the call wrapper that should prevent invocation on temporaries.</code>
+   qualification of the call wrapper that should prevent invocation on temporaries.</p>
    
 <p>It also important to emphasize that introduction of the value category propagation after standardization of the current
    wording would be breaking change. In addition the breakage may be silent for situations in which wrapped callable was providing
@@ -151,15 +151,15 @@ auto lval = std::not_fn(LvalueCallable{});</pre>
 
 <p>Where:</p>
 <blockquote class="std"> 
-    </p><ul>
+   <ul>
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code></li>
       <li><code>g</code> is a forwarding call wrapper created as a result of <code>not_fn(f)</code>,</li>
-    </ul><p></p></dd>
+    </ul>
 </blockquote>
 
 <p>Firstly, we may notice that the definition of the <code>fd</code> explicitly states that it is <b>lvalue</b>
-   reference, which results in the problems described in motivation section.</code>
+   reference, which results in the problems described in motivation section.</p>
 
 <p>Secondly, above wording does not mention how existence of <code><em>cv</em></code> qualification will
    affect underlining functor. To be explicit the wording only describes effects of the invocation on the
@@ -297,7 +297,7 @@ public:
    forwarding is not needed.</p>
 
    <pre>   call_wrapper(call_wrapper&amp;&amp;) = default;
-   call_wrapper(call_wrapper const&amp;) = default;
+   call_wrapper(call_wrapper const&amp;) = default;</pre>
    <p class="comment">Defaulting special member functions on first declaration, that they will
    have same affects and exception specification as the default generated ones. That is esentially
    saying that <code>call_wrapper</code> move construction will be same as for <code>FD</code> 
