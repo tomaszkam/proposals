@@ -242,7 +242,7 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
         <code>fd</code> shall be a callable object ([func.def] 20.9.1).<p></p></dd>
 
     <dt>Returns:</dt>
-    <dd><p>A forwarding call wrapper <code>g</code> such that the expression <code>fn(a1, a2, ..., aN)</code> 
+    <dd><p>A forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
            is equivalent to <code>!<em>INVOKE</em>(<ins>static_cast&lt;FD <em>cv</em> <em>ref</em>&gt;(</ins>fd<ins>)</ins>, a1, a2, ..., aN)</code> ([func.require] 20.9.2)
            <ins>, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of <code>g</code> and <code><em>ref</em></code> is <code>&amp;</code> when <code>g</code>
            is <em>lvalue</em> and <code>&amp;&amp;</code> otherwise. The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code></ins>.</p></dd>
