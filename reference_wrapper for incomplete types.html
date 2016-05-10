@@ -81,6 +81,9 @@ td { text-align: left; vertical-align: top;
   <tr>
     <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
+  <tr>
+    <th><th>                      <td><address>Stephan T. Lavavej &lt;stl at microsoft.com&gt;</address></td>
+  </tr>
 </tbody></table>
 
 <h1><a name="title"><code>reference_wraper</code> for incomplete types</a></h1>
@@ -170,7 +173,44 @@ td { text-align: left; vertical-align: top;
 
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
 
-<p>Remove clause D7. Old adaptable function bindings [depr.func.adaptor.binding] entirely.</p>
+<p>Apply following changes to paragraph 17.6.4.3.1 Zombie names [zombie.names]:</p>
+<blockquote class="std"> 
+  <dl class="attribute">
+
+    <dd><p>In namespace <code>std</code>, the following names are reserved for previous standardization:
+    <code>auto_ptr</code><code></code>,
+    <code>binary_function</code><code></code>,
+    <code>bind1st</code>,
+    <code>bind2nd</code>,
+    <code>binder1st</code>,
+    <code>binder2nd</code>,
+    <code>const_mem_fun1_ref_t</code>,
+    <code>const_mem_fun1_t</code>,
+    <code>const_mem_fun_ref_t</code>,
+    <code>const_mem_fun_t</code>,
+    <ins>
+    <code>not1</code>, 
+    <code>not2</code>, 
+    <code>unary_negate</code>, 
+    <code>binary_negate</code>,
+    </ins>
+    <code>mem_fun1_ref_t</code>,
+    <code>mem_fun1_t</code>,
+    <code>mem_fun_ref_t</code>,
+    <code>mem_fun_ref</code>,
+    <code>mem_fun_t</code>,
+    <code>mem_fun</code>,
+    <code>pointer_to_binary_function</code>,
+    <code>pointer_to_unary_function</code>,
+    <code>ptr_fun</code>,
+    <code>random_shuffle</code>,
+    and <code>unary_function</code>.
+    </p></dd>
+
+    <dd><p><ins>If <code>T</code> is an incomplete type, the program is ill-formed.</ins></p></dd>
+
+  </dl>
+</blockquote>
 
 <p>Apply following changes to section 20.12.4 Class template <code>reference_wrapper</code> [refwrap]:</p>
 <blockquote class="std"> 
@@ -222,7 +262,6 @@ td { text-align: left; vertical-align: top;
     result_of_t&lt;T&amp;(ArgTypes&amp;&amp;... )&gt;
       operator()(ArgTypes&amp;&amp;... args) const;
 </pre>
-
   <dl class="attribute">
 
     <dt>Returns:</dt> 
@@ -233,6 +272,81 @@ td { text-align: left; vertical-align: top;
 
   </dl>
 </blockquote>
+
+<p>Apply following changes to paragraph 20.12.4.5 <code>reference_wrapper</code> helper functions [refwrap.helpers]:</p>
+<blockquote class="std"> 
+
+  <dl class="attribute">
+
+    <dd><p><ins>The template parameter <code>T</code> of following <code>ref</code> and <code>cref</code>
+      function templates may be an incomplete type.</ins></p></dd>
+
+  </dl>
+
+<pre>  template &lt;class T&gt; reference_wrapper&lt;T&gt; ref(T&amp; t) noexcept;</pre>
+  <dl class="attribute">
+
+    <dt>Returns:</dt> 
+    <dd><p><code>reference_wrapper&lt;T&gt;(t)</code></p></dd>
+
+  </dl>
+
+<pre>  template &lt;class T&gt; reference_wrapper&lt;T&gt; ref(reference_wrapper&lt;T&gt; t) noexcept;</pre>
+  <dl class="attribute">
+
+    <dt>Returns:</dt> 
+    <dd><p><code>ref(t.get())</code></p></dd>
+
+  </dl>
+
+<pre>  template &lt;class T&gt; reference_wrapper&lt;const T&gt; cref(const T&amp; t) noexcept;</pre>
+  <dl class="attribute">
+
+    <dt>Returns:</dt> 
+    <dd><p><code>reference_wrapper&lt;const T&gt;(t)</code></p></dd>
+
+  </dl>
+
+<pre>  template &lt;class T&gt; reference_wrapper&lt;const T&gt; ref(reference_wrapper&lt;T&gt; t) noexcept;</pre>
+  <dl class="attribute">
+
+    <dt>Returns:</dt> 
+    <dd><p><code>cref(t.get())</code></p></dd>
+
+  </dl>
+
+</blockquote>
+
+<p>Under Annex C Compatibility [diff] add new subclause after C.4 C++ and ISO C++ 2014 [diff.cpp14]:</p>
+<blockquote class="stdins"> 
+
+<h3>C.x C++ and ISO C++ 2017 <span style="float:right">[diff.cpp17]</span></h3>
+
+<dl class="attribute">
+  <dd><p>This subclause lists the differences between C++ and ISO C++ 2017 (<em>TBD</em>), by the chapters of this document.</p></dd>
+</dl>
+
+<h4>C.x.1 Clause 20: general utilities library <span style="float:right">[diff.cpp17.utilities]</span></h4>
+
+  <dl class="attribute">
+    <dd><p><b>Change:</b> The typedefs <code>result_type</code>, <code>argument_type</code>, <code>first_argument_type</code>,
+        and <code>second_argument_type</code> might not be defined by some function objects.</p></dd>
+    <dd><p><b>Rationale:</b> Superseded by new features, including <code>decltype</code> and forwarding references.</p></dd>
+    <dd><p><b>Effect on original feature:</b> Valid C++ 2017 code that uses these typedefs may fail to compile in this International Standard.</p></dd>
+  </dl>
+
+  <p><br></p>
+
+  <dl class="attribute">
+    <dd><p><b>Change:</b> The class templates <code>unary_negate</code> and <code>binary_negate</code> and the function templates
+        <code>not1</code> and <code>not2</code> might not be defined. </p></dd>
+    <dd><p><b>Rationale:</b> Superseded by new features, including generic lambdas and the function template <code>not_fn</code>.</p></dd>
+    <dd><p><b>Effect on original feature:</b> Valid C++ 2014 code that uses these class templates and function templates may fail to compile 
+        in this International Standard.</p></dd>
+  </dl>
+</blockquote>
+
+<p>Remove clause D7. Old adaptable function bindings [depr.func.adaptor.binding] entirely.</p>
 
 <h2><a name='implementability'>6. Implementability</a></h2>
 
