@@ -212,46 +212,11 @@ td { text-align: left; vertical-align: top;
   </dl>
 </blockquote>
 
-<p>Apply following changes to section 20.12.4 Class template <code>reference_wrapper</code> [refwrap]:</p>
+<p>At the end of the section 20.12.4 Class template <code>reference_wrapper</code> [refwrap]:</p>
 <blockquote class="std"> 
-<pre>  namespace std {
-    template &lt;class T&gt; class reference_wrapper {
-    public:
-      // <em>types</em>
-      typedef T type;
-      
-      // <em>construct/copy/destroy</em>
-      reference_wrapper(T&amp;) noexcept;
-      reference_wrapper(T&amp;&amp;) = delete; // <em>do not bind to temporary objects</em>
-
-      reference_wrapper(const reference_wrapper&amp; x) noexcept;
-
-      // <em>assignment</em>
-      reference_wrapper&amp; operator=(const reference_wrapper&amp; x) noexcept;
-
-      // <em>access</em>
-      operator T&amp; () const noexcept;
-      T&amp; get() const noexcept;
-
-      // <em>invocation</em>
-      template &lt;class... ArgTypes&gt;
-      result_of_t&lt;T&amp;(ArgTypes&amp;&amp;...)&gt;
-      operator() (ArgTypes&amp;&amp;...) const;
-    };
-  }</pre>
-
   <dl class="attribute">
-
-    <dd><p><code>reference_wrapper&lt;T&gt;</code> is a <code>CopyConstructible</code> and
-       <code>CopyAssignable</code> wrapper around a reference to an object or function of type
-       <code>T</code>.</p></dd>
-
-    <dd><p><code>reference_wrapper&lt;T&gt;</code> shall be a trivially copyable type
-       ([basic.types] 3.9).</p></dd>
-
     <dd><p><ins>The template parameter <code>T</code> of <code>reference_wrapper</code>
       may be an incomplete type.</ins></p></dd>
-
   </dl>
 </blockquote>
 
@@ -273,48 +238,14 @@ td { text-align: left; vertical-align: top;
   </dl>
 </blockquote>
 
-<p>Apply following changes to paragraph 20.12.4.5 <code>reference_wrapper</code> helper functions [refwrap.helpers]:</p>
+<p>At the begining of the paragraph 20.12.4.5 <code>reference_wrapper</code> helper functions [refwrap.helpers]:</p>
 <blockquote class="std"> 
-
   <dl class="attribute">
 
     <dd><p><ins>The template parameter <code>T</code> of following <code>ref</code> and <code>cref</code>
       function templates may be an incomplete type.</ins></p></dd>
 
   </dl>
-
-<pre>  template &lt;class T&gt; reference_wrapper&lt;T&gt; ref(T&amp; t) noexcept;</pre>
-  <dl class="attribute">
-
-    <dt>Returns:</dt> 
-    <dd><p><code>reference_wrapper&lt;T&gt;(t)</code></p></dd>
-
-  </dl>
-
-<pre>  template &lt;class T&gt; reference_wrapper&lt;T&gt; ref(reference_wrapper&lt;T&gt; t) noexcept;</pre>
-  <dl class="attribute">
-
-    <dt>Returns:</dt> 
-    <dd><p><code>ref(t.get())</code></p></dd>
-
-  </dl>
-
-<pre>  template &lt;class T&gt; reference_wrapper&lt;const T&gt; cref(const T&amp; t) noexcept;</pre>
-  <dl class="attribute">
-
-    <dt>Returns:</dt> 
-    <dd><p><code>reference_wrapper&lt;const T&gt;(t)</code></p></dd>
-
-  </dl>
-
-<pre>  template &lt;class T&gt; reference_wrapper&lt;const T&gt; ref(reference_wrapper&lt;T&gt; t) noexcept;</pre>
-  <dl class="attribute">
-
-    <dt>Returns:</dt> 
-    <dd><p><code>cref(t.get())</code></p></dd>
-
-  </dl>
-
 </blockquote>
 
 <p>Under Annex C Compatibility [diff] add new subclause after C.4 C++ and ISO C++ 2014 [diff.cpp14]:</p>
