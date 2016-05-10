@@ -128,16 +128,21 @@ td { text-align: left; vertical-align: top;
 <h2><a name="design">3. Design Decisions</a></h2>
 
 <p>Supporting incomplete types in <code>reference_wrapper</code> is currently impossible
-   because  the implementation is required to check the template parameter for presence
-   of <code>result_type</code> and related nested types.</p>
+   because the implementation is required to check the template parameter for presence
+   of <code>result_type</code> and related nested types. As consequence support for this
+   (now deprecated) features needs to be removed from standard.</p>
 
-<h3><a name="design.removal">3.1. Removal of deprecated function components</a></h3>
+<h3><a name="design.removal">3.1. Removal of deprecated functional components</a></h3>
 
 <p>Despite the fact that support for incomplete types require only removal support for
    <i>weak result type</i> and argument typedefs for <code>reference_wrapper</code>,
    this paper follow the original direction of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0005r4.html">P005R4: Adopt <code>not_fn</code> from Library Fundamentals 2 for C++17</a>
    and proposes removal of all deprecated function bindings. As this paper is targeted for next standard
-   after C++17, it also follows committee to introduce period of deprecation before removal.</p> 
+   after C++17, it also follows committee guideline to introduce period of deprecation before removal.</p> 
+
+<p>In addition feature proposed with the paper conflicts with support for the old function
+   binding protocol and vendors will not longer be allowed to provide it in their
+   <code>std::reference_wrapper</code> implementations.</p>
 
 <h3><a name="design.is_transparent">3.2. Support for <code>is_transparent</code></a></h3>
 
@@ -151,7 +156,7 @@ td { text-align: left; vertical-align: top;
    in <code>reference_wrapper</code> may look incompatible, there is possibility to provide
    both of them, via alternative design that rely on use metafunction instead of nested type,
    as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
-   P0046R1L Change is_transparent to metafunction (Revision 1)</a>.</p>
+   P0046R1: Change is_transparent to metafunction (Revision 1)</a>.</p>
 
 <h2><a name="standard">4. Impact On The Standard</a></h2>
 
@@ -177,9 +182,8 @@ td { text-align: left; vertical-align: top;
       
       // <em>construct/copy/destroy</em>
       reference_wrapper(T&amp;) noexcept;
-      reference_wrapper(T&amp;&amp;) = delete;
+      reference_wrapper(T&amp;&amp;) = delete; // <em>do not bind to temporary objects</em>
 
-      // <em>do not bind to temporary objects</em>
       reference_wrapper(const reference_wrapper&amp; x) noexcept;
 
       // <em>assignment</em>
