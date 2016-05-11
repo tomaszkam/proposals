@@ -100,7 +100,7 @@ td { text-align: left; vertical-align: top;
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
    instead of one.</p>
   
-<p>In this paper new two new <code>bind_front</code> and <code>bind_back</code> are proposed that allow user to provide values that will be passed
+<p>In this paper two new <code>bind_front</code> and <code>bind_back</code> are proposed that allow user to provide values that will be passed
    as first or last arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for the original paper, 
    that suggested to introduce only <code>_all</code> placeholder.</p>
 
@@ -132,10 +132,10 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
 <pre>[s = createStrategy()] (auto&amp;&amp;... args) { return s-&gt;process(std::forward&lt;decltype(args)&gt;(args)...); }</pre>
 
 <p>In case of the functors produced by <code>std::bind</code>, perfect forwarding is used by default for the all call
-   arguments that are passed in place on the placeholders, so same effect may be achieved using:</p>
+   arguments that are passed in place of placeholders, so same effect may be achieved using:</p>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
    
-<p>However use of the named placeholders, has is own drawbacks. Firstly change to the functor code is required each
+<p>However use of the named placeholders has is own drawbacks. Firstly change to the functor code is required each
    time when the number of arguments is changed. Secondly, it allows user to write a code that will pass same value
    to the function multiple times, by using same placeholder twice, which in case of use of move semantics may lead
    to passing of unspecified values as arguments. For example values of first and second argument are unspecified
@@ -164,9 +164,9 @@ auto f = bind_front(&amp;Strategy::process, Strategy{}); // 3</pre>
    fact that closure created by the lambda has only one overload of the call operator that is const qualified by default.</p>
 
 <p>As consequence, in case of use of lambda based solution, user must decide if he want to pass each object as const 
-   and allow only on calls on const object, by use of:</p>
+   and allow only calls on const object, by use of:</p>
 <pre>[s = Strategy{}] (auto&amp;&amp;... args) { return s.process(std::forward&lt;decltype(args)&gt;(args)...); };</pre>
-<p>Or pass allow modification of stored objects by allowing only calls on non-const functor:</p>
+<p>Or allow modification of stored objects, but limits calls to non-const functors only:</p>
 <pre>[s = Strategy{}] (auto&amp;&amp;... args) mutable { return s.process(std::forward&lt;decltype(args)&gt;(args)...); };</pre>
 
 <p>Same problems may occurs in situation when stored function supports both const and mutable calls via appropriate overloads of 
@@ -191,16 +191,16 @@ private:
 
 <p>The reader may notice that lambda functions used in previous section, are explicitly specifying their return type.
    This is caused by the fact that lambda is using the <code>auto</code> deduction for the return type as default.
-   That means that the following slightly changed declaration would return <code>std::string</code> object by value:</p>
+   As consequence the following slightly changed declaration would return <code>std::string</code> object by value:</p>
 <pre>auto fc = [m = Mapper{}](int i) { return m(i, 10); };
 auto fm = [m = Mapper{}](int i) mutable { return m(i, 10); };</pre>
 
 <p>Such slight change of code may lead to various changes in the behaviour of the program. Firstly additional
-   copy construction will be invoked, if the refernce object returned by the lambda is created:</p>
+   copy construction will be invoked, if the object returned by the lambda is captured by reference:</p>
 <pre>auto const&amp; s1 = fc(2);
 auto const&amp; s2 = fm(2);</pre>
-<p>Secondly, the lifetime of object returned from the functor, will not longer be tied to the lifetime of the <code>Mapper</code>
-   object, which may lead to creation of dangling references:</p>
+<p>Secondly, the lifetime of object returned from the functor will not longer be tied to the lifetime of the
+   <code>Mapper</code> object, which may lead to creation of dangling references:</p>
 <pre>auto f = [m = Mapper{}](int i) { return m(i, 10); };
 std::string* ps = nullptr;
 {
@@ -209,11 +209,11 @@ std::string* ps = nullptr;
 }
 // *ps is dangling
 </pre>
-<p>Lastly in case of the mutable version of functor, changing the result of the invocation, would modify the temporary not the
-   mapped value:</p>
+<p>Lastly in case of the mutable version of functor, changing the result of the invocation would modifies temporary
+   not mapped value:</p>
 <pre>fm(2) = "something";</pre>
 
-<p>To avoid such problems, we may use <code>decltype</code>-based return type deduction, as it is done in case of
+<p>To avoid such problems we may use <code>decltype</code>-based return type deduction, as it is done in case of
    <code>std::bind</code> and proposed <code>bind_front</code>/<code>bind_back</code>:</p>
 <pre>[m = Mapper{}](int i) -&gt; decltype(auto) { return m(i, 10); }</pre>
 
@@ -239,8 +239,8 @@ private:
   std::map&lt;key_type, std::string&gt; _cache;
 };</pre>
 
-<p>As we can see <code>CachedFunc::operator()</code> is using reference qualification to allow it to be only called
-   on the lvalue. Use of this qualification allows us to avoid dangling reference problems, in situation when reference
+<p>As we can see <code>CachedFunc::operator()</code> is using reference qualification to limit valid calls only
+   to lvalues. Use of this qualification allows us to avoid dangling reference problems, in situation when reference
    returned by temporary <code>CachedFunc</code> object would be used after its destruction. In addition it signals that
    use of <code>CachedFunc</code> makes sense only in situation when it is invoked multiple times and for one-shot invocation
    invoking <code>func</code> directly is more optimal solution.</p>
@@ -266,7 +266,7 @@ auto make_lambda(std::string s)     { return [s] { return foo(s); }; }
 auto make_bind_front(std::string s) { return bind_front(&amp;foo, s); }
 auto make_bind_back(std::string s)  { return bind_back(&amp;foo, s); }
 </pre>
-<p>Invocations in the form <code>make_bind("a")()</code> and <code>make_lambda("a")()</code> and well-formed and are 
+<p>Invocations in the form <code>make_bind("a")()</code> and <code>make_lambda("a")()</code> are well-formed and are 
    invoking function <code>foo</code> with lvalue reference to temporary string. In case of proposed functions, value
    category of the functor also affects stored arguments and corresponding calls <code>make_bind_front("a")()</code> 
    and <code>make_bind_back("a")()</code> are ill-formed.</p>
@@ -274,7 +274,7 @@ auto make_bind_back(std::string s)  { return bind_back(&amp;foo, s); }
 <h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</a></h3>
 
 <p>Lack of propagation of the value category in existing partial function application solutions, prevents
-   them from supporting functors that provide one-shot invocation, via rvalue qualified call operator.
+   them from supporting functors that allows one-shot invocation via rvalue qualified call operator.
    As consequence for the following declarations:</p>
 <pre>struct CallableOnce
 {
@@ -295,10 +295,10 @@ auto make_bind_back(int i)  { return bind_back(CallableOnce{}, i); }
    <code>std::move</code>:</p>
 <pre>[f = CallableOnce{}, i] { return std::move(f)(i); }</pre>
 <p>However above code is forcing calls on rvalue of <code>CallableOnce</code>, even if lvalue functor is invoked.
-   As consequence multiple calls may be performed on single instances of <code>CallableOnce</code> class.</p>
+   As consequence multiple calls may be performed on single instance of <code>CallableOnce</code> class.</p>
 
-<p>It is also worth to notice, that one-shot callable functors, may also be produced as a result on 
-   binding an non-moveable type. For example in situation, when we want to bind arguments to a function <code>consume</code> 
+<p>It is also worth to notice, that one-shot callable functors may also be produced as a result on 
+   binding an non-moveable type. For example in situation when we want to bind arguments to a function <code>consume</code> 
    that accepts <code>std::unique_ptr&lt;Obj&gt;</code> by value:</p>
 <pre>struct ConsumeBinder
 {
@@ -341,12 +341,12 @@ private:
 
 <p>Firstly, handling of the placeholder was requiring a large amount of the meta-programing, to only determine types
    and values of the argument that will be actually passed to stored callable. However in this case required complexity
-   of the implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
+   of implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
    user.</p>
 
 <p>Secondly, repeated uses of the placeholder leads to double move of the passed object and as consequence unspecified
-   values of the arguments.  In addition the occurrence of this problem depends both of bound arguments passed to the bind
-   and oncei that are provided on the call side. This problem could potentially be fixed by introducing another type of
+   values of the arguments. Occurrence of this problem depends both of bound arguments passed to the bind
+   and once that are provided on the call side. This problem could potentially be fixed by introducing another type of
    placeholder that would pass rvalues as const rvalue reference or additional logic that will detect duplicated arguments
    on compile them and modify their value category. However both solutions would only increase the complexity of implementation and use.</p> 
    
@@ -359,10 +359,10 @@ private:
 <p>Firstly, in the author opinion, use of nested bind leads to unreadable code that are clearly improved by being replaced
    with custom functor, especially in situation when such functor can be created in place using lambda expression.</p>
 
-<p>Secondly, special treatment of nested <i>bind expressions</i> and placeholders hardens the reasoning about the bind
+<p>Secondly, special treatment of nested <i>bind expressions</i> and placeholders hardens the reasoning about behaviour of bind
    expression, by leading to the situations when <code>std::bind(f, a, b, c)()</code> is not invoking <code>f(a, b, c)</code>, 
-   despite the user intent. This may occur in situation when type of values passed to <code>std::bind</code> as not know
-   by the programmer at point of binding, like in case when argument of function template are used:</p>
+   despite the user intent. This may occur in situation when type of values passed to <code>std::bind</code> are not know
+   by the programmer at point of binding:</p>
 <pre>
 struct apply_twice
 {
