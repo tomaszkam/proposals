@@ -104,7 +104,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">2. Motivation and Scope</a></h2>
 
 <p>The main motivation for creation of this paper, comes from the realisation that the existing wording for <code>std::not_fn</code>
-   that was recently accepted in the C++17, requires implementation to always perform call on the lvalue on the stored callable.</p>
+   that was recently accepted in the C++17, requires implementation to always perform call on the lvalue of the stored callable.</p>
 
 <p>This effectively requires <code>std::not_fn</code> to disregard the reference qualification of nested function. For example
    in case of the following definitions:</p>
@@ -120,12 +120,12 @@ struct LvalueCallable
 
 auto rval = std::not_fn(RvalueCallable{});
 auto lval = std::not_fn(LvalueCallable{});</pre>
-<p>Both the invocation <code>rval()</code> and <code>std::move(rval)()</code> as ill-formed, as they will lead to call on the
+<p>Both the invocation <code>rval()</code> and <code>std::move(rval)()</code> are ill-formed, as they will lead to call on the
    <code>RvalueCallable&amp;</code>. In addition the call <code>std::move(lval)()</code> will be well-formed despite explicit
    qualification of the call wrapper that should prevent invocation on temporaries.</p>
    
 <p>It also important to emphasize that introduction of the value category propagation after standardization of the current
-   wording would be breaking change. In addition the breakage may be silent for situations in which wrapped callable was providing
+   wording would be breaking change. Furthermore the breakage may be silent for situations in which wrapped callable was providing
    both lvalue and rvalue overloads of call operator - in case of temporary wrappers, the code will start to invoke rvalue overloads.</p>
 
 <h2><a name="discussion">3. Wording Discussion</a></h2>
@@ -135,7 +135,7 @@ auto lval = std::not_fn(LvalueCallable{});</pre>
    that I was able to identify.</p>
 
 <p>Note: Wording used for <code>not_fn</code> was largely based on existing wording of the <code>std::bind</code>,
-   so most of the issue are common to this components.</p>
+   so most of the issue are common to these components.</p>
 
 <h3><a name="discussion.call">3.1. Effects of the invocation</a></h3>
 
@@ -180,11 +180,11 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 </ul>
 
 <p>In addition current wording does not calirify if the invocation <code>std::not_fn(f)(args...)</code> are 
-   equivalent to <code>!std::invoke(f, args...)</code>. Such guarantee is important for the standard components
-   that conditionally exposes functionality, depending on the validity of the call expression. Most notable example
-   of such functionality, is <code>std::function&lt;R(Args...)&gt;</code> that is only constructible from type 
-   <code>F</code> that is lvalue callable with <code>Args...</code> and has return compatible with <code>R</code>.</p>
-
+   equivalent to <code>!std::invoke(f, args...)</code> in unevaluated context. Such guarantee is important
+   for components that conditionally exposes functionality, depending on the validity of the call expression.
+   Most notable example of such functionality, is <code>std::function&lt;R(Args...)&gt;</code> that is only
+   constructible from type  <code>F</code> that is lvalue callable with <code>Args...</code> and has return
+   compatible with <code>R</code>.</p>
 
 <h3><a name="discussion.moveability">3.2. Move/copy operations on the wrapper</a></h3>
 
@@ -202,10 +202,10 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 
 <p>The wording is requiring that the wrapper will expose the same set of the operations as the
    wrapped callable, however it is not defined how these operation would be defined in
-   terms of operation on the nested functor type <code>FD</code>. As example in case when the
-   <code>FD</code> is <code>CopyConstructible</code>, conforming implementation of the wrapper
-   could expose only copy constructor (without declaration of move constructor) as every
-   <code>CopyConstructible</code> is by definition <code>MoveConstructible</code>.</p>
+   terms of corresponding operations on the nested functor type <code>FD</code>.
+   As example in case when the <code>FD</code> is <code>CopyConstructible</code>, conforming
+   implementation of the wrapper could expose only copy constructor (without declaration of
+   move constructor) as every <code>CopyConstructible</code> is by definition <code>MoveConstructible</code>.</p>
 
 <p>In addition is is not specified if the exposed move operation of the wrapper would have the
    same exception specification as corresponding operation of the underlining wrapper.
@@ -281,27 +281,28 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 
   <dl class="attribute">
     <dt>Effects:</dt> 
-    <dd>Equivalent to: <code>return call_wrapper(std::forward&lt;F&gt;(f))</code>, where <code>call_wrapper</code> is exposition only class defined as follows:</dd>
+    <dd>Equivalent to: <code>return call_wrapper(std::forward&lt;F&gt;(f))</code>, 
+        where <code>call_wrapper</code> is exposition only class defined as follows:</dd>
 
-    <p class="comment">Use of "Effects: Equivalent to" allow us to inherit specification from the <code>call_wrapper</code> construction.</p>
+    <p class="comment">Use of "Effects: Equivalent to" allow us to inherit specification
+      from the <code>call_wrapper</code> constructor.</p>
 
     <pre>class call_wrapper
 {</pre>
-   <p class="comment">Exposition only <code>call_wrapper</code> class is defined for specific invocation of the <code>not_fn</code>
-   with template parameter <code>F</code>. So it is not required to be template.</p>
+   <p class="comment">Exposition only <code>call_wrapper</code> class is defined for specific
+   invocation of the <code>not_fn</code> with template parameter <code>F</code>, so it is not
+   required to be template.</p>
 
    <pre>   using FD = decay_t&lt;F&gt;;
 public:
    explicit call_wrapper(F&amp;&amp; f) noexcept(is_nothrow_constructible_v&lt;FD, F&gt;);</pre>
-   <p class="comment">As above, this class works for specific value of <code>F</code>, so perfect
+   <p class="comment">As above, this class works for specific type <code>F</code>, so perfect
    forwarding is not needed.</p>
 
    <pre>   call_wrapper(call_wrapper&amp;&amp;) = default;
    call_wrapper(call_wrapper const&amp;) = default;</pre>
-   <p class="comment">Defaulting special member functions on first declaration, that they will
-   have same affects and exception specification as the default generated ones. That is esentially
-   saying that <code>call_wrapper</code> move construction will be same as for <code>FD</code> 
-   (only member of the class).</p>
+   <p class="comment">Defaulting special member functions on first declaration guarantee, that
+   they will have same affects and exception specification as the default generated ones.</p> 
 
    <pre>   template&lt;typename... Args&gt;
      auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
