@@ -455,7 +455,8 @@ auto bind_front(Func&amp;&amp; func, BoundArgs&amp;&amp;... boundArgs)
   return bind_front_t&lt;std::decay_t&lt;Func&gt;, decay_unwrap_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
 }</pre>
 
-<p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary metafunction, which is defined as follows:</p>
+<p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary metafunction from 
+<a href="https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf">D0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper:</p>
 <pre>template&lt;typename T&gt;
 struct decay_unwrap;
 
@@ -486,9 +487,25 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 <h2><a name="literature">9. References</a></h2>
 
 <ol>
-  <li>Chris Jefferson, Ville Voutilainen, "Bug 40 - variadic bind" (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
-  <li>Mikhail Semenov, "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
-  <li>Tomasz Kamiński, "Parameter group placeholders for bind" (N4171, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html</a>)</li>
+  <li>Chris Jefferson, Ville Voutilainen, 
+      "Bug 40 - variadic bind" 
+      (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">
+                    https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
+
+  <li>Mikhail Semenov, 
+      "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" 
+      (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
+
+  <li>Tomasz Kamiński, 
+      "Parameter group placeholders for bind"
+      (N4171, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html</a>)</li>
+
+  <li>Vicente J. Botet Escribá, 
+      "<code>decay_unwrap</code> and <code>unwrap_reference</code>" 
+      (D0318R0, <a href="https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf">
+                https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf</a>)</li>
 </ol>
 
 </body></html>
