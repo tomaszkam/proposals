@@ -133,7 +133,7 @@ f(<em>unpack</em>(t)...)</pre>
    the possible return object from <code>f</code> invocation as passed without any overhead.
    [Bonus question: Is the code really working correctly? Are rvalues forwarded correctly?
    Is <code>decltype(t1es)</code> producing type of the outer lambda parameter, that may be an rvalue reference,
-   or type of the object captured as member of the nested lambda (always lvalue reference)]</p>
+   or type of the entity captured as member of the nested lambda (always lvalue reference)]</p>
 
 <p>As <code>std::apply</code> was written as example of the use of the <code>std::integer_sequence</code> for
    the tuple unpacking code, we may also try to manually expand both tuples, using the same technique:</p>
@@ -201,6 +201,26 @@ v.emplace(<em>unpack</em>(t)...)</pre>
 <pre>std::apply([](auto&amp;&amp;... args) { return std::make_unique&lt;Type&gt;(std::forward&lt;decltype(args)&gt;(args)...); }, t)
 std::apply([](auto&amp;&amp;... args) { return std::make_tuple(std::forward&lt;decltype(args)&gt;(args)...); }, t)
 std::apply([&amp;v](auto&amp;&amp;... args) { v.emplace(std::forward&lt;decltype(args)&gt;(args)...); }, t)</pre>
+
+
+<h3><a name="motivation.tuple-manipulation">2.3. Manipulation of tuple like objects</a></h3>
+
+<p>Ability to unpack the tuple-like object greatly simplifies the process of manipulating
+   tuple-like objects. For example transforming if we want to create an <code>std::tuple</code> by
+   transforming (calling <code>p</code> on )each element:</p>
+<pre>std::make_tuple(p(<em>unpack</em>(t))...)
+std::apply([](auto&amp;&amp;... args) { return std::make_tuple(p(std::forward&lt;decltype(args)&gt;(args))...); }, t)</pre>
+
+<p>Adding new elements at front or back of the tuple:</p>
+<pre>std::make_tuple(<em>unpack</em>(t)..., u)
+std::tuple_cat(t, std::forward_as_tuple(u))
+std::apply([&amp;u](auto&amp;&amp;... args) { return std::make_tuple(std::forward&lt;decltype(args)&gt;(args)..., u); }, t)</pre>
+<p>[Note: There is difference in behaviour of second and third line in situation when <code>t</code> contains element
+   of reference type. First and third lines are equivalent.]</p>
+
+<p>Summing all elements of the tuple (using fold expression):</p>
+<pre>unpack(t) + ...
+std::apply([](auto&amp;&amp;... args) -&gt; decltype(auto) { return args + ...; }, t)</pre>
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
