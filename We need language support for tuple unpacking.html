@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>We need language support for tuple unpacking</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;<th> <td></td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">We need language support for tuple unpacking</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper argues that C++ requires an language level support for tuple unpacking. It does not
+   propose any specific syntax for the purpose, but rather aim to present motivation for language change.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="motivation">2. Motivation</a></h2>
+
+<p>This section of the paper compares existing library based solution and language based solution
+   in various situations, when the programmer encounters need to unpack an tuple-like object.</p>
+
+<p>In case of language support, we use an <code><em>unpack</em>(t)</code> as the temporary syntax
+   for expression that will turn tuple-like object <code>t</code> into parameter pack, that can
+   later expanded or used in fold-expression.</p>
+
+<h3><a name="motivation.calling_functions">2.1. Passing tuple(s) elements as function arguments</a></h3>
+
+<p>The most common use case for tuple unpacking are situations when user wants to pass the elements
+   of the tuple <code>t</code> as the arguments to callable object <code>f</code>. To accomplish
+   such task, we may use <code>apply<code> function that is included in Library Fundamentals TS
+   and was recently accepted into C++ standard:</p>
+<pre>std::apply(f, t)
+f(<em>unpack</em>(t)...)</pre>
+
+<p>From the above example, it may look like the language level support does not provide great improvements
+   when compared with existing library level solutions. However lets imagine a sightly different situation,
+   when we want to call <code>f</code> with elements of the tuple <code>t1</code> and then </code>t2</code>.
+   Firstly, using the language solution:</p>
+<pre>f(<em>unpack</em>(t1)..., <em>unpack</em>(t2)...)</pre>
+
+<p>For the library level solution, we may perform <code>apply</code> on the concatenation of arguments tuples:</p>
+<pre>std::apply(f, std::tuple_cat(t1, t2))</pre>
+<p>However this solution leads to creation of new tuple with the copies of elements of the original tuple,
+   with not only introduce unnecessary performance overhead, but may also lead to invalid programs, in situation
+   when function <code>f</code> is mutating arguments received by reference. That leads us to other solutions,
+   that firstly unpacks first tuples using two calls to apply:</p>
+<pre>std::apply([&amp;t2](auto&amp;&amp;... t1es) -&gt; decltype(auto)
+{
+  return std::apply([&amp;t1es...](auto&amp;&amp;... t2es) -&gt; decltype(auto)
+         {
+           return f(std::forward&lt;decltype(t1es)&gt;(t1es)..., std::forward&lt;decltype(t2es)&gt;(t2es)...);
+         }, t2);               
+}, t1);</pre>
+<p>We use perfect forwarding and the <code>decltype(auto)</code> to make sure that both the tuple elements and 
+   the possible return object from <code>f</code> invocation as passed without any overhead.
+   [Bonus question: Is the code really working correctly? Are rvalues forwarded correctly?
+   Is <code>decltype(t1es)</code> producing type of the outer lambda parameter, that may be an rvalue reference,
+   or type of the object captured as member of the nested lambda (always lvalue reference)]</p>
+
+<p>As <code>std::apply</code> was written as example of the use of the <code>std::integer_sequence</code> for
+   the tuple unpacking code, we may also try to manually expand both tuples, using the same technique:</p>
+<pre>template&lt;typename F, 
+         typename T1, std::size_t... I1,
+         typename T2, std::size_t... I2&gt;
+decltype(auto) apply_impl(F&amp;&amp; f, 
+                          T1&amp;&amp; t1, std::index_sequence&lt;I1...&gt;,
+                          T2&amp;&amp; t2, std::index_sequence&lt;I2...&gt;)
+{
+   return std::invoke(std::forward&lt;F&gt;(f), 
+                      std::get&lt;I1&gt;(std::forward&lt;T1&gt;(t1))..., 
+                      std::get&lt;I2&gt;(std::forward&lt;T2&gt;(t2))...);
+}             
+
+template&lt;typename F, typename T1, typename T2&gt;
+decltype(auto) apply(F&amp;&amp; f, T1&amp;&amp; t1, T2&amp;&amp; t2)
+{
+    return apply_impl(std::forward&lt;F&gt;(f), 
+                      std::forward&lt;T1&gt;(t1), std::make_index_sequence&lt;std::tuple_size_v&lt;std::decay_t&lt;T1&gt;&gt;&gt;{},
+                      std::forward&lt;T2&gt;(t2), std::make_index_sequence&lt;std::tuple_size_v&lt;std::decay_t&lt;T2&gt;&gt;&gt;{});
+}</pre>
+<p>And then use <code>apply(f, t1, t2)</code>. This idea may be also extended to support varidatic number of tuple-like arguments
+   in <code>std::apply</code>, however such extension will not address the problem. For example if we want lets consider
+   the situation when we are want to pass two additional object <code>u</code> and </code>v</code> as the parameters:</p>
+<pre>f(u, <em>unpack</em>(t1)..., v, <em>unpack</em>(t2)...)</pre>
+
+<p>Implementation of code that will achieve above result using current language state is left to the reader.</p>
+
+<h3><a name="motivation.constructing_from_tuple">2.2. Constructing an object from tuple elements</a></h3>
+
+<p>The one of the inherit constrain of the use of the <code>apply</code>-based solution is that it requires an callable object
+   to be passed as the function argument and does not allow to be used to construct object from tuple:</p>
+<pre>Type var(<em>unpack</em>(t)...);</pre>
+
+<p>This constrain may be partially addressed by use of the <code>std::apply</code> with functor that will construct object
+   for given set of the arguments, like <code>direct_init</code> proposed in 
+   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0271r0.html">P0271R0: 'std::direct_init' for plugging the metaprogramming constructor hole</a>:</p>
+<pre>auto var = std::apply(std::direct_init&lt;T&gt;(), t);</pre>
+
+<p>However in addition to all expressiveness problems described in previous section, solution based on the use of factory
+   object functor, will have additional drawback, that their will only support only one way initialization type. For 
+   example proposed <code>std::direct_init</code> can be used only to replace first out of following declarations:</p>
+<pre>Type var(<em>unpack</em>(t)...);
+Type var{<em>unpack</em>(t)...};
+Type var = {<em>unpack</em>(t)...};</pre>
+<p>As consequence it cannot be used to initialize STL collection with the elements of the tuple, nor to directly initialize
+   members of the aggregate type.</p>
+
+<p>Additionally usage of the factory functions requires the programmer to explicitly define type of constructed object. At
+   first glance this may look as void constrain, but its essentially prevents template argument deduction for class templates
+   (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r1.html">P0091R1</a>) to be used for object
+   constructed from tuple elements:</p>
+<pre>tuple tcopy{<em>unpack</em>(t)...}; //creates a tuple with copy of elements of any tuple-like object (even if it was having reference members)</pre>
+
+<p>Finally, even in case of existing standard factory functions (<code>std::make_unique</code>, <code>std::make_tuple</code>,
+   <code>emplace</code> methods of collections), use of <code>std::apply</code> is not trivial. This is caused by the fact
+   that all of existing factory functions are declared as function template and cannot be easily passed in place of template
+   argument. For example following code:</p>
+<pre>std::make_unique&lt;Type&gt;(<em>unpack</em>(t)...)
+std::make_tuple(<em>unpack</em>(t)...)
+v.emplace(<em>unpack</em>(t)...)</pre>
+
+<p>Need to be written as:</p>
+<pre>std::apply([](auto&amp;&amp;... args) { return std::make_unique&lt;Type&gt;(std::forward&lt;decltype(args)&gt;(args)...); }, t)
+std::apply([](auto&amp;&amp;... args) { return std::make_tuple(std::forward&lt;decltype(args)&gt;(args)...); }, t)
+std::apply([&amp;v](auto&amp;&amp;... args) { v.emplace(std::forward&lt;decltype(args)&gt;(args)...); }, t)</pre>
+
+<h2><a name="acknowledgements">8. Acknowledgements</a></h2>
+
+<!--p>Jonathan Wakely originally proposed idea of multi parameter placeholders in discussion group <a href="https://groups.google.com/a/isocpp.org/forum/#!msg/std-proposals/CxpGVY1APcs/_RYAajMGhcUJ">ISO C++ Standard - Future Proposals</a>.</p>
+<p>Andrzej Krzemieński and Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p-->
+
+
+<h2><a name="literature">9. References</a></h2>
+
+<ol>
+  <li>Vicente J. Botet Escribá, 
+      "'std::direct_init' for plugging the metaprogramming constructor hole" 
+      (P0271R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0271r0.html">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0271r0.html</a>)</li>
+
+  <li>Mike Spertus, Faisal Vali, Richard Smith,
+      "Template argument deduction for class templates (Rev. 4)"
+      (P0091R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r1.html">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r1.html</a>)</li>
+</ol>
+
+</body></html>
