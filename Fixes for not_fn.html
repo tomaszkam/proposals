@@ -81,7 +81,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td></td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th>2016-05-28<td></td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -103,7 +103,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">2. Motivation and Scope</a></h2>
 
-<p>The main motivation for creation of this paper, comes from the realisation that the existing wording for <code>std::not_fn</code>
+<p>The main motivation for creation of this paper comes from the realisation that the existing wording for <code>std::not_fn</code>,
    that was recently accepted in the C++17, requires implementation to always perform call on the lvalue of the stored callable.</p>
 
 <p>This effectively requires <code>std::not_fn</code> to disregard the reference qualification of nested function. For example
@@ -121,11 +121,11 @@ struct LvalueCallable
 auto rval = std::not_fn(RvalueCallable{});
 auto lval = std::not_fn(LvalueCallable{});</pre>
 <p>Both the invocation <code>rval()</code> and <code>std::move(rval)()</code> are ill-formed, as they will lead to call on the
-   <code>RvalueCallable&amp;</code>. In addition the call <code>std::move(lval)()</code> will be well-formed despite explicit
-   qualification of the call wrapper that should prevent invocation on temporaries.</p>
+   <code>RvalueCallable&amp;</code>. In addition the call <code>std::move(lval)()</code> will is well-formed despite explicit
+   reference qualification of the functor, that should prevent invocation on temporaries.</p>
    
 <p>It also important to emphasize that introduction of the value category propagation after standardization of the current
-   wording would be breaking change. Furthermore the breakage may be silent for situations in which wrapped callable was providing
+   wording would be breaking change. Furthermore such breakage may be silent in case when wrapped callable was providing
    both lvalue and rvalue overloads of call operator - in case of temporary wrappers, the code will start to invoke rvalue overloads.</p>
 
 <h2><a name="discussion">3. Wording Discussion</a></h2>
@@ -161,10 +161,10 @@ auto lval = std::not_fn(LvalueCallable{});</pre>
 <p>Firstly, we may notice that the definition of the <code>fd</code> explicitly states that it is <b>lvalue</b>
    reference, which results in the problems described in motivation section.</p>
 
-<p>Secondly, above wording does not mention how existence of <code><em>cv</em></code> qualification will
-   affect underlining functor. To be explicit the wording only describes effects of the invocation on the
-   temporary created as the result of <code>not_fn</code> invocation. As consequence implementation, that
-   will provide only single overload of call operator in form:</p>
+<p>Secondly, above wording does not mention how <code><em>cv</em></code> qualification will affect
+   underlining functor. To be explicit the wording only describes effects of the invocation on the
+   temporary created as the result of <code>not_fn</code> invocation. As consequence implementation
+   that will provide only single overload of call operator in form:</p>
 <pre>template&lt;typename... Args&gt;
 decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 { return std::invoke(fd, std::forward&lt;Args&gt;(args)...); }</pre> 
@@ -179,16 +179,16 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
   <li><code><em>ref</em></code> is either <code>&amp;</code> or <code>&amp;&amp;</code>
 </ul>
 
-<p>In addition current wording does not calirify if the invocation <code>std::not_fn(f)(args...)</code> are 
+<p>In addition current wording does not clarify if the invocation <code>std::not_fn(f)(args...)</code> are 
    equivalent to <code>!std::invoke(f, args...)</code> in unevaluated context. Such guarantee is important
-   for components that conditionally exposes functionality, depending on the validity of the call expression.
-   Most notable example of such functionality, is <code>std::function&lt;R(Args...)&gt;</code> that is only
-   constructible from type  <code>F</code> that is lvalue callable with <code>Args...</code> and has return
+   for components that conditionally exposes features, depending on the validity of the call expression.
+   Most notable example of such functionality is <code>std::function&lt;R(Args...)&gt;</code> that is only
+   constructible from type <code>F</code>, that is lvalue callable with <code>Args...</code> and has return
    compatible with <code>R</code>.</p>
 
 <h3><a name="discussion.moveability">3.2. Move/copy operations on the wrapper</a></h3>
 
-<p>Existing wording, describe requirements on transferability of the created wrapper as 
+<p>Existing wording describe requirements on transferability of the created wrapper as 
    follows (20.12.9 [func.not_fn]):</p>
 <blockquote class="std"> 
   <dl class="attribute">
@@ -211,7 +211,7 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
    same exception specification as corresponding operation of the underlining wrapper.
    As consequence wrapping a function pointer or simple lambda object into <code>not_fn</code>,
    may disable optimizations that are requiring nothrowing move operations, like using small
-   object optimization to avoid allocation in <code>std::function</code> construction.</p> 
+   object optimization in <code>std::function</code>.</p> 
 
 
 <h2><a name="wording.minimal">4. Minimal wording</a></h2>
@@ -256,15 +256,14 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
         the return type shall satisfy the requirements of <code>CopyConstructible</code>.
         [ <em>Note:</em> This implies that <code>FD</code> is MoveConstructible.
           <em> — end note</em> ]</p></dd>
-
   </dl>
 </blockquote>
 
 
 <h2><a name="wording.comprehesive">5. Comprehensive wording</a></h2>
 
-<p>This wording, present alternative approach that instead of trying to indirectly describe requirements
-   of created functor, describes them in terms of exposition only class. The author belives that
+<p>This wording, present alternative approach that instead of trying to indirectly state requirements
+   of created functor, describes them in terms of exposition only class. The author believes that
    such approach leads to cleaner specification.</p>
 
 <p class="comment">In addition the wording is accompanied with authors drafting notes, that
@@ -290,8 +289,8 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
     <pre>class call_wrapper
 {</pre>
    <p class="comment">Exposition only <code>call_wrapper</code> class is defined for specific
-   invocation of the <code>not_fn</code> with template parameter <code>F</code>, so it is not
-   required to be template.</p>
+   invocation of <code>not_fn</code> with template parameter <code>F</code>, so it does not
+   need to be template.</p>
 
    <pre>   using FD = decay_t&lt;F&gt;;
 public:
@@ -301,7 +300,7 @@ public:
 
    <pre>   call_wrapper(call_wrapper&amp;&amp;) = default;
    call_wrapper(call_wrapper const&amp;) = default;</pre>
-   <p class="comment">Defaulting special member functions on first declaration guarantee, that
+   <p class="comment">Defaulting special member functions on first declaration guarantee that
    they will have same affects and exception specification as the default generated ones.</p> 
 
    <pre>   template&lt;typename... Args&gt;
@@ -316,7 +315,7 @@ public:
    template&lt;typename... Args&gt;
      auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</pre>
    <p class="comment">Listing call operators clearly indicates that both <code>const</code> and reference qualification
-   is supported. <code>volatile</code> overloads are intentionally omitted to follow resolution of 
+   are supported. <code>volatile</code> overloads are intentionally omitted to follow resolution of 
    <a href="http://wg21.cmeerw.net/lwg/issue2487">LWG issue #2487</a>.</p>
 
 <pre>private:
@@ -350,8 +349,9 @@ public:
       <dt>Effects:</dt>
       <dd><p>Equivalent to: <code>return !<em>INVOKE</em>(fd, std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
     </dl>
-    <p class="comment">Use of "Effects: Equivalent to" requires that effects on invocation of are the same as corresponding <code><em>INOVKE</em></code>
-    expression even in SFINAE context. In addition use of <code>result_of</code> in specification of return type leads to same effects.</p>
+    <p class="comment">Use of "Effects: Equivalent to" requires that effects of invocation are the same as corresponding 
+    <code><em>INOVKE</em></code> expression even in SFINAE context. In addition use of <code>result_of</code> in specification of 
+    return type gives same effects.</p>
 
     <p class="function">
       <code>template&lt;typename... Args&gt; auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br/>
@@ -362,14 +362,18 @@ public:
       <dt>Effects:</dt>
       <dd><p>Equivalent to: <code>return !<em>INVOKE</em>(std::move(fd), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
     </dl>
-    <p class="comment">For the rvalue qualified call operators, invocation is performed on rvalue reference of <code>FD</code> type.</p>
+    <p class="comment">For the rvalue qualified call operators, invocation is performed on rvalue reference to <code>FD</code> type.</p>
 
   </dl>
 </blockquote>
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
-<p>Stephan T. Lavavej suggested numerous corrections to wording presented in comprehensive wording section.</p>
+<p>Stephan T. Lavavej suggested numerous corrections to <a href="#wording.comprehesive">comprehensive wording</a>
+   presented in the paper.</p>
+
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
+   and for sponsoring author's trip to the Oulu for WG21 meeting.</p>
 
 <h2><a name="literature">7. References</a></h2>
 
