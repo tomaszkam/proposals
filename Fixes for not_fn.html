@@ -110,12 +110,12 @@ td { text-align: left; vertical-align: top;
    in case of the following definitions:</p>
 <pre>struct RvalueCallable
 {
-  bool operator()() &amp;&amp;
+  bool operator()() &amp;&amp;;
 };
 
 struct LvalueCallable
 {
-  bool operator()() &amp;
+  bool operator()() &amp;;
 };
 
 auto rval = std::not_fn(RvalueCallable{});
