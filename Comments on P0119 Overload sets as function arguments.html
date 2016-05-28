@@ -63,7 +63,7 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>Comments on P0119R0: Overload sets as function arguments</title>
+<title>Comments on P0119: Overload sets as function arguments</title>
 </head>
 
 <body>
@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td></td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2016-05-28</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Evolution Working Group</td>
@@ -83,12 +83,12 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">Comments on P0119R0: Overload sets as function arguments</a></h1>
+<h1><a name="title">Comments on P0119: Overload sets as function arguments</a></h1>
 
-<h2><a name="intro">Introduction</a></h2>
+<h2><a name="intro">1. Introduction</a></h2>
 
 <p>The aim of this paper is to present the authors comments on the impact of the change proposed in 
-<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0: Overload sets as function arguments</a>.
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf">P0119R1: Overload sets as function arguments</a>.
 At the begin I would like to clarify that I see a great need for a language level feature that would allow programmers
 to easily create an lambda expression that wrap polymorphic calls to function with given name.</p>
 
@@ -102,9 +102,9 @@ while keeping the same rules for functor generation.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
-<h2><a name="fragility">Fragility of the program semantics</a></h2>
+<h2><a name="fragility">2. Fragility of the program semantics</a></h2>
 
-<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
+<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf">P0119R1</a>
 proposes that <code><em>id-expression</em></code> passed as argument for an unconstrained template parameter
 means two different things based on whether <code><em>id-expression</em></code> refers to a unique
 function or a function overload set, as seen at the point of processing the template body.
@@ -115,7 +115,7 @@ with name <code><em>id-expression</em></code> have been seen prior to parsing th
 <p>This makes the meaning of the program sensitive to the order of declarations, 
 and even a change as slight as the order of included headers may alter the behavior of the program.</p>
 
-<h3><a name="fragility.example">Example program</a></h3>
+<h3><a name="fragility.example">2.1. Example program</a></h3>
 <p>Let's consider the program comosed of the following files:</p>
 
 <p><b>File: <code>container1.hpp</code></b></p>
@@ -127,7 +127,7 @@ and even a change as slight as the order of included headers may alter the behav
   };
 
   bool empty(C1 const&amp;);
-};</pre>
+}</pre>
 
 <p><b>File: <code>container2.hpp</code></b></p>
 <pre>namespace cont
@@ -137,8 +137,8 @@ and even a change as slight as the order of included headers may alter the behav
     /* ... */
   };
 
-  bool empty(C2 const&);
-};</pre>
+  bool empty(C2 const&amp;);
+}</pre>
 
 <p><b>File: <code>remove_empty.hpp</code></b></p>
 <pre>#include &lt;algorithm&gt;
@@ -147,12 +147,13 @@ namespace cont
 {
   template&lt;typename I&gt;
   I remove_empty(I first, I last)
-  { return std::remove(first, last, empty); //P: point of checking of visible overloads of empty.
-};</pre>
+  { return std::remove(first, last, empty); } //P: point of checking of visible overloads of empty.
+}</pre>
 
 
 <p><b>File: <code>main.cpp</code></b></p>
-<pre>#include "container1.hpp"
+<pre>#include &lt;vector&gt;
+#include "container1.hpp"
 #include "container2.hpp"
 #include "remove_empty.hpp"
 
@@ -163,8 +164,8 @@ namespace my_cont
     /* ... */
   };
 
-  bool empty(MC const&);
-};
+  bool empty(MC const&amp;);
+}
 
 int main()
 {
@@ -217,7 +218,7 @@ as both <code>cont::C2</code> and <code>my_cont::MC</code> will not be accepted 
 #include "container1.hpp"
 #include "container2.hpp"</pre>
 
-<h3><a name="fragility.odr">ODR Violation</a></h3>
+<h3><a name="fragility.odr">2.2. ODR Violation</a></h3>
 
 <p>The above example showed how the semantics of the same instantiation of the <code>filter_empty</code> changes depending of the order of the
 headers in the program. However this only exposes an deeper problem with proposed resolution: depending on the order of the header included
@@ -228,16 +229,16 @@ in the transaction units, the semantic of the same instantiation of <code>filter
 when the same name resolves to two different functions in different translation unit, so it may be considered as result of another violation of 
 ODR.</p>
 
-<h3><a name="fragility.summary">Summary</a></h3>
+<h3><a name="fragility.summary">2.3. Summary</a></h3>
 
 <p>As the above example shows up, the use of the feature of passing overloaded functions sets as template arguments inside of function template
 lead to fragile code that changes it meaning and validity depending on the subtle changes in the order of declarations (headers). This is 
 caused by the fact that generation of lambda depends only on normal lookup and ignores ADL and two phase lookup, that were created to avoid
 such problems in template code in first place.</p>
 
-<h2><a name="usability">Scope and usability</a></h2>
+<h2><a name="usability">3. Scope and usability</a></h2>
 
-<p>The aim <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">P0119R0</a>
+<p>The aim <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf">P0119R1</a>
 is to make following code to be well formed when multiple overloads of function <code>f</code> are
 found:</p>
 <pre>template&lt;typename  I&gt;
@@ -247,14 +248,14 @@ void apply_f(I first, I last)
 }</pre>
 
 <p>However the author believes that we should we aim to provide more generic extension that will allow
-us to pass overloaded function name as functor.</p>
+us to transform any function name to an functor.</p>
 
-<h3><a name="usability.ADL">Argument Depended Lookup</a></h3>
+<h3><a name="usability.adl">3.1. Argument Depended Lookup</a></h3>
 
 <p>Let consider following function example:</p>
 <pre>template&lt;typename  I&gt;
 I remove_empty(I first, I last)
-{ return std::remove_if(first, last, [](auto const&amp; arg) { return empty(arg): }</pre>
+{ return std::remove_if(first, last, [](auto const&amp; arg) { return empty(arg): }); }</pre>
 
 <p>I think that it would be reasonable to expect that invocation of above function (and
 function itself) can be replaced by the <code>std::remove_if(first, last, empty)</code> 
@@ -271,7 +272,7 @@ even no declaration of <code>empty</code> may be visible, as the unqualified cal
 <code>empty(arg)</code> allow overloads to be found by ADL at point of <code>remove_empty</code>
 instantiation.</p>
 
-<h3><a name="usability.default-arguments">Default arguments</a></h3>
+<h3><a name="usability.default-arguments">3.2. Default arguments</a></h3>
 
 <p>In addition to usual means, like declaration of multiple overloads of single function name or 
 declaring it as function template, there is one additional way to create a function that can be
@@ -295,40 +296,47 @@ void increment_all(I first, I last)
 
 <p>At the first glance, we could expect that in place of functor argument the following lambda will be
 generated <code>[](auto&amp;&amp;... args) { return increment(std::forward&lt;decltype(args)&gt;(args)...); }</code>
-and it will be invoked with only one <code>int&amp; i</code> argument, leading to following <code>increment(i)</code>.
+and it will be invoked with only one <code>int&amp; i</code> argument.
 However this will not be the case, because case only one declaration of <code>increment</code> function is visible
 at the point of <code>increment_all</code> and this identifier will be resolved to <code>void(*)(int&amp;, int)</code>
 function pointer.</p>
 
-<h3><a name="usability.indirect-call">Avoiding indirection through function pointers</a></h3>
+<h3><a name="usability.indirect-call">3.3. Avoiding indirection through function pointers</a></h3>
 
-<p>Even in situation when the <code>std::find_if(first, last, func)</code> compiler correctly,
+<p>Even in situation when the <code>std::find_if(first, last, func)</code> compiles correctly,
 function pointer will be passed to the invoked algorithm and indirect call will be performed
 for each element of the collection. As this may negatively affect performance, the user
-may want to pass functor object instead.
+may want to pass functor object instead.</p>
 
-However this change cannot be performed unconditionally, as code may depend on additional
+<p>However this change cannot be performed unconditionally, as code may depend on additional
 semantic that is provided by the function pointers when compared to closure object:
 nullability and assignability for pointer to function with same signature.</p>
 
 
-<h3><a name="usability.summary">Summary</a></h3>
+<h3><a name="usability.summary">3.4. Summary</a></h3>
 
 <p>Examples presented above shows that the rules for the lambda generation proposed in the discussed paper,
 will not produce desired result.</p>
 
-<h2><a name="acknowledgements">Acknowledgements</a></h2>
+<h2><a name="acknowledgements">4. Acknowledgements</a></h2>
 
 <p>I would like to thank Philipp Juschka for originally proposing the idea of lifting expression
 and Andrew Sutton for continuing work on this features.</p>
 <p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 
-<h2><a name="literature">References</a></h2>
+<h2><a name="literature">5. References</a></h2>
 
 <ol>
-<li>Andrew Sutton, "Overload sets as function arguments" (P0119R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0119r0.pdf</a>)</li>
-<li>Philipp Juschka, "Lifting overload sets into function objects" (N3617, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm</a>)</li>
+  <li>Andrew Sutton, 
+      "Overload sets as function arguments" 
+      (P0119R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf</a>)</li>
+
+  <li>Philipp Juschka, 
+      "Lifting overload sets into function objects" 
+      (N3617, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm</a>)</li>
 </ol>
 
 </body></html>
