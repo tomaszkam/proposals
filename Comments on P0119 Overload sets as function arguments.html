@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;<th> <td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2016-05-28</td>
+    <th>Date:&nbsp;&nbsp;<th> <td>2016-05-29</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Evolution Working Group</td>
@@ -90,10 +90,10 @@ td { text-align: left; vertical-align: top;
 <p>The aim of this paper is to present the authors comments on the impact of the change proposed in 
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf">P0119R1: Overload sets as function arguments</a>.
 At the begin I would like to clarify that I see a great need for a language level feature that would allow programmers
-to easily create an lambda expression that wrap polymorphic calls to function with given name.</p>
+to easily create an closure that wrap polymorphic calls to function with given name.</p>
 
 <p>Observations and comments gathered in this paper are related to only one of aspect of the feature that makes the compiler
-responsible for decision in which situation the lambda generation will actually be performed. As consequence all of 
+responsible for decision in which situation the closure generation will actually be performed. As consequence all of 
 them would be voided by using the design that would allow programmer explicitly request the generation of the functor
 object. This may be achieved, for example by using <code>[]<em>id-expression</em></code> syntax proposed in
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">N3617: Lifting overload sets into function objects</a>
@@ -107,10 +107,10 @@ while keeping the same rules for functor generation.</p>
 <p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0119r1.pdf">P0119R1</a>
 proposes that <code><em>id-expression</em></code> passed as argument for an unconstrained template parameter
 means two different things based on whether <code><em>id-expression</em></code> refers to a unique
-function or a function overload set, as seen at the point of processing the template body.
+function or a function overload set, as seen at the point of its processing.
 In other words, whether we intepret <code><em>id-expression</em></code> as a pointer-to-function or
-as an implicitly declared lambda-expression depends on number and type of declarations of function
-with name <code><em>id-expression</em></code> have been seen prior to parsing the template body.</p>
+as an implicitly declared closure depends on number and type of declarations of function
+with name <code><em>id-expression</em></code> have been seen prior to its parsing.</p>
 
 <p>This makes the meaning of the program sensitive to the order of declarations, 
 and even a change as slight as the order of included headers may alter the behavior of the program.</p>
@@ -187,32 +187,35 @@ This according to the wording presented in the paper lead to generation of the c
   I remove_empty(I first, I last)
   { return std::remove(first, last, [](auto&amp;&amp;... args) { return empty(std::forward&lt;decltype(args)&gt;(args)...); });
 </pre>
-<p>The lambda generated in place of <code>empty</code> identifier, performs the unqualified call of the function, 
-so it will consider overloads of <code>empty</code> found by ADL. As consequence both lines marked as //1, //2 and //3 will compile,
-while for the //3 line the <code>my_cont::empty</code> declaration will be found thought ADL.</p>
+<p>The closure generated in place of <code>empty</code> identifier, performs the unqualified call of the function, 
+so it will consider overloads of <code>empty</code> found by ADL. As consequence both lines marked as //1, //2 
+and //3 will compile, while for the //3 line the <code>my_cont::empty</code> declaration will be found thought ADL.</p>
 
 <p>However if the order of the includes in the <code>main.cpp</code> will be changed to:</p>
 <pre>#include "container1.hpp"
 #include "remove_empty.hpp"
 #include "container2.hpp"</pre>
-<p>At the point of //P only one declaration one of <code>empty</code> will be visible, so according to the wording paper, 
-this will lead to generation of following code.</p>
+<p>At the point of //P only one declaration one of <code>empty</code> will be visible, so according
+to the wording paper, this will lead to generation of following code.</p>
 <pre>
   template&lt;typename I&gt;
   I remove_empty(I first, I last)
   { return std::remove(first, last, &amp;empty); }
-  //As the empty is not-overloaded, the <code>&amp;empty</code> is unambiguous and produces <code>bool (*)(cont::C1 const&amp;)</code> 
+  //As the empty is not-overloaded, the <code>&amp;empty</code> is unambiguous
+  //and produces <code>bool (*)(cont::C1 const&amp;)</code> 
 </pre>
-<p>This resolution is selected to preserve current compatibility that resolves <code>function-id</code> pointing to single not
-overloaded function, to function pointer. However as consequence of this change, the lines //1 and //3 will not longer compile
-as both <code>cont::C2</code> and <code>my_cont::MC</code> will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
+<p>This resolution is selected to preserve current compatibility that resolves <code>function-id</code>
+   pointing to single not overloaded function, to function pointer. However as consequence of this change,
+   the lines //1 and //3 will not longer compile as both <code>cont::C2</code> and <code>my_cont::MC</code>
+    will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 
 <p>For similar reasons only line //2 will compile, if the header will be placed in following order:</p>
 <pre>#include "container2.hpp"
 #include "remove_empty.hpp"
 #include "container1.hpp"</pre>
 
-<p>Finally the program will produce error mentioning not unresolved name <code>empty</code>, if the header will be ordered as follows:</p> 
+<p>Finally the program will produce error mentioning not unresolved name <code>empty</code>,
+   if the header will be ordered as follows:</p> 
 <pre>
 #include "remove_empty.hpp"
 #include "container1.hpp"
@@ -220,21 +223,24 @@ as both <code>cont::C2</code> and <code>my_cont::MC</code> will not be accepted 
 
 <h3><a name="fragility.odr">2.2. ODR Violation</a></h3>
 
-<p>The above example showed how the semantics of the same instantiation of the <code>filter_empty</code> changes depending of the order of the
-headers in the program. However this only exposes an deeper problem with proposed resolution: depending on the order of the header included
-in the transaction units, the semantic of the same instantiation of <code>filter_empty</code> will change, which according to the standard
-(14.6.4.1 [temp.point] p8) leads to the ill-formed programs.</p>
+<p>The above example showed how the semantics of the same instantiation of the 
+<code>filter_empty</code> changes depending of the order of the headers in the program.
+However this only exposes an deeper problem with proposed resolution: depending on the
+order of the header included in the transaction units, the semantic of the
+same instantiation of <code>filter_empty</code> will change, which according
+to the standard (14.6.4.1 [temp.point] p8) leads to the ill-formed programs.</p>
 
-<p>Similar problems already occurs in case of not-overloaded function. However the problem occurs only when situation
-when the same name resolves to two different functions in different translation unit, so it may be considered as result of another violation of 
-ODR.</p>
+<p>Similar problems already occurs in case of not-overloaded function. However the problem
+occurs only when situation when the same name resolves to two different functions in different
+translation unit, so it may be considered as result of another violation of ODR.</p>
 
 <h3><a name="fragility.summary">2.3. Summary</a></h3>
 
-<p>As the above example shows up, the use of the feature of passing overloaded functions sets as template arguments inside of function template
-lead to fragile code that changes it meaning and validity depending on the subtle changes in the order of declarations (headers). This is 
-caused by the fact that generation of lambda depends only on normal lookup and ignores ADL and two phase lookup, that were created to avoid
-such problems in template code in first place.</p>
+<p>As the above example shows up, the use of the feature of passing overloaded functions sets
+as template arguments inside of function template lead to fragile code that changes it meaning
+and validity depending on the subtle changes in the order of declarations (headers). This is 
+caused by the fact that generation of closure depends only on normal lookup and ignores ADL and
+two phase lookup, that were created to avoid such problems in generic code in first place.</p>
 
 <h2><a name="usability">3. Scope and usability</a></h2>
 
@@ -248,7 +254,7 @@ void apply_f(I first, I last)
 }</pre>
 
 <p>However the author believes that we should we aim to provide more generic extension that will allow
-us to transform any function name to an functor.</p>
+us to transform any function name to an closure.</p>
 
 <h3><a name="usability.adl">3.1. Argument Depended Lookup</a></h3>
 
@@ -262,7 +268,7 @@ function itself) can be replaced by the <code>std::remove_if(first, last, empty)
 without any loss of efficiency and readability.</p>
 
 <p>However, the call <code>std::remove_if(first, last, empty)</code> will be equivalent
-to <code>remove_empty(first, last, empty)</code> only in situations, when lambda will be
+to <code>remove_empty(first, last, empty)</code> only in situations, when closure will be
 generated in place of <code>empty</code> in case of first invocation. 
 According to the paper this will only take place if declaration of <code>empty</code> found
 thought normal lookup will represent overload set (multiple overloads or function template).
@@ -294,12 +300,13 @@ void increment_all(I first, I last)
   std::for_each(first, last, increment);
 }</pre>
 
-<p>At the first glance, we could expect that in place of functor argument the following lambda will be
-generated <code>[](auto&amp;&amp;... args) { return increment(std::forward&lt;decltype(args)&gt;(args)...); }</code>
-and it will be invoked with only one <code>int&amp; i</code> argument.
-However this will not be the case, because case only one declaration of <code>increment</code> function is visible
-at the point of <code>increment_all</code> and this identifier will be resolved to <code>void(*)(int&amp;, int)</code>
-function pointer.</p>
+<p>At the first glance, we could expect that in place of functor argument the following
+closure will be generated 
+<code>[](auto&amp;&amp;... args) { return increment(std::forward&lt;decltype(args)&gt;(args)...); }</code>
+and it will be invoked with only one <code>int&amp; i</code> argument. 
+However this will not be the case, because case only one declaration of <code>increment</code>
+function is visible at the point of <code>increment_all</code> and this identifier will be
+resolved to <code>void(*)(int&amp;, int)</code> function pointer.</p>
 
 <h3><a name="usability.indirect-call">3.3. Avoiding indirection through function pointers</a></h3>
 
@@ -308,15 +315,10 @@ function pointer will be passed to the invoked algorithm and indirect call will 
 for each element of the collection. As this may negatively affect performance, the user
 may want to pass functor object instead.</p>
 
-<p>However this change cannot be performed unconditionally, as code may depend on additional
-semantic that is provided by the function pointers when compared to closure object:
-nullability and assignability for pointer to function with same signature.</p>
-
-
-<h3><a name="usability.summary">3.4. Summary</a></h3>
-
-<p>Examples presented above shows that the rules for the lambda generation proposed in the discussed paper,
-will not produce desired result.</p>
+<p>Despite its usefullnes, such transformation change cannot be performed unconditionally, 
+as existing code may depend on additional semantic that is provided by the function pointers 
+when compared to closure object: nullability and assignability for pointer to function with
+same signature.</p>
 
 <h2><a name="acknowledgements">4. Acknowledgements</a></h2>
 
