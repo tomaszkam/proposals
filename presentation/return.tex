@@ -1,0 +1,234 @@
+\documentclass{beamer}
+
+%\documentclass[handout]{beamer}
+%\usepackage{pgfpages}
+%\pgfpagesuselayout{2 on 1}[a4paper,border shrink=5mm]
+
+%\usepackage{beamerthemewarsav}
+%\usetheme{Warsaw}
+\usecolortheme{beaver}
+\usepackage[MeX]{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{ulem}
+
+
+\newenvironment<>{titleblock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{\centerline{#1}}%
+      \par%
+      \mode<presentation>{%
+       \setbeamercolor{block title}{use=frametitle,fg=frametitle.fg,bg=frametitle.bg}
+       \setbeamerfont{block title}{size=\Large}
+      }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+
+\newenvironment<>{codeblock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{#1}%
+      \par%
+      \mode<presentation>{%
+       \setbeamercolor{block title}{fg=white,bg=orange!20!black}
+       \setbeamercolor{block body}{fg=black,bg=olive!10}
+       \setbeamercolor{itemize item}{fg=orange!20!black}
+       \setbeamertemplate{itemize item}[triangle]
+     }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\begin{document}
+
+\title{Return type deduction and SFINAE}  
+\author{Tomasz Kamiński}
+\institute[sabre]{Pricinpal Software Developer, Sabre}
+\date{\today} 
+
+\lstset{
+  basicstyle=\small,
+  breakatwhitespace=true,
+  language=C++,
+  keepspaces=true,
+  breaklines=true,
+  tabsize=2, 
+  showstringspaces=false,
+  extendedchars=true
+}
+
+\frame{
+  \titlepage
+} 
+
+\begin{frame}[fragile]
+  \frametitle{Motivation: Overloading on \lstinline{std::function}}
+  \begin{codeblock}{Declarations}
+    \begin{lstlisting}
+bool invoke(std::function<bool(int)> f);
+bool invoke(std::function<bool(std::string)> f);\end{lstlisting}
+  \end{codeblock}
+
+  \begin{block}{Usage}
+    \begin{itemize}
+      \item \lstinline!invoke([](int i) { return i == 2; })!\\
+            compiles, selects first overload
+      \item \lstinline!invoke([](auto i) { return i == 2; })!\\
+            generates hard compiler error
+      \item \lstinline!invoke([](auto i) -> decltype(i == 2) { return i == 2; })!\\
+            compiles, selects first overload
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Motivation: Error message from concepts}
+  \begin{codeblock}{Declarations}
+    \begin{lstlisting}
+template<typename F, typename T>
+concept bool Predicate 
+  = requires(F f, T const& t)
+    { bool(f(t)); };
+
+template<typename I>
+using value_type_t = std::iterator_traits<I>::value_type;
+
+template<typename I, typename P>
+  requires Predicate<P, value_type_t<I>>
+I find_if(I first, I last, P pred);\end{lstlisting}
+  \end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Motivation: Error message from concepts}
+  \begin{codeblock}{Declarations}
+    \begin{lstlisting}
+std::vector<std::string> vs;\end{lstlisting}
+  \end{codeblock}
+
+  \begin{block}{Invocation}
+    \begin{itemize}
+      \item \lstinline!find_if(vs.begin(), vs.end(),!
+            \lstinline!        [](int i) { return i == 2; })!\\
+            8 lines of error
+      \item \lstinline!find_if(vs.begin(), vs.end(),!
+            \lstinline!        [](auto i) { return i == 2; })!\\
+            250 lines of error
+      \item \lstinline!find_if(vs.begin(), vs.end(),!
+            \lstinline!        [](auto i) -> decltype(auto) { return i == 2; })!\\
+            8 lines of error
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}
+  \begin{titleblock}{Proposal}
+  \end{titleblock}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Proposal}
+
+  \begin{block}{Wording change}
+    Make an return type deduction failure an SFINE'able error.
+  \end{block}
+  
+  \begin{block}{Intended effect}
+    Allow user to check validity of the call to the function using return
+    type deduction via  use of existing SFINAE mechanism like: \lstinline!decltype(expr)!, 
+    \lstinline!is_callable!, concepts.
+  \end{block}
+
+  \begin{block}{Why?}
+    \begin{itemize}
+      \item Use of validity checks, becomes more widespread in library components:
+            \lstinline!function! or proposed STL2.
+      \item With the introduction of the generic lambda in the C++14, this
+            problems are not affecting only library writers, but a mere programmer
+            using \lstinline!std! components. 
+    \end{itemize}
+  \end{block}
+
+\end{frame}    
+
+\begin{frame}[fragile]
+  \frametitle{Impact on existing programs}
+
+    Proposed change affects only situation when a return type deduction triggered
+    unevaluated context, ended up with error. As consequence it:
+    \begin{itemize}
+      \item does not affect existing valid programs,
+      \item does not introduce new template instantiation points,
+      \item does not allow overloading on function body,
+      \item does not require mangling of function body
+    \end{itemize}
+
+\end{frame}    
+
+\begin{frame}[fragile]
+  \frametitle{Implementability}
+
+  \begin{block}{Intended behaviour}
+    \begin{itemize}
+      \item affect only instation triggerd from unevaluated
+            context,
+      \item treat error occuring from return type deduction,
+            as if occuring in imediate function context,
+      \item exsting limitation for SFINE'able errors shoud apply.
+    \end{itemize}
+  \end{block}
+
+\end{frame}    
+
+
+\begin{frame}
+  \begin{titleblock}{Additional considerations}
+  \end{titleblock}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Constraining lambdas}
+  Is there really difference between use of \lstinline!auto! in:
+  \begin{codeblock}{}
+    \begin{lstlisting}
+for (auto const& e : col)
+  if (check(e))
+  {
+    foo(e);
+    break;
+  }\end{lstlisting}
+  \end{codeblock}
+
+  \begin{codeblock}{}
+    \begin{lstlisting}
+auto it = std::find_if(col.begin(), col.end(), 
+          [](auto const& e) { return check(e); });
+if (it != col.end())
+  foo(*it);\end{lstlisting}
+  \end{codeblock}
+\end{frame} 
+
+\begin{frame}[fragile]
+  \frametitle{Constraining function on implementation}
+  \begin{codeblock}{Unconstrained}
+    \begin{lstlisting}
+template<typename T>
+decltype(auto) foo(T&& t) { ... }\end{lstlisting}
+  \end{codeblock}
+  
+  \begin{codeblock}{Constrained}
+    \begin{lstlisting}
+template<typename T>
+decltype(auto) foo_impl(T&& t) { ... }
+
+template<typename T>
+auto foo(T&& t)
+   -> decltype(foo_impl(std::forward<T>(t)))
+{ return foo_impl(std::forward<T>(t)); }\end{lstlisting}
+  \end{codeblock}
+\end{frame} 
+
+\end{document}
