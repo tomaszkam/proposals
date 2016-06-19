@@ -115,7 +115,7 @@ std::vector<std::string> vs;\end{lstlisting}
             \lstinline!        [](auto i) { return i == 2; })!\\
             250 lines of error
       \item \lstinline!find_if(vs.begin(), vs.end(),!
-            \lstinline!        [](auto i) -> decltype(auto) { return i == 2; })!\\
+            \lstinline!        [](auto i) -> decltype(i == 2) { return i == 2; })!\\
             8 lines of error
     \end{itemize}
   \end{block}
