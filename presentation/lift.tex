@@ -1,0 +1,195 @@
+\documentclass{beamer}
+
+%\documentclass[handout]{beamer}
+%\usepackage{pgfpages}
+%\pgfpagesuselayout{2 on 1}[a4paper,border shrink=5mm]
+
+%\usepackage{beamerthemewarsav}
+%\usetheme{Warsaw}
+\usecolortheme{beaver}
+\usepackage[MeX]{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{ulem}
+
+
+\newenvironment<>{titleblock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{\centerline{#1}}%
+      \par%
+      \mode<presentation>{%
+       \setbeamercolor{block title}{use=frametitle,fg=frametitle.fg,bg=frametitle.bg}
+       \setbeamerfont{block title}{size=\Large}
+      }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+
+\newenvironment<>{codeblock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{#1}%
+      \par%
+      \mode<presentation>{%
+       \setbeamercolor{block title}{fg=white,bg=orange!20!black}
+       \setbeamercolor{block body}{fg=black,bg=olive!10}
+       \setbeamercolor{itemize item}{fg=orange!20!black}
+       \setbeamertemplate{itemize item}[triangle]
+     }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\begin{document}
+
+\title{Comments on P0119: Overload sets as function argument}  
+\author{Tomasz Kamiński}
+\institute[sabre]{Pricinpal Software Developer, Sabre}
+\date{\today} 
+
+\lstset{
+  basicstyle=\small,
+  breakatwhitespace=true,
+  language=C++,
+  keepspaces=true,
+  breaklines=true,
+  tabsize=2, 
+  showstringspaces=false,
+  extendedchars=true
+}
+
+\frame{
+  \titlepage
+} 
+
+\begin{frame}[fragile]
+  \frametitle{Goal}
+  \begin{codeblock}{Fix code like:}
+    \begin{lstlisting}
+template<typename I>
+void f(I first, I last)
+{
+  transform(first, last, twice);
+}\end{lstlisting}
+  \end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example 1: Works}
+  \begin{lstlisting}
+  int twice(int);
+  long twice(long);
+
+  template<typename I>
+  void f(I first, I last)
+  {
+    transform(first, last, twice);
+    //generates closure
+  }
+
+  std::vector<int> v;
+  f(v.begin(), v.end()); 
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example 2: Works}
+  \begin{lstlisting}
+  int twice(int);
+  long twice(long);
+
+  namespace n {
+    struct M {};
+    M twice(M);
+  }
+
+  template<typename I>
+  void f(I first, I last)
+  {
+    transform(first, last, twice);
+    //generates closure
+  }
+
+  std::vector<n::M> v;
+  f(v.begin(), v.end()); 
+  \end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Example 3: Does not work}
+  \begin{lstlisting}
+  int twice(int);
+
+  namespace n {
+    struct M {};
+    M twice(M);
+  }
+
+  template<typename I>
+  void f(I first, I last)
+  {
+    transform(first, last, twice);
+    //resolves to int(*)(int)
+  }
+
+  std::vector<n::M> v;
+  f(v.begin(), v.end()); 
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example 4: Does not work}
+  \begin{lstlisting}
+  namespace n {
+    struct M {};
+    M twice(M);
+  }
+
+  template<typename I>
+  void f(I first, I last)
+  {
+    transform(first, last, twice);
+    //not twice declaration found
+  }
+
+  std::vector<n::M> v;
+  f(v.begin(), v.end()); 
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example 5: Works}
+  \begin{lstlisting}
+  int twice(int, bool = true);
+  long twice(long);
+
+  template<typename I>
+  void f(I first, I last)
+  {
+    transform(first, last, twice);
+    //generates closure
+  }
+
+  std::vector<int> v;
+  f(v.begin(), v.end()); 
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example 6: Does not work}
+  \begin{lstlisting}
+  int twice(int, bool = true);
+
+  template<typename I>
+  void f(I first, I last)
+  {
+    transform(first, last, twice);
+    //resolves to int(*)(int, bool)
+  }
+
+  std::vector<int> v;
+  f(v.begin(), v.end()); 
+  \end{lstlisting}
+\end{frame}
+
+\end{document}
