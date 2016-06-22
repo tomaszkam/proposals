@@ -78,10 +78,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th>D0358R1<td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0358R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>3016-06-18</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>3016-06-22</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -105,7 +105,8 @@ td { text-align: left; vertical-align: top;
 <h3><a name="revision.1">2.1. Revision 1</a></h3>
 
 <ul>
-  <li>Incorporated numerous corrections and suggestion from Patrice Roy's review.</li>
+  <li>Updated wording according to LWG review guidance.</li>
+  <li>Incorporated numerous motivation section corrections and suggestion from Patrice Roy's review.</li>
 </ul>
 
 
@@ -224,62 +225,11 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
    object optimization in <code>std::function</code>.</p> 
 
 
-<h2><a name="wording.minimal">5. Minimal wording</a></h2>
-
-<p>This section presents a minimalistic wording change that will address only lack of the 
-   value category propagation for the <code>not_fn</code>, which in author opinion is
-   most important issue amongst all discussed in this paper.</p>
-
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
-
-<p>Apply following changes to section 20.12.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
-<blockquote class="std"> 
-<pre>  template &lt;class F&gt;
-    <em>unspecified</em> not_fn(F&amp;&amp; f);
-</pre>
-
-  <dl class="attribute">
-
-    <dd><p>In the text that follows:
-    </p><ul>
-      <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
-      <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code>
-      </li><li><code>g</code> is a forwarding call wrapper created as a result of <code>not_fn(f)</code>,</li>
-    </ul><p></p></dd>
-
-    <dt>Requires:</dt> 
-    <dd><code>is_constructible&lt;FD, F&gt;::value</code> shall be <code>true</code>.
-        <code>fd</code> shall be a callable object ([func.def] 20.9.1).<p></p></dd>
-
-    <dt>Returns:</dt>
-    <dd><p>A forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(<ins>static_cast&lt;FD <em>cv</em> <em>ref</em>&gt;(</ins>fd<ins>)</ins>, a1, a2, ..., aN)</code> ([func.require] 20.9.2)
-           <ins>, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of <code>g</code> and <code><em>ref</em></code> is <code>&amp;</code> when <code>g</code>
-           is <em>lvalue</em> and <code>&amp;&amp;</code> otherwise. The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code></ins>.</p></dd>
-
-    <dt>Throws:</dt>
-    <dd><p>Nothing unless the construction of <code>fd</code> throws an exception.</p></dd>
-
-    <dt>Remarks:</dt>
-    <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
-        If <code>FD</code> satisfies the requirements of <code>CopyConstructible</code>, then 
-        the return type shall satisfy the requirements of <code>CopyConstructible</code>.
-        [ <em>Note:</em> This implies that <code>FD</code> is MoveConstructible.
-          <em> — end note</em> ]</p></dd>
-  </dl>
-</blockquote>
-
-<p>Note: <code>volatile</code> overloads are intentionally omitted to follow resolution of 
-   <a href="http://wg21.cmeerw.net/lwg/issue2487">LWG issue #2487</a>.</p>
-
-<h2><a name="wording.comprehesive">6. Comprehensive wording</a></h2>
+<h2><a name="wording.proposed">5. Proposed wording</a></h2>
 
 <p>This wording presents an alternative approach that, instead of trying to indirectly describe
     requirements of the created functor, describes them in terms of an exposition only class. 
     The author believes that such an approach leads to a cleaner specification.</p>
-
-<p class="comment">In addition, the wording is accompanied by the author's drafting notes,
-   that use the same formating as this paragraph.</p>
 
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
 
@@ -292,28 +242,18 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 
   <dl class="attribute">
     <dt>Effects:</dt> 
-    <dd>Equivalent to: <code>return call_wrapper(std::forward&lt;F&gt;(f))</code>, 
-        where <code>call_wrapper</code> is exposition only class defined as follows:</dd>
-
-    <p class="comment">Use of "Effects: Equivalent to" allow us to inherit specification
-      from the <code>call_wrapper</code> constructor.</p>
+    <dd>Equivalent to <code>return call_wrapper(std::forward&lt;F&gt;(f))</code>, 
+        where <code>call_wrapper</code> is an exposition, only class defined as follows:</dd>
 
     <pre>class call_wrapper
 {</pre>
-   <p class="comment">Exposition only <code>call_wrapper</code> class is defined for specific
-   invocation of <code>not_fn</code> with template parameter <code>F</code>, so it does not
-   need to be template.</p>
 
    <pre>   using FD = decay_t&lt;F&gt;;
+   explicit call_wrapper(F&amp;&amp; f);</pre>
 public:
-   explicit call_wrapper(F&amp;&amp; f) noexcept(is_nothrow_constructible_v&lt;FD, F&gt;);</pre>
-   <p class="comment">As above, this class works for specific type <code>F</code>, so perfect
-   forwarding is not needed.</p>
 
    <pre>   call_wrapper(call_wrapper&amp;&amp;) = default;
    call_wrapper(call_wrapper const&amp;) = default;</pre>
-   <p class="comment">Defaulting special member functions on first declaration guarantee that
-   they will have same affects and exception specification as the default generated ones.</p> 
 
    <pre>   template&lt;typename... Args&gt;
      auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
@@ -326,16 +266,13 @@ public:
 
    template&lt;typename... Args&gt;
      auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</pre>
-   <p class="comment">Listing call operators clearly indicates that both <code>const</code> and reference qualification
-   are supported. <code>volatile</code> overloads are intentionally omitted to follow resolution of 
-   <a href="http://wg21.cmeerw.net/lwg/issue2487">LWG issue #2487</a>.</p>
 
 <pre>private:
   FD fd;
 };</pre>
 
     <p class="function">
-      <code>explicit call_wrapper(F&amp;&amp; f) noexcept(is_nothrow_constructible_v&lt;FD, F&gt;);</code>
+      <code>explicit call_wrapper(F&amp;&amp; f);</code>
     </p>
 
     <dl class="attribute">
@@ -352,18 +289,10 @@ public:
       <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
     </dl>
 
-    <p class="function">
-      <code>template&lt;typename... Args&gt; auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());</code><br/>
-      <code>template&lt;typename... Args&gt; auto operator()(Args&amp;&amp;...) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());</code>
-    </p>
-
     <dl class="attribute">
       <dt>Effects:</dt>
-      <dd><p>Equivalent to: <code>return !<em>INVOKE</em>(fd, std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
+      <dd><p>Equivalent to <code>return !<em>INVOKE</em>(fd, std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
     </dl>
-    <p class="comment">Use of "Effects: Equivalent to" requires that effects of invocation are the same as corresponding 
-    <code><em>INOVKE</em></code> expression even in SFINAE context. In addition use of <code>result_of</code> in specification of 
-    return type gives same effects.</p>
 
     <p class="function">
       <code>template&lt;typename... Args&gt; auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br/>
@@ -372,9 +301,8 @@ public:
 
     <dl class="attribute">
       <dt>Effects:</dt>
-      <dd><p>Equivalent to: <code>return !<em>INVOKE</em>(std::move(fd), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
+      <dd><p>Equivalent to <code>return !<em>INVOKE</em>(std::move(fd), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
     </dl>
-    <p class="comment">For the rvalue qualified call operators, invocation is performed on rvalue reference to <code>FD</code> type.</p>
 
   </dl>
 </blockquote>
