@@ -227,10 +227,6 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 
 <h2><a name="wording.proposed">5. Proposed wording</a></h2>
 
-<p>This wording presents an alternative approach that, instead of trying to indirectly describe
-    requirements of the created functor, describes them in terms of an exposition only class. 
-    The author believes that such an approach leads to a cleaner specification.</p>
-
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
 
 <p>Change the section 20.12.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
@@ -242,28 +238,28 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
 
   <dl class="attribute">
     <dt>Effects:</dt> 
-    <dd>Equivalent to <code>return call_wrapper(std::forward&lt;F&gt;(f))</code>, 
-        where <code>call_wrapper</code> is an exposition, only class defined as follows:</dd>
+    <dd>Equivalent to <code>return <i>call_wrapper</i>(std::forward&lt;F&gt;(f))</code>, 
+        where <code><i>call_wrapper</i></code> is an exposition only class, defined as follows:</dd>
 
-    <pre>class call_wrapper
+    <pre>class <i>call_wrapper</i>
 {
    using FD = decay_t&lt;F&gt;;
-   explicit call_wrapper(F&amp;&amp; f);
+   explicit <i>call_wrapper</i>(F&amp;&amp; f);
 
 public:
-   call_wrapper(call_wrapper&amp;&amp;) = default;
-   call_wrapper(call_wrapper const&amp;) = default;
+   <i>call_wrapper</i>(<i>call_wrapper</i>&amp;&amp;) = default;
+   <i>call_wrapper</i>(<i>call_wrapper</i> const&amp;) = default;
 
-   template&lt;typename... Args&gt;
+   template&lt;class... Args&gt;
      auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
 
-   template&lt;typename... Args&gt;
+   template&lt;class... Args&gt;
      auto operator()(Args&amp;&amp;...) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());
 
-   template&lt;typename... Args&gt;
+   template&lt;class... Args&gt;
      auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());
 
-   template&lt;typename... Args&gt;
+   template&lt;class... Args&gt;
      auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());
 
 private:
@@ -271,7 +267,7 @@ private:
 };</pre>
 
     <p class="function">
-      <code>explicit call_wrapper(F&amp;&amp; f);</code>
+      <code>explicit <i>call_wrapper</i>(F&amp;&amp; f);</code>
     </p>
 
     <dl class="attribute">
@@ -288,14 +284,19 @@ private:
       <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
     </dl>
 
+    <p class="function">
+      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());</code><br/>
+      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());</code>
+    </p>
+
     <dl class="attribute">
       <dt>Effects:</dt>
       <dd><p>Equivalent to <code>return !<em>INVOKE</em>(fd, std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
     </dl>
 
     <p class="function">
-      <code>template&lt;typename... Args&gt; auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br/>
-      <code>template&lt;typename... Args&gt; auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</code>
+      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br/>
+      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</code>
     </p>
 
     <dl class="attribute">
