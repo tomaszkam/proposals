@@ -246,16 +246,15 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
         where <code>call_wrapper</code> is an exposition, only class defined as follows:</dd>
 
     <pre>class call_wrapper
-{</pre>
+{
+   using FD = decay_t&lt;F&gt;;
+   explicit call_wrapper(F&amp;&amp; f);
 
-   <pre>   using FD = decay_t&lt;F&gt;;
-   explicit call_wrapper(F&amp;&amp; f);</pre>
 public:
+   call_wrapper(call_wrapper&amp;&amp;) = default;
+   call_wrapper(call_wrapper const&amp;) = default;
 
-   <pre>   call_wrapper(call_wrapper&amp;&amp;) = default;
-   call_wrapper(call_wrapper const&amp;) = default;</pre>
-
-   <pre>   template&lt;typename... Args&gt;
+   template&lt;typename... Args&gt;
      auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
 
    template&lt;typename... Args&gt;
@@ -265,9 +264,9 @@ public:
      auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());
 
    template&lt;typename... Args&gt;
-     auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</pre>
+     auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());
 
-<pre>private:
+private:
   FD fd;
 };</pre>
 
