@@ -160,7 +160,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates it's members to the underlining <code><em>INVOKE</em></code> expression
+         that propagates its members to the underlining <code><em>INVOKE</em></code> expression
          on callable [ Note: This typically includes also wrapped callable - end note ]. This
          propagation step shall ensure that the member of type <code>T</code> is delivered
          as lvalue reference to <code>T <em>cv</em></code> when call is preformed on 
@@ -169,14 +169,14 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          <ins><p></p></dd>
 
-     <dd><ins>Whenever the specification says that the call expression on the perfect forwarding call wrapper 
-         is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
-         the same way as Equivalent to: <code>return <em>e</em></code> in <em>Effects:</em> element of corresponding
-         call operator (17.5.1.4 [structure.specifications]).
+     <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
+         call wrapper  is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
+         the same way as Equivalent to: <code>return <em>e</em></code> in an <em>Effects:</em> element of
+         corresponding the call operator (17.5.1.4 [structure.specifications]).
          <ins><p></p></dd>
 
-     <dd><ins>The copy and move constructors of the prefect forwarding call wrapper, shall have the same semantics as
-         if the corresponding operation would be explicitly defaulted on first declaration (8.4.2 [dcl.fct.def.default])
+     <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same semantics as
+         if the corresponding operation would be explicitly defaulted oni the first declaration (8.4.2 [dcl.fct.def.default])
          [ Note: This means that prefect forwarding call wrapper type is CopyConstructible when type of its members
            satisfy requirements of CopyConstructible - end note. ].
         <ins><p></p></dd>    
