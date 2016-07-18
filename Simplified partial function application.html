@@ -543,8 +543,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
    as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
-   The major improvements over Library Fundamentals TS v2 wording, comes from defining result of <code>not_fn(f)</code>
-   to be <em>prefect forwarding call wrapper</em>, instead of <em>argument forwarding call wrapper</code>.</p>
+   The major improvements over <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html#func.not_fn">Library Fundamentals TS v2 wording</a>,
+   comes from using <em>prefect forwarding call wrapper</em> in definition of <code>not_fn(f)</code> return.</p>
 
 <p>Change the section 20.14.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
 <blockquote class="stdins"> 
@@ -689,7 +689,6 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       (P0051R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">
                 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf</a>)</li>
 
-
   <li>Vicente J. Botet Escribá, 
       "<code>decay_unwrap</code> and <code>unwrap_reference</code>" 
       (P0318R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">
@@ -699,7 +698,11 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       "Working Draft, Standard for Programming Language C++"
       (N4606, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">
               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf</a>)</li>
-</ol>
 
+  <li>Geoffrey Romer,
+      "Working Draft, C++ Extensions for Library Fundamentals, Version 2"
+      (N4600, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html</a>)</li>
+</ol>
 
 </body></html>
