@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0356R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-05-22</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-07-18</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -95,6 +95,12 @@ td { text-align: left; vertical-align: top;
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="history">2. History</a></h2>
+
+<p>TODO: Revision 1:
+   - wording
+   - remove bind_back
+   - move double move to design decision
+   - discuss output parameter</p>
 
 <p>This proposal is successor of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">N4171: Parameter group placeholders for bind</a>,
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
@@ -347,16 +353,11 @@ private:
    of implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
    user.</p>
 
-<p>Secondly, repeated uses of the placeholder leads to double move of 
-the passed object and as consequence unspecified
-   values of the arguments. Occurrence of this problem depends both of 
-bound arguments passed to the bind
-   and once that are provided on the call side. This problem could 
-potentially be fixed by introducing another type of
-   placeholder that would pass rvalues as const rvalue reference or 
-additional logic that will detect duplicated arguments
-   on compile them and modify their value category. However both 
-solutions would only increase the complexity of implementation and use.</p> 
+<p>Secondly, repeated uses of the placeholder leads to double move of the passed object and as consequence unspecified
+   values of the arguments. Occurrence of this problem depends both of bound arguments passed to the bind
+   and once that are provided on the call side. This problem could potentially be fixed by introducing another type of
+   placeholder that would pass rvalues as const rvalue reference or additional logic that will detect duplicated arguments
+   on compile them and modify their value category. However both solutions would only increase the complexity of implementation and use.</p> 
    
 
 <h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></a></h3>
@@ -393,13 +394,9 @@ is invalid.</p>
 <h3><a name="design.fixing_bind">4.3. Fixing <code>std::bind</code></a></h3>
 
 <p>Additional motivation for introduction of then new function, is that fixing the problems mentioned above in <code>std::bind</code>
- would
-   require introduction of breaking changes to the existing codebase. 
-Furthermore such changes would not only take verbose form, when
-   previously valid code will no longer compile, but may also silently 
-change its meaning, by selecting different overload of underlining
-   functor. The author believes that in such case introduction of new 
-functions would be required anyway.</p>
+would require introduction of breaking changes to the existing codebase. Furthermore such changes would not only take verbose form, when
+previously valid code will no longer compile, but may also silently change its meaning, by selecting different overload of underlining
+functor. The author believes that in such case introduction of new functions would be required anyway.</p>
 
 <h2><a name="standard">5. Impact On The Standard</a></h2>
 
@@ -410,7 +407,174 @@ functions would be required anyway.</p>
 
 <h2><a name="wording">6. Proposed Wording</a></h2>
 
-<p>To be determined.</p>
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12).</p>
+
+
+<h3><a name="wording.pfcw">6.1 Definition of <em>perfect forwarding call wrapper</em></h3>
+
+<p>This section introduces a <em>perfect forwarding call wrapper</em> concept, that groups a set of common requirements for the call wrapper
+   the call wrapper for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
+   of the proposed <code>bind_front</code> and existing <code>not_fn</code> function. In addition it can be extended to cover <code>overload</code>
+   function (proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051: C++ generic <code>overload</code>  function</a>),
+   by allowing call wrapper to hold multiple target objects.</p>
+   
+<p>In addition to avoid potential confusion, existing <em>forwarding call wrapper</em> is renamed to <em>argument forwarding call wrapper</em>,
+   to better reflect is functionality.</p>
+
+<p>Apply following changes to paragraph 20.14.1 Definitions [func.def]:</p>
+<blockquote class="std"> 
+  <dl class="attribute">
+    <dd>A <em>call wrapper type</em> is a type that holds a callable object and supports a call operation that forwards to that object.<p></p></dd>    
+    
+    <dd>A <em>call wrapper</em> is an object of a call wrapper type.<p></p></dd>
+
+    <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
+
+    <dd><ins>A call wrapper type can additionally hold a set of <em>bound argument objects</em> that are passed as arguments for target object.<ins/><p></p></dd>
+
+    <dd><ins>A target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.<ins><p></p></dd>
+  </dl>
+</blockquote>
+
+<p>Apply following changes to paragraph 20.14.2 Requirements [func.require]:</p>
+<blockquote class="std"> 
+  <dl class="attribute">
+    <dd>Every call wrapper (20.14.1) shall be <code>MoveConstructible</code>.
+
+        A<ins>n</ins> <em><ins>argument</ins> forwarding call wrapper</em> is a call wrapper that
+        can be called with an arbitrary argument list and delivers the arguments to the wrapped 
+        callable object as references. This forwarding step shall ensure that rvalue arguments
+        are delivered as rvalue references and lvalue arguments are delivered as lvalue references.
+
+        A <em>simple call wrapper</em> is a<ins>n argument</ins> forwarding call wrapper that is <code>CopyConstructible</code>
+        and <code>CopyAssignable</code> and whose copy constructor, move constructor, and assignment
+        operator do not throw exceptions. 
+       
+        [ Note: In a typical implementation <ins>argument</ins> forwarding call wrappers
+        have an overloaded function call operator of the form
+<pre>template&lt;class... UnBoundArgs&gt;
+R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
+        — end note ].<p></p></dd>
+
+     <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
+         that propagates its state objects to the underlining <code><em>INVOKE</em></code> expression
+         [ Note: This includes also target object - end note ]. This  propagation step shall ensure that
+         the state object of type <code>T</code> is delivered  as lvalue reference to <code>T <em>cv</em></code>
+         when call is preformed on  lvalue of the call wrapper type and rvalue reference to <code>T <em>cv</em></code>
+         otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of call wrapper.
+         The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
+         <ins><p></p></dd>
+
+     <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
+         call wrapper  is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
+         the same way as Equivalent to: <code>return <em>e</em></code> in an <em>Effects:</em> element of
+         corresponding the call operator (17.5.1.4 [structure.specifications]).
+         <ins><p></p></dd>
+
+     <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same semantics as
+         the implicitly-defined memberwise operation preformed over state objects (12.8 [class.copy])
+         [ Note: This implies that prefect forwarding call wrapper type is CopyConstructible when type of its state objects
+           satisfy requirements of CopyConstructible - end note. ].
+        <ins><p></p></dd>    
+  </dl>
+</blockquote>
+
+<p>Replace all references to forwarding call wrapper with argument forwarding call wrapper in following sections:<p>
+<ul>
+   <li>20.14.10.3 Function template <code>bind</code> [func.bind.bind]</li>
+   <li>D.7.2 Typedefs to support function binders [depr.func.adaptor.typedefs].</li>
+</ul>
+
+<h3><a name="wording.bind_front">6.2 Wording for <code>bind_front</code></a></h3>
+
+<p>After section 20.14.9 Function template <code>not_fn</code>, insert a new section. (Chapter [bind] (Function template <code>bind</code>) becomes 20.14.?)</p>
+
+<blockquote class="stdins"> 
+<h4><a name="func.bind_front">20.14.10 Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
+
+<pre>  template &lt;class F, class... Args &gt;
+    <em>unspecified</em> bind_front(F&amp;&amp; f, Args&amp;&amp;... args);
+</pre>
+
+  <dl class="attribute">
+
+    <dd><p>In the text that follows:</p>
+    <ul>
+      <li><code>g</code> is a call wrapper created as a result of <code>not_fn(f)</code>,</li>
+
+      <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
+      <li><code>fd</code> is a target object of <code>g</code> 
+           of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f)</code>,</li>
+      <li><code>BoundArgs</code> is a pack of types equivalent to <code><em>DECAY_UNWRAP</em>(Args)...</code>,</li>
+      <li><code>bound_args</code> is a pack of bound argument objects of <code>g</code>
+           of types <code>BoundArgs...</code> 
+           constructed from <code>std::forward&lt;Args&gt;(args)...</code> respectively,</li>
+    </ul>
+    where <code><em>DECAY_UNWRAP</em>(T)</code> is determined as follows: 
+    Let <code>U</code> be <code>std::decay_t&lt;T&gt;</code>.
+    Then <code><em>DECAY_UNWRAP</em>(T)</code> is <code>X&amp;</code> if <code>U</code> equals <code>reference_wrapper&lt;X&gt;</code>,
+    otherwise <code><em>DECAY_UNWRAP</em>(T)</code> is <code>U</code>.<p></p></dd>
+
+    <dt>Requires:</dt> 
+    <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+        <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
+        For each <code>Ti</code> in <code>BoundArgs</code>, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+        <code>(is_constructible_v&lt;BoundArgs, Args&gt; &amp;&amp; ...)</code> shall be true.
+        <code>fd</code> shall be a callable object ([func.def] 20.14.1).
+    <p></p></dd>
+
+    <dt>Returns:</dt>
+    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
+           is equivalent to <code>!<em>INVOKE</em>(fd, bound_args..., a1, a2, ..., aN)</code> ([func.require] 20.14.2).</p></dd>
+
+    <dt>Throws:</dt>
+    <dd><p>Any exception thrown by construction of state objects of <code>g</code>.</p></dd>
+
+  </dl>
+</blockquote>
+
+<p>Note: This wording can be further simplified by use of <code>decay_unwrap</code> from
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper:</p>
+
+
+<h3><a name="wording.dep_bind">6.3 Wording for deprecating <code>bind</code></a></h3>
+
+<h3><a name="wording.not_fn">6.4 Auxiliary proposal: Alternative wording for <code>not_fn</code></a></h3>
+
+<p>Change the section 20.14.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
+<blockquote class="stdins"> 
+
+<pre>  template &lt;class F&gt;
+    <em>unspecified</em> not_fn(F&amp;&amp; f);
+</pre>
+
+  <dl class="attribute">
+
+    <dd><p>In the text that follows:</p>
+    <ul>
+      <li><code>g</code> is a call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
+      <li><code>fd</code> is a target object of <code>g</code> 
+           of type <code>FD</code> 
+           constructed from <code>std::forward&lt;F&gt;(f)</code>.</li>
+    </ul><p></p></dd>
+
+    <dt>Requires:</dt> 
+    <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+        <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
+        <code>fd</code> shall be a callable object ([func.def] 20.14.1).
+    <p></p></dd>
+
+    <dt>Returns:</dt>
+    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
+           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.14.2).</p></dd>
+
+    <dt>Throws:</dt>
+    <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
+
+  </dl>
+</blockquote>
+
 
 <h2><a name="implementability">7. Implementability</a></h2>
 
@@ -467,7 +631,7 @@ auto bind_front(Func&amp;&amp; func, BoundArgs&amp;&amp;... boundArgs)
 }</pre>
 
 <p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary metafunction from 
-<a href="https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf">D0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper:</p>
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper:</p>
 <pre>template&lt;typename T&gt;
 struct decay_unwrap;
 
@@ -516,9 +680,20 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html</a>)</li>
 
   <li>Vicente J. Botet Escribá, 
+      "C++ generic <code>overload</code> function (Revision 1)" 
+      (P0051R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf</a>)</li>
+
+
+  <li>Vicente J. Botet Escribá, 
       "<code>decay_unwrap</code> and <code>unwrap_reference</code>" 
-      (D0318R0, <a href="https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf">
-                https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf</a>)</li>
+      (P0318R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf</a>)</li>
+
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4606, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf</a>)</li>
 </ol>
 
 
