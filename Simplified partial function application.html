@@ -430,7 +430,7 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type can additionally hold a set of <em>bound argument objects</em> that are passed as arguments for target object.<ins/><p></p></dd>
+    <dd><ins>A call wrapper type can additionally hold a set of <em>bound argument objects</em> that may passed as arguments for target object.<ins/><p></p></dd>
 
     <dd><ins>A target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.<ins><p></p></dd>
   </dl>
@@ -540,6 +540,11 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 <h3><a name="wording.dep_bind">6.3 Wording for deprecating <code>bind</code></a></h3>
 
 <h3><a name="wording.not_fn">6.4 Alternative wording for <code>not_fn</code></a></h3>
+
+<p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
+   as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
+   The major improvements over Library Fundamentals TS v2 wording, comes from defining result of <code>not_fn(f)</code>
+   to be <em>prefect forwarding call wrapper</em>, instead of <em>argument forwarding call wrapper</code>.</p>
 
 <p>Change the section 20.14.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
 <blockquote class="stdins"> 
