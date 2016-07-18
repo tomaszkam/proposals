@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+p.comment {
+  max-width: 80%;
+  margin: 1ex;
+  border: 1px dashed #888;
+  padding: 1ex;
+  background-color: #ffffe6;
+}
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Fixes for 'not_fn'</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0358R1</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-06-22</td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Fixes for <code>not_fn</code></a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>In this paper new wording for <code>std::not_fn</code> is proposed, that amongst other improvements,
+   provides support of propagation of value category in case of wrapper invocation.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="revision">2.. Revision History</a></h2>
+
+<h3><a name="revision.1">2.1. Revision 1</a></h3>
+
+<ul>
+  <li>Updated wording according to LWG review guidance.</li>
+  <li>Incorporated numerous motivation section corrections and suggestion from Patrice Roy's review.</li>
+</ul>
+
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>The main motivation for creation of this paper comes from the realisation that the existing wording for <code>std::not_fn</code>,
+   that was recently accepted in the C++17, requires implementation to always perform call on the lvalue of the stored callable.</p>
+
+<p>This effectively requires <code>std::not_fn</code> to disregard the reference qualification of nested function. For example
+   in case of the following definitions:</p>
+<pre>struct RvalueCallable
+{
+  bool operator()() &amp;&amp;;
+};
+
+struct LvalueCallable
+{
+  bool operator()() &amp;;
+};
+
+auto rval = std::not_fn(RvalueCallable{});
+auto lval = std::not_fn(LvalueCallable{});</pre>
+<p>Both the invocation <code>rval()</code> and <code>std::move(rval)()</code> are ill-formed, as they will lead to call on the
+   <code>RvalueCallable&amp;</code>. In addition the call <code>std::move(lval)()</code> is well-formed despite explicit
+   reference qualification of the <code>LvalueCallable::operator()</code>, that should prevent invocation on temporaries.</p>
+   
+<p>It also important to emphasize that introduction of the value category propagation after standardization of the current
+   wording would be a breaking change. Furthermore, such breakage may be silent in case when the wrapped callable was
+   providing both lvalue and rvalue overloads of the call operator - in case of temporary wrappers, the code will start
+   to invoke rvalue overloads.</p>
+
+<h2><a name="discussion">4. Wording Discussion</a></h2>
+
+<p>After finding above flaws in the current wording, I (author of this paper, that also happens to be author of 
+   the wording) have decided to review it thoughtfully again. This section contains list of a possible problems
+   that I was able to identify.</p>
+
+<p>Note: Wording used for <code>not_fn</code> was largely based on existing wording of the <code>std::bind</code>,
+   so most of the issue are common to these components.</p>
+
+<h3><a name="discussion.call">4.1. Effects of the invocation</a></h3>
+
+<p>In the newest working draft <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> 
+   (C++ Working Draft, 2016-03-19), effects of invocation of the <code>std::not_fn</code> created wrapper are defined
+    as follows (20.12.9 [func.not_fn]):</p>
+<blockquote class="std"> 
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><p>A forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
+           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> (20.12.2).</p></dd>
+  </dl>
+</blockquote>
+
+<p>Where:</p>
+<blockquote class="std"> 
+   <ul>
+      <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
+      <li><code>fd</code> is an lvalue of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f),</code></li>
+      <li><code>g</code> is a forwarding call wrapper created as a result of <code>not_fn(f)</code>,</li>
+    </ul>
+</blockquote>
+
+<p>Firstly, we may notice that the definition of <code>fd</code> explicitly states that it is <b>lvalue</b>
+   reference, which results in the problems described in motivation section.</p>
+
+<p>Secondly, the above wording does not mention how <code><em>cv</em></code> qualification will affect
+   underlining functor. To be explicit, the wording only describes effects of the invocation on the
+   temporary created as the result of <code>not_fn</code> invocation. As a consequence, implementations
+   that will provide only single overload of call operator in form:</p>
+<pre>template&lt;typename... Args&gt;
+decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
+{ return std::invoke(fd, std::forward&lt;Args&gt;(args)...); }</pre> 
+<p>could be considered as standard conforming, despite is questionable usability.</p>
+
+<p>The author believes that the wording should guarantee that for the every invocation 
+   <code>static_cast&lt;G <em>cv</em> <em>ref</em>&gt;(g)(args...)</code> is equivalent to 
+   <code>static_cast&lt;FD <em>cv</em> <em>ref</em>&gt;(fd)(args...)</code>, where:</p>
+<ul>
+  <li><code>G</code> is type of <code>g</code></li>
+  <li><code><em>cv</em></code> is either <code>const</code> or empty</li>
+  <li><code><em>ref</em></code> is either <code>&amp;</code> or <code>&amp;&amp;</code>
+</li></ul>
+
+<p>In addition, current wording does not clarify if the invocation <code>std::not_fn(f)(args...)</code> are 
+   equivalent to <code>!std::invoke(f, args...)</code> in unevaluated context. Such a guarantee is important
+   for components that conditionally exposes features, depending on the validity of the call expression.
+   Most notable example of such functionality is <code>std::function&lt;R(Args...)&gt;</code> that is only
+   constructible from type <code>F</code>, that is lvalue callable with <code>Args...</code> and has return
+   compatible with <code>R</code>.</p>
+
+<h3><a name="discussion.moveability">4.2. Move/copy operations on the wrapper</a></h3>
+
+<p>Existing wording describes requirements on transferability of the created wrapper as 
+   follows (20.12.9 [func.not_fn]):</p>
+<blockquote class="std"> 
+  <dl class="attribute">
+    <dd><p>The return type shall satisfy the requirements of <code>MoveConstructible</code>.
+        If <code>FD</code> satisfies the requirements of <code>CopyConstructible</code>, then 
+        the return type shall satisfy the requirements of <code>CopyConstructible</code>.
+        [ <em>Note:</em> This implies that <code>FD</code> is MoveConstructible.
+          <em> — end note</em> ]</p></dd>
+  </dl>
+</blockquote>
+
+<p>The wording is requiring that the wrapper will expose the same set of the operations as the
+   wrapped callable, however it is not defined how these operations would be defined in
+   terms of corresponding operations on the nested functor type <code>FD</code>.
+   As example in case when the <code>FD</code> is <code>CopyConstructible</code>, conforming
+   implementation of the wrapper could expose only copy constructor (without declaration of
+   move constructor) as every <code>CopyConstructible</code> is by definition <code>MoveConstructible</code>.</p>
+
+<p>In addition is is not specified if the exposed move operation of the wrapper would have the
+   same exception specification as the corresponding operation of the underlining wrapper.
+   As consequence wrapping a function pointer or simple lambda object into <code>not_fn</code>,
+   may disable optimizations that are requiring nothrowing move operations, like using small
+   object optimization in <code>std::function</code>.</p> 
+
+
+<h2><a name="wording.proposed">5. Proposed wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
+
+<p>Change the section 20.12.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
+<blockquote class="std"> 
+
+<pre>  template &lt;class F&gt;
+    <em>unspecified</em> not_fn(F&amp;&amp; f);
+</pre>
+
+  <dl class="attribute">
+    <dt>Effects:</dt> 
+    <dd>Equivalent to <code>return <i>call_wrapper</i>(std::forward&lt;F&gt;(f))</code>, 
+        where <code><i>call_wrapper</i></code> is an exposition only class, defined as follows:</dd>
+
+    <pre>class <i>call_wrapper</i>
+{
+   using FD = decay_t&lt;F&gt;;
+   explicit <i>call_wrapper</i>(F&amp;&amp; f);
+
+public:
+   <i>call_wrapper</i>(<i>call_wrapper</i>&amp;&amp;) = default;
+   <i>call_wrapper</i>(<i>call_wrapper</i> const&amp;) = default;
+
+   template&lt;class... Args&gt;
+     auto operator()(Args&amp;&amp;...) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());
+
+   template&lt;class... Args&gt;
+     auto operator()(Args&amp;&amp;...) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());
+
+   template&lt;class... Args&gt;
+     auto operator()(Args&amp;&amp;...) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());
+
+   template&lt;class... Args&gt;
+     auto operator()(Args&amp;&amp;...) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());
+
+private:
+  FD fd;
+};</pre>
+
+    <p class="function">
+      <code>explicit <i>call_wrapper</i>(F&amp;&amp; f);</code>
+    </p>
+
+    <dl class="attribute">
+      <dt>Requires:</dt>
+      <dd><p><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+          <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
+          <code>fd</code> shall be a callable object ([func.def] 20.12.1).
+      </p></dd>
+
+      <dt>Effects:</dt>
+      <dd><p>Initializes <code>fd</code> from <code>std::forward&lt;F&gt;(f)</code>.</p></dd>
+
+      <dt>Throws:</dt>
+      <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
+    </dl>
+
+    <p class="function">
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) &amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());</code><br>
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) const&amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());</code>
+    </p>
+
+    <dl class="attribute">
+      <dt>Effects:</dt>
+      <dd><p>Equivalent to <code>return !<em>INVOKE</em>(fd, std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
+    </dl>
+
+    <p class="function">
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) &amp;&amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br>
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) const&amp;&amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</code>
+    </p>
+
+    <dl class="attribute">
+      <dt>Effects:</dt>
+      <dd><p>Equivalent to <code>return !<em>INVOKE</em>(std::move(fd), std::forward&lt;Args&gt;(args)...)</code> ([func.require] 20.12.2).</p></dd>
+    </dl>
+
+  </dl>
+</blockquote>
+
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+
+<p>Stephan T. Lavavej suggested numerous corrections to <a href="#wording.comprehesive">comprehensive wording</a>
+   presented in the paper.</p>
+
+<p>Patrice Roy provided numerous corrections and improvement for the paper.</p> 
+
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
+   and for sponsoring author's trip to the Oulu for WG21 meeting.</p>
+
+<h2><a name="literature">8. References</a></h2>
+
+<ol>
+<li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4582, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf</a>)</li>
+</ol>
+
+
+</body></html>
