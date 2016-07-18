@@ -421,7 +421,7 @@ functor. The author believes that in such case introduction of new functions wou
 <p>In addition to avoid potential confusion, existing <em>forwarding call wrapper</em> is renamed to <em>argument forwarding call wrapper</em>,
    to better reflect is functionality.</p>
 
-<p>Apply following changes to paragraph 20.14.1 Definitions [func.def]:</p>
+<p>Apply following changes to paragraph [func.def] Definitions:</p>
 <blockquote class="std"> 
   <dl class="attribute">
     <dd>A <em>call wrapper type</em> is a type that holds a callable object and supports a call operation that forwards to that object.<p></p></dd>    
@@ -436,10 +436,10 @@ functor. The author believes that in such case introduction of new functions wou
   </dl>
 </blockquote>
 
-<p>Apply following changes to paragraph 20.14.2 Requirements [func.require]:</p>
+<p>Apply following changes to paragraph [func.require] Requirement:</p>
 <blockquote class="std"> 
   <dl class="attribute">
-    <dd>Every call wrapper ([func.def] 20.14.1) shall be <code>MoveConstructible</code>.
+    <dd>Every call wrapper ([func.def]) shall be <code>MoveConstructible</code>.
 
         A<ins>n</ins> <em><ins>argument</ins> forwarding call wrapper</em> is a call wrapper that
         can be called with an arbitrary argument list and delivers the arguments to the wrapped 
@@ -468,11 +468,11 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
      <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
          call wrapper is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
          the same way as Equivalent to: <code>return <em>e</em></code> in an <em>Effects:</em> element of
-         corresponding the call operator ([structure.specifications] 17.5.1.4).
+         corresponding the call operator ([structure.specifications]).
          <ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same semantics as
-         the implicitly-defined memberwise operation preformed over its state objects ([class.copy] 12.8)
+         the implicitly-defined memberwise operation preformed over its state objects ([class.copy])
          [ Note: This implies that prefect forwarding call wrapper type is CopyConstructible when types of its state objects
            satisfy requirements of CopyConstructible - end note. ].
         <ins><p></p></dd>    
@@ -481,16 +481,16 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <p>Replace all references to forwarding call wrapper with argument forwarding call wrapper in following sections:<p>
 <ul>
-   <li>20.14.10.3 Function template <code>bind</code> [func.bind.bind]</li>
-   <li>D.7.2 Typedefs to support function binders [depr.func.adaptor.typedefs].</li>
+   <li>[func.bind.bind] Function template <code>bind</code>,</li>
+   <li>[depr.func.adaptor.typedefs] Typedefs to support function binders.</li>
 </ul>
 
 <h3><a name="wording.bind_front">6.2 Wording for <code>bind_front</code></a></h3>
 
-<p>After section 20.14.9 Function template <code>not_fn</code> [func.not_fn], insert a new section.
+<p>After section [func.not_fn] Function template <code>not_fn</code>, insert a new section.
 
 <blockquote class="stdins"> 
-<h4><a name="func.bind_front">20.14.? Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
+<h4><a name="func.bind_front">Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args &gt;
     <em>unspecified</em> bind_front(F&amp;&amp; f, Args&amp;&amp;... args);
@@ -520,12 +520,12 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
         For each <code>Ti</code> in <code>BoundArgs</code>, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>(is_constructible_v&lt;BoundArgs, Args&gt; &amp;&amp; ...)</code> shall be true.
-        <code>fd</code> shall be a callable object ([func.def] 20.14.1).
+        <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require] 20.14.2).</p></dd>
+           is equivalent to <code>!<em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by construction of state objects of <code>g</code>.</p></dd>
@@ -546,7 +546,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
    The major improvements over <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html#func.not_fn">Library Fundamentals TS v2 wording</a>,
    comes from using <em>prefect forwarding call wrapper</em> in definition of <code>not_fn(f)</code> return.</p>
 
-<p>Change the section 20.14.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
+<p>Change the section [func.not_fn] Function template <code>not_fn</code> to:</p>
 <blockquote class="stdins"> 
 
 <pre>  template &lt;class F&gt;
@@ -567,12 +567,12 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dt>Requires:</dt> 
     <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
-        <code>fd</code> shall be a callable object ([func.def] 20.14.1).
+        <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
     <dt>Returns:</dt>
     <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require] 20.14.2).</p></dd>
+           is equivalent to <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
