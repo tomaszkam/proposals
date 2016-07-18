@@ -70,16 +70,16 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0356R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2016-05-22</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-05-22</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Library Evolution Working Group</td>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
   </tr>
   <tr>
-    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -100,8 +100,11 @@ td { text-align: left; vertical-align: top;
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
    instead of one.</p>
   
-<p>In this paper two new <code>bind_front</code> and <code>bind_back</code> are proposed that allow user to provide values that will be passed
-   as first or last arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for the original paper, 
+<p>In this paper two new <code>bind_front</code> and <code>bind_back</code>
+ are proposed that allow user to provide values that will be passed
+   as first or last arguments to stored callable. The author believes 
+that this solution is in-line with LEWG recommendation for the original 
+paper, 
    that suggested to introduce only <code>_all</code> placeholder.</p>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
@@ -152,8 +155,8 @@ f(std::string("some_string"), 1);</pre>
 
 <p>In our previous example the strategy object was stored in the callable indirectly by the use of the smart pointer,
    so it mutability was not affected by the functor. However in case of storing object by value we would like to propagate
-   constness from the functor. That means for each of the following declarations:<p>
-<pre>auto f = [s = Strategy{}] (auto&amp;&amp;... args) { return s.process(std::forward&lt;decltype(args)&gt;(args)...); }; // 1
+   constness from the functor. That means for each of the following declarations:</p><p>
+</p><pre>auto f = [s = Strategy{}] (auto&amp;&amp;... args) { return s.process(std::forward&lt;decltype(args)&gt;(args)...); }; // 1
 auto f = std::bind(&amp;Strategy::process, Strategy{}, _1, _2, _3, _4); // 2
 auto f = bind_front(&amp;Strategy::process, Strategy{}); // 3</pre>
 
@@ -344,11 +347,16 @@ private:
    of implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
    user.</p>
 
-<p>Secondly, repeated uses of the placeholder leads to double move of the passed object and as consequence unspecified
-   values of the arguments. Occurrence of this problem depends both of bound arguments passed to the bind
-   and once that are provided on the call side. This problem could potentially be fixed by introducing another type of
-   placeholder that would pass rvalues as const rvalue reference or additional logic that will detect duplicated arguments
-   on compile them and modify their value category. However both solutions would only increase the complexity of implementation and use.</p> 
+<p>Secondly, repeated uses of the placeholder leads to double move of 
+the passed object and as consequence unspecified
+   values of the arguments. Occurrence of this problem depends both of 
+bound arguments passed to the bind
+   and once that are provided on the call side. This problem could 
+potentially be fixed by introducing another type of
+   placeholder that would pass rvalues as const rvalue reference or 
+additional logic that will detect duplicated arguments
+   on compile them and modify their value category. However both 
+solutions would only increase the complexity of implementation and use.</p> 
    
 
 <h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></a></h3>
@@ -363,8 +371,7 @@ private:
    expression, by leading to the situations when <code>std::bind(f, a, b, c)()</code> is not invoking <code>f(a, b, c)</code>, 
    despite the user intent. This may occur in situation when type of values passed to <code>std::bind</code> are not know
    by the programmer at point of binding:</p>
-<pre>
-struct apply_twice
+<pre>struct apply_twice
 {
   template&lt;typename F, typename V&gt;
   auto operator()(F const&amp; f, V const&amp; v) const
@@ -385,10 +392,14 @@ is invalid.</p>
 
 <h3><a name="design.fixing_bind">4.3. Fixing <code>std::bind</code></a></h3>
 
-<p>Additional motivation for introduction of then new function, is that fixing the problems mentioned above in <code>std::bind</code> would
-   require introduction of breaking changes to the existing codebase. Furthermore such changes would not only take verbose form, when
-   previously valid code will no longer compile, but may also silently change its meaning, by selecting different overload of underlining
-   functor. The author believes that in such case introduction of new functions would be required anyway.</p>
+<p>Additional motivation for introduction of then new function, is that fixing the problems mentioned above in <code>std::bind</code>
+ would
+   require introduction of breaking changes to the existing codebase. 
+Furthermore such changes would not only take verbose form, when
+   previously valid code will no longer compile, but may also silently 
+change its meaning, by selecting different overload of underlining
+   functor. The author believes that in such case introduction of new 
+functions would be required anyway.</p>
 
 <h2><a name="standard">5. Impact On The Standard</a></h2>
 
@@ -401,7 +412,7 @@ is invalid.</p>
 
 <p>To be determined.</p>
 
-<h2><a name='implementability'>7. Implementability</a></h2>
+<h2><a name="implementability">7. Implementability</a></h2>
 
 <p>Example implementation of proposed <code>bind_front</code>:</p>
 <pre>template&lt;typename Func, typename BoundArgsTuple, typename... CallArgs&gt;
@@ -483,8 +494,8 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 <p>Proposed runtime version of <code>bind_front</code> and <code>bind_back</code> are inspired by their compile time counterparts from Eric Niebler's 
   <a href="http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/">Tiny Metaprogramming Library</a>.</p>
 
-  <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
-     and for sponsoring author's trip to the Oulu for WG21 meeting.</p>
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
+   and for sponsoring author's trip to the Oulu for WG21 meeting.</p>
 
 <h2><a name="literature">9. References</a></h2>
 
@@ -509,5 +520,6 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       (D0318R0, <a href="https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf">
                 https://github.com/viboes/std-make/blob/master/doc/proposal/utilities/p0318r0.pdf</a>)</li>
 </ol>
+
 
 </body></html>

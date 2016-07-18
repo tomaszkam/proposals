@@ -70,16 +70,16 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;<th> <td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0382R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;<th> <td>2016-05-29</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-05-29</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;<th> <td>Programming Language C++, Evolution Working Group</td>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Evolution Working Group</td>
   </tr>
   <tr>
-    <th>Reply-to:&nbsp;&nbsp;<th> <td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -182,8 +182,7 @@ int main()
 <p>In the case of the above program there will be two overloads of <code>empty</code> visible thought normal
 lookup at the point of use of <code>empty</code> as template parameter (marked as <code>//P</code>).
 This according to the wording presented in the paper lead to generation of the code equivalent to:</p>
-<pre>
-  template&lt;typename I&gt;
+<pre>  template&lt;typename I&gt;
   I remove_empty(I first, I last)
   { return std::remove(first, last, [](auto&amp;&amp;... args) { return empty(std::forward&lt;decltype(args)&gt;(args)...); });
 </pre>
@@ -197,8 +196,7 @@ and <code>//3</code> will compile, while for the <code>//3</code> line the <code
 #include "container2.hpp"</pre>
 <p>At the point of <code>//P</code> only one declaration one of <code>empty</code> will be visible, so according
 to the wording paper, this will lead to generation of following code.</p>
-<pre>
-  template&lt;typename I&gt;
+<pre>  template&lt;typename I&gt;
   I remove_empty(I first, I last)
   { return std::remove(first, last, &amp;empty); }
   //As the empty is not-overloaded, the <code>&amp;empty</code> is unambiguous
@@ -209,15 +207,14 @@ to the wording paper, this will lead to generation of following code.</p>
    and <code>//3</code> will not longer compile as both <code>cont::C2</code> and <code>my_cont::MC</code>
    will not be accepted as argument for <code>bool (*)(cont::C1 const&amp;)</code>.
 
-<p>For similar reasons only line <code>//2</code> will compile, if the header will be placed in following order:</p>
+</p><p>For similar reasons only line <code>//2</code> will compile, if the header will be placed in following order:</p>
 <pre>#include "container2.hpp"
 #include "remove_empty.hpp"
 #include "container1.hpp"</pre>
 
 <p>Finally the program will produce error mentioning not unresolved name <code>empty</code>,
    if the header will be ordered as follows:</p> 
-<pre>
-#include "remove_empty.hpp"
+<pre>#include "remove_empty.hpp"
 #include "container1.hpp"
 #include "container2.hpp"</pre>
 
@@ -280,8 +277,7 @@ instantiation.</p>
 <p>In addition to usual means, like declaration of multiple overloads of single function name or 
 declaring it as function template, there is one additional way to create a function that can be
 called with more than one set of arguments. We can declare single function with default parameter:</p>
-<pre>
-void increment(int&amp; i, int n = 1)
+<pre>void increment(int&amp; i, int n = 1)
 { i += 1; }
 </pre>
 
@@ -339,5 +335,6 @@ same signature.</p>
       (N3617, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm">
               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3617.htm</a>)</li>
 </ol>
+
 
 </body></html>
