@@ -487,12 +487,22 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <h3><a name="wording.bind_front">6.2 Wording for <code>bind_front</code></a></h3>
 
+<p>After the declaration of <code>not_fn</code> in the section [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
+
+<blockquote class="stdins"> 
+
+<pre>  // [func.bind_front], <em>binders</em>
+  template &lt;class F, class... Args&gt; <em>unspecified</em> bind_front(F&amp;&amp;, Args&amp;&amp;...);
+</pre>
+
+</blockquote>
+
 <p>After section [func.not_fn] Function template <code>not_fn</code>, insert a new section.
 
 <blockquote class="stdins"> 
 <h4><a name="func.bind_front">Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
 
-<pre>  template &lt;class F, class... Args &gt;
+<pre>  template &lt;class F, class... Args&gt;
     <em>unspecified</em> bind_front(F&amp;&amp; f, Args&amp;&amp;... args);
 </pre>
 
