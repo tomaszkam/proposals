@@ -459,21 +459,21 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
          that propagates its state objects to the underlining <code><em>INVOKE</em></code> expression
          [ Note: This includes also target object - end note ]. This  propagation step shall ensure that
-         the state object of type <code>T</code> is delivered  as lvalue reference to <code>T <em>cv</em></code>
-         when call is preformed on  lvalue of the call wrapper type and rvalue reference to <code>T <em>cv</em></code>
+         the state object of type <code>T</code> is delivered as lvalue reference to <code>T <em>cv</em></code>
+         when call is preformed on lvalue of the call wrapper type and rvalue reference to <code>T <em>cv</em></code>
          otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of call wrapper.
          The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          <ins><p></p></dd>
 
      <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
-         call wrapper  is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
+         call wrapper is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
          the same way as Equivalent to: <code>return <em>e</em></code> in an <em>Effects:</em> element of
          corresponding the call operator (17.5.1.4 [structure.specifications]).
          <ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same semantics as
-         the implicitly-defined memberwise operation preformed over state objects (12.8 [class.copy])
-         [ Note: This implies that prefect forwarding call wrapper type is CopyConstructible when type of its state objects
+         the implicitly-defined memberwise operation preformed over its state objects (12.8 [class.copy])
+         [ Note: This implies that prefect forwarding call wrapper type is CopyConstructible when types of its state objects
            satisfy requirements of CopyConstructible - end note. ].
         <ins><p></p></dd>    
   </dl>
@@ -500,7 +500,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dd><p>In the text that follows:</p>
     <ul>
-      <li><code>g</code> is a call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      <li><code>g</code> is a call wrapper created as a result of <code>bind_front(f, args...)</code>,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
@@ -524,8 +524,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <p></p></dd>
 
     <dt>Returns:</dt>
-    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, bound_args..., a1, a2, ..., aN)</code> ([func.require] 20.14.2).</p></dd>
+    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
+           is equivalent to <code>!<em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require] 20.14.2).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by construction of state objects of <code>g</code>.</p></dd>
@@ -534,12 +534,12 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 </blockquote>
 
 <p>Note: This wording can be further simplified by use of <code>decay_unwrap</code> from
-<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper:</p>
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper.</p>
 
 
 <h3><a name="wording.dep_bind">6.3 Wording for deprecating <code>bind</code></a></h3>
 
-<h3><a name="wording.not_fn">6.4 Auxiliary proposal: Alternative wording for <code>not_fn</code></a></h3>
+<h3><a name="wording.not_fn">6.4 Alternative wording for <code>not_fn</code></a></h3>
 
 <p>Change the section 20.14.9 Function template <code>not_fn</code> [func.not_fn] to:</p>
 <blockquote class="stdins"> 
@@ -566,8 +566,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <p></p></dd>
 
     <dt>Returns:</dt>
-    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(a1, a2, ..., aN)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, a1, a2, ..., aN)</code> ([func.require] 20.14.2).</p></dd>
+    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
+           is equivalent to <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require] 20.14.2).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
