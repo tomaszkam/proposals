@@ -316,14 +316,14 @@ auto make_bind_back(int i)  { return bind_back(CallableOnce{}, i); }
   {}
 
   void operator()() &amp;&amp;
-  { return cosume(std::move(ptr)); }
+  { return consume(std::move(ptr)); }
   
 private:
   std::unique_ptr&lt;Obj&gt; ptr;
 };</pre>
 
 <p>In addition support for one-shot invocation is leading to improved performance.
-   For example let consider situation, when we want to bind a vector <code>v</code> as the first argument to the following function:</p>
+   For example let's consider situation, when we want to bind a vector <code>v</code> as the first argument to the following function:</p>
 <pre>void bar(std::vector&lt;int&gt;, int)</pre>
 <p>Depending on the scenario, at the point of the call of the bind-wrapper (<code>bw</code>) that we will create, we may want to:</p>
 <ul>
@@ -362,15 +362,15 @@ private:
 
 <h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></a></h3>
 
-<p>Both proposed function does not give provide any special meaning to the nested <i>bind expressions</i> (functors produced
-   by <code>std::bind</code>) and their are passed directly to the stored callable in case of the invocation.</p>
+<p>Both proposed function do not give any special meaning to the nested <i>bind expressions</i> (functors produced
+   by <code>std::bind</code>) and they are passed directly to the stored callable in case of the invocation.</p>
 
-<p>Firstly, in the author opinion, use of nested bind leads to unreadable code that are clearly improved by being replaced
+<p>Firstly, in the author's opinion, use of nested bind leads to unreadable code that are clearly improved by being replaced
    with custom functor, especially in situation when such functor can be created in place using lambda expression.</p>
 
 <p>Secondly, special treatment of nested <i>bind expressions</i> and placeholders hardens the reasoning about behaviour of bind
    expression, by leading to the situations when <code>std::bind(f, a, b, c)()</code> is not invoking <code>f(a, b, c)</code>, 
-   despite the user intent. This may occur in situation when type of values passed to <code>std::bind</code> are not know
+   despite the user intent. This may occur in situation when type of values passed to <code>std::bind</code> are not known
    by the programmer at point of binding:</p>
 <pre>struct apply_twice
 {
@@ -413,7 +413,7 @@ functor. The author believes that in such case introduction of new functions wou
 <h3><a name="wording.pfcw">6.1 Definition of <em>perfect forwarding call wrapper</em></h3>
 
 <p>This section introduces a <em>perfect forwarding call wrapper</em> concept, that groups a set of common requirements for the call wrapper
-   the call wrapper for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
+   for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
    of the proposed <code>bind_front</code> and existing <code>not_fn</code> function. In addition it can be extended to cover <code>overload</code>
    function (proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051: C++ generic <code>overload</code>  function</a>),
    by allowing call wrapper to hold multiple target objects.</p>
@@ -430,9 +430,9 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument objects</em> that may passed as arguments for target object.<ins/><p></p></dd>
+    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument objects</em> that may be passed as arguments to target object.<ins/><p></p></dd>
 
-    <dd><ins>A target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.<ins><p></p></dd>
+    <dd><ins>The held target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.<ins><p></p></dd>
   </dl>
 </blockquote>
 
@@ -457,12 +457,12 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates its state objects to the underlining <code><em>INVOKE</em></code> expression
-         [ Note: This includes also target object - end note ]. This  propagation step shall ensure that
+         that propagates its state objects to the underlying <code><em>INVOKE</em></code> expression
+         [ Note: This includes also the target object - end note ]. This  propagation step shall ensure that
          the state object of type <code>T</code> is delivered as lvalue reference to <code>T <em>cv</em></code>
-         when call is preformed on lvalue of the call wrapper type and rvalue reference to <code>T <em>cv</em></code>
-         otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of call wrapper.
-         The <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
+         when the call is preformed on an lvalue of the call wrapper type and rvalue reference to <code>T <em>cv</em></code>
+         otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper
+         and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          <ins><p></p></dd>
 
      <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
@@ -472,7 +472,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          <ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same semantics as
-         the implicitly-defined memberwise operation preformed over its state objects ([class.copy])
+         the implicitly-defined memberwise operation preformed for its state objects ([class.copy])
          [ Note: This implies that prefect forwarding call wrapper type is CopyConstructible when types of its state objects
            satisfy requirements of CopyConstructible - end note. ].
         <ins><p></p></dd>    
@@ -508,9 +508,9 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
   <dl class="attribute">
 
-    <dd><p>In the text that follows:</p>
+    <dd>In the text that follows:
     <ul>
-      <li><code>g</code> is a call wrapper created as a result of <code>bind_front(f, args...)</code>,</li>
+      <li><code>g</code> is a value of the result of <code>bind_front(f, args...)</code>,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
@@ -535,15 +535,15 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dt>Returns:</dt>
     <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
-           is equivalent to <code>!<em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
+           is equivalent to <code><em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by construction of state objects of <code>g</code>.</p></dd>
+    <dd><p>Any exception thrown by construction of ithe state objects of <code>g</code>.</p></dd>
 
   </dl>
 </blockquote>
 
-<p>Note: This wording can be further simplified by use of <code>decay_unwrap</code> from
+<p>Note: This wording can be further simplified by use of <code>decay_unwrap_t</code> from
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper.</p>
 
 
@@ -565,9 +565,9 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
   <dl class="attribute">
 
-    <dd><p>In the text that follows:</p>
+    <dd>In the text that follows:
     <ul>
-      <li><code>g</code> is a call wrapper created as a result of <code>not_fn(f)</code>,</li>
+      <li><code>g</code> is a value of the result of <code>not_fn(f)</code>,</li>
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
            of type <code>FD</code> 
@@ -669,6 +669,8 @@ template&lt;typename T&gt;
 using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
+
+<p>Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Proposed runtime version of <code>bind_front</code> and <code>bind_back</code> are inspired by their compile time counterparts from Eric Niebler's 
   <a href="http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/">Tiny Metaprogramming Library</a>.</p>
