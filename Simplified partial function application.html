@@ -430,7 +430,7 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type can additionally hold a set of <em>bound argument objects</em> that may passed as arguments for target object.<ins/><p></p></dd>
+    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument objects</em> that may passed as arguments for target object.<ins/><p></p></dd>
 
     <dd><ins>A target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.<ins><p></p></dd>
   </dl>
@@ -439,7 +439,7 @@ functor. The author believes that in such case introduction of new functions wou
 <p>Apply following changes to paragraph 20.14.2 Requirements [func.require]:</p>
 <blockquote class="std"> 
   <dl class="attribute">
-    <dd>Every call wrapper (20.14.1) shall be <code>MoveConstructible</code>.
+    <dd>Every call wrapper (20.14.1 [func.def]) shall be <code>MoveConstructible</code>.
 
         A<ins>n</ins> <em><ins>argument</ins> forwarding call wrapper</em> is a call wrapper that
         can be called with an arbitrary argument list and delivers the arguments to the wrapped 
@@ -487,10 +487,10 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <h3><a name="wording.bind_front">6.2 Wording for <code>bind_front</code></a></h3>
 
-<p>After section 20.14.9 Function template <code>not_fn</code>, insert a new section. (Chapter [bind] (Function template <code>bind</code>) becomes 20.14.?)</p>
+<p>After section 20.14.9 Function template <code>not_fn</code> [func.not_fn], insert a new section.
 
 <blockquote class="stdins"> 
-<h4><a name="func.bind_front">20.14.10 Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
+<h4><a name="func.bind_front">20.14.? Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args &gt;
     <em>unspecified</em> bind_front(F&amp;&amp; f, Args&amp;&amp;... args);
