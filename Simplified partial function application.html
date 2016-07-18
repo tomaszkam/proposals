@@ -439,7 +439,7 @@ functor. The author believes that in such case introduction of new functions wou
 <p>Apply following changes to paragraph 20.14.2 Requirements [func.require]:</p>
 <blockquote class="std"> 
   <dl class="attribute">
-    <dd>Every call wrapper (20.14.1 [func.def]) shall be <code>MoveConstructible</code>.
+    <dd>Every call wrapper ([func.def] 20.14.1) shall be <code>MoveConstructible</code>.
 
         A<ins>n</ins> <em><ins>argument</ins> forwarding call wrapper</em> is a call wrapper that
         can be called with an arbitrary argument list and delivers the arguments to the wrapped 
@@ -468,11 +468,11 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
      <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
          call wrapper is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
          the same way as Equivalent to: <code>return <em>e</em></code> in an <em>Effects:</em> element of
-         corresponding the call operator (17.5.1.4 [structure.specifications]).
+         corresponding the call operator ([structure.specifications] 17.5.1.4).
          <ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same semantics as
-         the implicitly-defined memberwise operation preformed over its state objects (12.8 [class.copy])
+         the implicitly-defined memberwise operation preformed over its state objects ([class.copy] 12.8)
          [ Note: This implies that prefect forwarding call wrapper type is CopyConstructible when types of its state objects
            satisfy requirements of CopyConstructible - end note. ].
         <ins><p></p></dd>    
