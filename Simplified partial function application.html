@@ -673,7 +673,7 @@ Insert a new clause into Annex D:
 <pre>template&lt;typename Func, typename BoundArgsTuple, typename... CallArgs&gt;
 decltype(auto) bind_front_caller(Func&amp;&amp; func, BoundArgsTuple&amp;&amp; boundArgsTuple, CallArgs&amp;&amp;... callArgs)
 {
-  return std::apply([&amp;func, &amp;callArgs...](auto&amp;&amp;... boundArgs)
+  return std::apply([&amp;func, &amp;callArgs...](auto&amp;&amp;... boundArgs) -&gt; decltype(auto)
          {
            return std::invoke(std::forward&lt;Func&gt;(func), std::forward&lt;decltype(boundArgs)&gt;(boundArgs)..., std::forward&lt;CallArgs&gt;(callArgs)...);
          }, std::forward&lt;BoundArgsTuple&gt;(boundArgsTuple));
