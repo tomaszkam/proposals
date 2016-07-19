@@ -465,12 +465,6 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          <ins><p></p></dd>
 
-     <dd><ins>Whenever the specification requires that the call expression on the perfect forwarding
-         call wrapper is equivalent to some expression <code><em>e</em></code>, then it shall be interpreted 
-         the same way as Equivalent to: <code>return <em>e</em></code> in an <em>Effects:</em> element of
-         the corresponding call operator ([structure.specifications]).
-         <ins><p></p></dd>
-
      <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state objects ([class.copy])
          [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
@@ -534,8 +528,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
-    <dt>Returns:</dt>
-    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
+    <dt>Effects:</dt>
+    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
            is equivalent to <code><em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
@@ -662,8 +656,8 @@ Insert a new clause into Annex D:
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
-    <dt>Returns:</dt>
-    <dd><p>A perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
+    <dt>Effects:</dt>
+    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> such that the expression <code>g(call_args...)</code> 
            is equivalent to <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
