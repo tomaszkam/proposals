@@ -458,9 +458,9 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
          that propagates its state objects to the underlying <code><em>INVOKE</em></code> expression
-         [ Note: This includes also the target object - end note ]. This  propagation step shall ensure that
+         [ Note: This includes also the target object - end note ]. This propagation step shall ensure that
          the state object of type <code>T</code> is delivered as lvalue reference to <code>T <em>cv</em></code>
-         when the call is preformed on an lvalue of the call wrapper type and rvalue reference to <code>T <em>cv</em></code>
+         when the call is performed on an lvalue of the call wrapper type and as rvalue reference to <code>T <em>cv</em></code>
          otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper
          and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          <ins><p></p></dd>
@@ -472,7 +472,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          <ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same apparent
-         semantics as the implicitly-defined memberwise operation preformed for its state objects ([class.copy])
+         semantics as the implicitly-defined memberwise operation performed for its state objects ([class.copy])
          [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
            implicit definition and they are declared as <code>constexpr</code> if corresponding implicit definition
            would be considered to be <code>constexpr</code> - end note. ]
@@ -511,7 +511,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dd>In the text that follows:
     <ul>
-      <li><code>g</code> is a value of the result of <code>bind_front(f, args...)</code>,</li>
+      <li><code>g</code> is a value of the result of <code>bind_front</code> invocation,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
@@ -568,7 +568,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dd>In the text that follows:
     <ul>
-      <li><code>g</code> is a value of the result of <code>not_fn(f)</code>,</li>
+      <li><code>g</code> is a value of the result of <code>not_fn</code> invocation,</li>
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
            of type <code>FD</code> 
@@ -671,7 +671,7 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
-<p>Daniel Krügler offered many useful suggestions and corrections to the proposal.</p>
+<p>Daniel Krügler offered tremendous amount of improvements for presented wording.</p>
 
 <p>Proposed runtime version of <code>bind_front</code> and <code>bind_back</code> are inspired by their compile time counterparts from Eric Niebler's 
   <a href="http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/">Tiny Metaprogramming Library</a>.</p>
