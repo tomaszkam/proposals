@@ -465,7 +465,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          <ins><p></p></dd>
 
-     <dd><ins>The copy and move constructors of the prefect forwarding call wrapper shall have the same apparent
+     <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state objects ([class.copy])
          [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
            implicit definition and they are declared as <code>constexpr</code> if corresponding implicit definition
@@ -630,7 +630,7 @@ Insert a new clause into Annex D:
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
    as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
    The major improvements over <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html#func.not_fn">Library Fundamentals TS v2 wording</a>,
-   comes from using <em>prefect forwarding call wrapper</em> in definition of <code>not_fn(f)</code> return.</p>
+   comes from using <em>perfect forwarding call wrapper</em> in definition of <code>not_fn(f)</code> return.</p>
 
 <p>Change the section [func.not_fn] Function template <code>not_fn</code> to:</p>
 <blockquote class="stdins"> 
