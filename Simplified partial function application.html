@@ -550,6 +550,87 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <h3><a name="wording.dep_bind">6.3 Wording for deprecating <code>bind</code></a></h3>
 
+<p>Delete following declarations from the section [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis):</p>
+
+<blockquote class="stddel"> 
+
+<pre>  // [func.bind], bind:
+  template&lt;class T&gt; struct is_bind_expression;
+  template&lt;class T&gt; struct is_placeholder;
+
+  template&lt;class F, class... BoundArgs&gt;
+    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
+  template&lt;class R, class F, class... BoundArgs&gt;
+    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
+
+  namespace placeholders {
+   // M is the implementation-defined number of placeholders
+   see below _1;
+   see below _2;
+   .
+   .
+   .
+   see below _M;
+  }
+</pre>
+
+</blockquote>
+
+<blockquote class="stddel"> 
+
+<pre>  // [func.bind], function object binders:
+  template &lt;class T&gt; constexpr bool is_bind_expression_v
+   = is_bind_expression&lt;T&gt;::value;
+  template &lt;class T&gt; constexpr int is_placeholder_v
+    = is_placeholder&lt;T&gt;::value;
+</pre>
+
+</blockquote>
+
+Insert a new clause into Annex D: 
+<blockquote class="stdins"> 
+<h4><a name="depr.func.bind">Function object binders <span style="float:right">[depr.func.bind]</span></a></h4>
+
+  <dl class="attribute">
+    <dd>The following member names are defined in addition to names specified in section [function.objects] Function objects:</dd>
+  </dl>
+
+<pre>  template&lt;class T&gt; struct is_bind_expression;
+  template&lt;class T&gt; struct is_placeholder;
+
+  template &lt;class T&gt; constexpr bool is_bind_expression_v
+   = is_bind_expression&lt;T&gt;::value;
+  template &lt;class T&gt; constexpr int is_placeholder_v
+    = is_placeholder&lt;T&gt;::value;
+
+  template&lt;class F, class... BoundArgs&gt;
+    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
+  template&lt;class R, class F, class... BoundArgs&gt;
+    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
+
+  namespace placeholders {
+   // M is the implementation-defined number of placeholders
+   see below _1;
+   see below _2;
+   .
+   .
+   .
+   see below _M;
+  }
+</pre>
+
+</blockquote>
+
+<p>Move the content of the following subsections into newly created [depr.func.bind] Function template <code>bind</code> clause:</p>
+<ul>
+  <li>[func.bind.isbind] Class template <code>is_bind_expression</code></li>
+  <li>[func.bind.isplace] Class template <code>is_placeholder</code></li>
+  <li>[func.bind.bind] Function template <code>bind</code></li>
+  <li>[func.bind.place] Placeholders</li>
+</ul>
+
+<p>Remove rest of the section [func.bind] Function object binders.</p>
+
 <h3><a name="wording.not_fn">6.4 Alternative wording for <code>not_fn</code></a></h3>
 
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
