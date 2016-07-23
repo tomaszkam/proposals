@@ -96,22 +96,26 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="history">2. History</a></h2>
 
+<h3><a name="history.r0">3.1. Original proposa</a></h3>
+
+<p>This proposal is successor of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">N4171: Parameter group placeholders for bind</a>,
+   that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
+   instead of one.</p>
+  
+<p>In this paper two new <code>bind_front</code> and <code>bind_back</code>  are proposed that allow user to provide values that will be passed  as first or last
+   arguments to stored callable. The author believes  that this solution is in-line with LEWG recommendation for the original  paper, that suggested to introduce
+   only <code>_all</code> placeholder.</p>
+
+<h3><a name="history.r1">3.2. Revision</a></h3>
+
 <p>TODO: Revision 1:
    - wording
    - remove bind_back
    - move double move to design decision
    - discuss output parameter</p>
 
-<p>This proposal is successor of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">N4171: Parameter group placeholders for bind</a>,
-   that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group of call arguments
-   instead of one.</p>
-  
-<p>In this paper two new <code>bind_front</code> and <code>bind_back</code>
- are proposed that allow user to provide values that will be passed
-   as first or last arguments to stored callable. The author believes 
-that this solution is in-line with LEWG recommendation for the original 
-paper, 
-   that suggested to introduce only <code>_all</code> placeholder.</p>
+<p>Corrected included implementation for the rvalue-qualified <code>operator()</code> of <code>bind_front</code>, so the bound arguments of
+   reference type are not longer moved to the underlining callable.</p>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
@@ -713,12 +717,12 @@ public:
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;&amp;
     -&gt; std::result_of_t&lt;Func(BoundArgs..., CallArgs...)&gt;
-  { return bind_front_caller(std::move(func), std::forward&lt;BoundArgs&lt;(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
+  { return bind_front_caller(std::move(func), std::forward&lt;BoundArgs&gt;(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;&amp;
     -&gt; std::result_of_t&lt;Func const(BoundArgs const..., CallArgs...)&gt;
-  { return bind_front_caller(std::move(func), std::forward&lt;BoundArgs const&lt;(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
+  { return bind_front_caller(std::move(func), std::forward&lt;BoundArgs const&gt;(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
 
 private:
   Func func;
