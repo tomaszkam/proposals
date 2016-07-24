@@ -109,13 +109,12 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r1">3.2. Revision 1</a></h3>
 
 <p>TODO: Revision 1:
-   - wording
-   - move double move to design decision
    - discuss output parameter</p>
 
 <ul>
   <li>Removed <code>bind_back</code> function from the scope of the proposal per LEWG guidance. This decision was motivated by lack of
       compelling use cases for this function.</li>
+  <li>Included proposed wording and feature testing macro.</li>
   <li>Corrected included implementation for the rvalue-qualified <code>operator()</code> of <code>bind_front</code>, so the bound arguments
       of reference type are not longer moved to the underlining callable.</li>
 </ul>
@@ -675,8 +674,27 @@ Insert a new clause into Annex D:
   </dl>
 </blockquote>
 
+<h2><a name="feature-testing">7. Feature-testing recommendation</a></h2>
 
-<h2><a name="implementability">7. Implementability</a></h2>
+<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_bind_front</code> to be defined in the
+<code>&lt;functional&gt;</code> header.</p>
+
+<p>Usage example:</p>
+<pre>
+struct Strategy { double process(std:string, std::string, double, double); };
+
+auto bind_to_process(std::unique_ptr&lt;Strategy&gt; ptr)
+{
+#if __cpp_lib_bind_front
+  return std::bind_front(&amp;Strategy::process, std::move(ptr));
+#else
+  using namespace std::placeholders;
+  return std::bind(&amp;Strategy::process, std::move(ptr), _1, _2, _3, _4);
+#endif
+}</pre>
+
+
+<h2><a name="implementability">8. Implementability</a></h2>
 
 <p>Example implementation of proposed <code>bind_front</code>:</p>
 <pre>template&lt;typename Func, typename BoundArgsTuple, typename... CallArgs&gt;
@@ -753,7 +771,7 @@ struct decay_unwrap
 template&lt;typename T&gt;
 using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
-<h2><a name="acknowledgements">8. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
 <p>Daniel Krügler offered tremendous amount of improvements for presented wording.</p>
 
@@ -763,7 +781,7 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
    and for sponsoring author's trip to the Oulu for WG21 meeting.</p>
 
-<h2><a name="literature">9. References</a></h2>
+<h2><a name="literature">10. References</a></h2>
 
 <ol>
   <li>Chris Jefferson, Ville Voutilainen, 
