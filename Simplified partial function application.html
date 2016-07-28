@@ -96,7 +96,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="history">2. History</a></h2>
 
-<h3><a name="history.r0">3.1. Original proposal</a></h3>
+<h3><a name="history.r0">3.1. Revision 0</a></h3>
 
 <p>This proposal is successor of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">N4171: Parameter group placeholders for bind</a>,
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group
@@ -108,12 +108,11 @@ td { text-align: left; vertical-align: top;
 
 <h3><a name="history.r1">3.2. Revision 1</a></h3>
 
-<p>TODO: Revision 1:
-   - discuss output parameter</p>
-
 <ul>
   <li>Removed <code>bind_back</code> function from the scope of the proposal per LEWG guidance. This decision was motivated by lack of
       compelling use cases for this function.</li>
+  <li>Described problems caused by silent dropping of output parameters in <a href="#design.placeholders">4.1. No arbitrary argument rearrangements</a>
+      section.</li>
   <li>Included proposed wording and feature testing macro.</li>
   <li>Corrected included implementation for the rvalue-qualified <code>operator()</code> of <code>bind_front</code>, so the bound arguments
       of reference type are not longer moved to the underlining callable.</li>
@@ -122,7 +121,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>This paper proposes <code>bind_front</code> function for partial function application for first arguments of the function.
-   In other worlds <code>bind_front(f, bound_args...)(call_args...)</code> is equivalent to <code>std::invoke(f, bound_args..., call_args....)</code>.</p<
+   In other worlds <code>bind_front(f, bound_args...)(call_args...)</code> is equivalent to <code>std::invoke(f, bound_args..., call_args....)</code>.</p>
 
 <p>It is worth to notice that proposed function provide both superset and subset of existing <code>std::bind</code> functionality:
    their support passing variable number of arguments, but does not allow arbitrary reordering or removal of the arguments.
@@ -145,13 +144,10 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
    arguments that are passed in place of placeholders, so same effect may be achieved using:</p>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
    
-<p>However use of the named placeholders has is own drawbacks. Firstly change to the functor code is required each
-   time when the number of arguments is changed. Secondly, it allows user to write a code that will pass same value
-   to the function multiple times, by using same placeholder twice, which in case of use of move semantics may lead
-   to passing of unspecified values as arguments. For example values of first and second argument are unspecified
-   in case of following invocation:</p>
-<pre>auto f = std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
-f(std::string("some_string"), 1);</pre>
+<p>However use of named placeholder requires user to decide on specific number of arguments passed to the function,
+   so it  does not support variadic functors and require wrapper code to be adjusted each time when the number of
+   arguments accepted by target callable is changed. In addition to that it leads to more subtle and hard to sport
+   problems presented in <a href="#design.placeholders">4.1. No arbitrary argument rearrangements</a> section of this paper.</p>
  
 <p>In contrast in case of proposed <code>bind_front</code> function, all arguments provided on the call side are
    forwarded to the callable. As consequence the user is not required to manually write boilerplate code for perfect
@@ -219,8 +215,8 @@ std::string* ps = nullptr;
 }
 // *ps is dangling
 </pre>
-<p>Lastly in case of the mutable version of functor, changing the result of the invocation would modifies temporary
-   not mapped value:</p>
+<p>Lastly in case of the mutable version of functor, changing the result of the invocation modifies temporary,
+   not the mapped value:</p>
 <pre>fm(2) = "something";</pre>
 
 <p>To avoid such problems we may use <code>decltype</code>-based return type deduction, as it is done in case of
@@ -343,20 +339,56 @@ private:
 <h3><a name="design.placeholders">4.1. No arbitrary argument rearrangements</a></h3>
 
 <p>In contrast to the <code>std::bind</code> proposed <code>bind_front</code> does not support rearrangements or
-   dropping of the call arguments, that was supported by <code>std::bind</code>. The reasoning behind this 
-   decision is twofold.</p>
+   dropping of the call arguments, that was supported by <code>std::bind</code>.</p>
 
-<p>Firstly, handling of the placeholder was requiring a large amount of the meta-programing, to only determine types
+<p>Firstly, handling of the placeholder was requiring a large amount of the meta-programming, to only determine types
    and values of the argument that will be actually passed to stored callable. However in this case required complexity
    of implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
    user.</p>
 
-<p>Secondly, repeated uses of the placeholder leads to double move of the passed object and as consequence unspecified
-   values of the arguments. Occurrence of this problem depends both of bound arguments passed to the bind
-   and once that are provided on the call side. This problem could potentially be fixed by introducing another type of
-   placeholder that would pass rvalues as const rvalue reference or additional logic that will detect duplicated arguments
-   on compile them and modify their value category. However both solutions would only increase the complexity of implementation and use.</p> 
-   
+<p>Secondly, it allow wrapper created from <code>std::bind</code> to silently drops arguments that are not
+   referenced by the placeholders. This functionality may seem to be unharmful, but in case of output parameters
+   it prevents certain range of bugs from being detected as compile time. For example following code will silently
+   ignore potential error returned from <code>read_async</code> and will cause program to lead infinitely if such
+   error is reported:</p> 
+<pre>struct InputStream
+{
+  void read_async(std::size_t count, std::vector&lt;char&gt;&amp; out, 
+                  std::function&lt;void(std::error_code)&gt; callback);
+};
+
+class DataReader
+{
+   /* rest of interface */
+
+   void read_remaining()
+   { 
+      stream.read_async(expected - content.size(), content,
+                        std::bind(&amp;DataReader::part_done, this));
+   };
+
+   void part_done() 
+   {
+     if (content.size() &lt; expected)
+       read_remaining();
+   }
+
+   InputStream stream;
+   std::size_t const expected;          
+   std::vector&lt;char&gt; content;
+};</pre>
+
+
+<p>Finally, it allows user to write a code that will pass same value to the function multiple times, by repeated use
+   of single placeholder, which in case of use of move semantics may lead to passing of unspecified values as arguments.
+   For example values of first and second argument are unspecified  in case of following invocation:</p>
+<pre>auto f = std::bind(&amp;Strategy::process, createStrategy(), _1, _1, _2, _2);
+f(std::string("some_string"), 1);</pre>
+
+<p>Occurrence of such kind of problems depends both of bound arguments passed to the bind and once that are provided on the
+   call side. As consequence addressing them, would require introduction of another type of placeholder that would
+   pass rvalues as const rvalue reference or additional compile-time logic that will detect duplicated arguments and modify
+   their value category. However both solutions would only increase, already large, complexity of implementation and use.</p> 
 
 <h3><a name="design.nested-bind">4.2. No nested <i>bind expressions</i></a></h3>
 
@@ -408,7 +440,7 @@ functor. The author believes that in such case introduction of new functions wou
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12).</p>
 
 
-<h3><a name="wording.pfcw">6.1 Definition of <em>perfect forwarding call wrapper</em></h3>
+<h3><a name="wording.pfcw">6.1 Definition of <em>perfect forwarding call wrapper</em></a></h3>
 
 <p>This section introduces a <em>perfect forwarding call wrapper</em> concept, that groups a set of common requirements for the call wrapper
    for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
@@ -428,9 +460,9 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument objects</em> that may be passed as arguments to target object.<ins/><p></p></dd>
+    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument objects</em> that may be passed as arguments to target object.</ins><p></p></dd>
 
-    <dd><ins>The held target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.<ins><p></p></dd>
+    <dd><ins>The held target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.</ins><p></p></dd>
   </dl>
 </blockquote>
 
@@ -460,14 +492,14 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          the state object of type <code>T</code> is delivered as lvalue reference to <code>T <em>cv</em></code>
          when the call is performed on an lvalue of the call wrapper type and as rvalue reference to <code>T <em>cv</em></code>
          otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper.
-         <ins><p></p></dd>
+         </ins><p></p></dd>
  
      <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>,
           shall ensure that postfix call expression preformed on expression of type of potentially const qualified reference 
           to <code>G</code> [ Note: This includes both lvalue and rvalue reference  - end note ] has effects
           equivalent to expression <code>e</code> determined as follows: every occurrence of the name of the
           argument of the call wrapper or one of its state object shall be replaced with expression of reference
-          type determined by corresponding propagation rules.<p></p></ins></dd>
+          type determined by corresponding propagation rules.</ins><p></p></dd>
 
 
      <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
@@ -475,7 +507,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
            implicit definition and they are declared as <code>constexpr</code> if corresponding implicit definition
            would be considered to be <code>constexpr</code> - end note. ]
-        <ins><p></p></dd>    
+        </ins><p></p></dd>    
   </dl>
 </blockquote>
 
@@ -587,7 +619,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 </blockquote>
 
-Insert a new clause into Annex D: 
+<p>Insert a new clause into Annex D:</p>
 <blockquote class="stdins"> 
 <h4><a name="depr.func.bind">Function object binders <span style="float:right">[depr.func.bind]</span></a></h4>
 
