@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th>P0357R0</th><td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0357R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-05-24</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td></td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -82,7 +82,10 @@ td { text-align: left; vertical-align: top;
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
   <tr>
-    <th></th><th>                      </th><td><address>Stephan T. Lavavej &lt;stl at microsoft.com&gt;</address></td>
+    <th>                     </th><th> </th><td><address>Stephan T. Lavavej &lt;stl at microsoft.com&gt;</address></td>
+  </tr>
+  <tr>
+    <th>                     </th><th> </th><td><address>Alisdair Meredith &lt;ameredith1 at bloomberg.net&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -102,7 +105,20 @@ td { text-align: left; vertical-align: top;
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
-</p><h2><a name="motivation">2. Motivation and Scope</a></h2>
+<h2><a name="history">2. History</a></h2>
+
+<h3><a name="history.r1">2.1. Revision 1</a></h3>
+
+<ul>
+  <li>Minor corrections and clarifications to paper text. Clarified relation to
+      <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a></li>
+  <li>Updated wording to refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12)</li>
+  <li>Included proposed feature testing recommendation macro.</li>
+  <li>Corrected included implementation for the <code>operator()</code> of <code>reference_wrapper</code>, so it is now const qualified.</li>
+</ul>
+
+
+</p><h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p><code>std::reference_wrapper</code> is an utility class created to allow to
    use reference in the interface that was designed to pass objects by value.
@@ -117,8 +133,9 @@ td { text-align: left; vertical-align: top;
 <p>Moreover <code>std::reference_wrapper</code> specializations are
    recognized by standard factory function, like: <code>std::make_pair</code>,
    <code>std::make_tuple</code> or <code>std::bind</code> and allows
-   the programmer to create tuple of references by use of:</p>
-<pre>std::make_tuple(std::ref(t), std::ref(u))</pre>
+   the programmer to create pair of references by use of:</p>
+<pre>auto p = std::make_pair(std::ref(t), std::ref(u));</pre>
+
 <p>Use of this feature, not only avoids cumbersome specification of the
    type, but also eliminates the possibility of encountering dangling reference
    problems that it may introduce. For example in case of following declaration:</p>
@@ -128,14 +145,21 @@ td { text-align: left; vertical-align: top;
    are still forced to use <code>pair&lt;T&amp;, U&amp;&gt;</code> solution, when
    at least one of types <code>T</code> or <code>U</code> is incomplete.</p>
 
-<h2><a name="design">3. Design Decisions</a></h2>
+<p>Furthermore this problem is not addressed by inclusion of the
+   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a></li>,
+   as implicit deduction guides synthesized from <code>pair</code> and <code>tuple</code>
+   constructors will not deduce reference type. And if special treatment of
+   <code>std::reference_wrapper&l;T&gt;</code> will be reintroduced, the same limitations
+   will apply (<code>T</code> needs to be a complete type).</p>
+
+<h2><a name="design">4. Design Decisions</a></h2>
 
 <p>Supporting incomplete types in <code>reference_wrapper</code> is currently impossible
    because the implementation is required to check the template parameter for presence
    of <code>result_type</code> and related nested types. As consequence support for this
    (now deprecated) features needs to be removed from standard.</p>
 
-<h3><a name="design.removal">3.1. Removal of deprecated functional components</a></h3>
+<h3><a name="design.removal">4.1. Removal of deprecated functional components</a></h3>
 
 <p>Despite the fact that support for incomplete types require only removal support for
    <i>weak result type</i> and argument typedefs for <code>reference_wrapper</code>,
@@ -144,10 +168,10 @@ td { text-align: left; vertical-align: top;
    after C++17, it also follows committee guideline to introduce period of deprecation before removal.</p> 
 
 <p>In addition feature proposed with the paper conflicts with support for the old function
-   binding protocol and vendors will not longer be allowed to provide it in their
+   binding protocol and vendors will not longer be allowed to provide required typedefs in their
    <code>std::reference_wrapper</code> implementations.</p>
 
-<h3><a name="design.is_transparent">3.2. Support for <code>is_transparent</code></a></h3>
+<h3><a name="design.is_transparent">4.2. Support for <code>is_transparent</code></a></h3>
 
 <p>In the C++14, another protocol based on the presence of the <code>is_transparent</code>
    nested type was introduced, to indicate that given functor enables heterogeneous lookup
@@ -161,7 +185,7 @@ td { text-align: left; vertical-align: top;
    as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
    P0046R1: Change is_transparent to metafunction (Revision 1)</a>.</p>
 
-<h2><a name="standard">4. Impact On The Standard</a></h2>
+<h2><a name="standard">5. Impact On The Standard</a></h2>
 
 <p>This proposal depends on the deprecation of the <code>result_type</code> and related typedefs in the C++17,
    so they can be removed in upcoming standard after period of deprecation.</p>
@@ -169,9 +193,9 @@ td { text-align: left; vertical-align: top;
 <p>Nothing depends on this proposal.</p>
 
 
-<h2><a name="wording">5. Proposed Wording</a></h2>
+<h2><a name="wording">6. Proposed Wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4582.pdf">N4582</a> (C++ Working Draft, 2016-03-19).</p>
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12).</p>
 
 <p>Apply following changes to paragraph 17.6.4.3.1 Zombie names [zombie.names]:</p>
 <blockquote class="std"> 
@@ -214,7 +238,7 @@ td { text-align: left; vertical-align: top;
   </dl>
 </blockquote>
 
-<p>At the end of the section 20.12.4 Class template <code>reference_wrapper</code> [refwrap]:</p>
+<p>At the end of the section 20.14.4 Class template <code>reference_wrapper</code> [refwrap]:</p>
 <blockquote class="std"> 
   <dl class="attribute">
     <dd><p><ins>The template parameter <code>T</code> of <code>reference_wrapper</code>
@@ -223,7 +247,7 @@ td { text-align: left; vertical-align: top;
 </blockquote>
 
 
-<p>Apply following changes to paragraph 20.12.4.4 <code>reference_wrapper</code> invocation [refwrap.invoke]:</p>
+<p>Apply following changes to paragraph 20.14.4.4 <code>reference_wrapper</code> invocation [refwrap.invoke]:</p>
 <blockquote class="std"> 
 <pre>  template &lt;class... ArgTypes&gt;
     result_of_t&lt;T&amp;(ArgTypes&amp;&amp;... )&gt;
@@ -240,7 +264,7 @@ td { text-align: left; vertical-align: top;
   </dl>
 </blockquote>
 
-<p>At the begining of the paragraph 20.12.4.5 <code>reference_wrapper</code> helper functions [refwrap.helpers]:</p>
+<p>At the beginning of the paragraph 20.14.4.5 <code>reference_wrapper</code> helper functions [refwrap.helpers]:</p>
 <blockquote class="std"> 
   <dl class="attribute">
 
@@ -281,7 +305,23 @@ td { text-align: left; vertical-align: top;
 
 <p>Remove clause D7. Old adaptable function bindings [depr.func.adaptor.binding] entirely.</p>
 
-<h2><a name="implementability">6. Implementability</a></h2>
+<h2><a name="feature-testing">7. Feature-testing recommendation</a></h2>
+
+<p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_reference_wrapper</code>
+with value <code>20<em>YYMM</em></code> representing publication date, to be defined in the
+<code>&lt;functional&gt;</code> header. The intent is to allow reuse of the same macro to
+indicate presence of the original feature from C++11.</p>
+
+<p>Usage example:</p>
+<pre>
+#if __cpp_lib_reference_wrapper &gt;= 20<em>YYMM</em>
+  auto p = std::make_pair(std::ref(t), std::ref(u));
+#else
+  std::pair&lt;std::string const&amp;, int&gt; p("test", 10);
+#endif
+</pre>
+
+<h2><a name="implementability">8. Implementability</a></h2>
 
 <p>Without requirement to conditionally support <code>result_type</code> and related typedefs, straightforward implementation
    provides support for incomplete types.</p>
@@ -303,17 +343,17 @@ public:
   operator T&amp;() const noexcept{ return *ptr; }
 
   template&lt;typename... Args&gt;
-  auto operator()(Args&amp;&amp;... args)
+  auto operator()(Args&amp;&amp;... args) const
     -&gt; std::result_of_t&lt;T&amp;(Args...)&gt;
   { return std::invoke(*ptr, std::forward&lt;Args&gt;(args)...); }
 };</pre>
 
-<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
    and for sponsoring Tomasz Kamiński's trip to the Oulu for WG21 meeting.</p>
 
-<h2><a name="literature">8. References</a></h2>
+<h2><a name="literature">10. References</a></h2>
 
 <ol>
   <li>Alisdair Meredith, Stephan T. Lavavej, Tomasz Kamiński, 
@@ -325,11 +365,17 @@ public:
       "Change is_transparent to metafunction (Revision 1)",
       (P0046R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html</a>)</li>
+
+  <li>Mike Spertus, Faisal Vali, Richard Smith,
+      "Template argument deduction for class templates (Rev. 6)",
+      (P0091R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">
+               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html</a>)</li>
+
            
   <li>Richard Smith, 
       "Working Draft, Standard for Programming Language C++" 
-      (N4582, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf">
-              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf</a>)</li>
+      (N4606, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf</a>)</li>
 </ol>
 
 
