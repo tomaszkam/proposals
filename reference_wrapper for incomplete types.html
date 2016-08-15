@@ -313,13 +313,15 @@ with value <code>20<em>YYMM</em></code> representing publication date, to be def
 indicate presence of the original feature from C++11 standard.</p>
 
 <p>Usage example:</p>
-<pre>
+<pre>template&lt;typename T, typename U&gt;
+auto create_pair(T&amp; t, U &amp; u)
+{
 #if __cpp_lib_reference_wrapper &gt;= 20<em>YYMM</em>
-  auto p = std::make_pair(std::ref(t), std::ref(u));
+  return std::make_pair(std::ref(t), std::ref(u));
 #else
-  std::pair&lt;std::string const&amp;, int&gt; p("test", 10);
+  return std::pair&lt;T&amp;, U&amp;&gt;(t, u);
 #endif
-</pre>
+}</pre>
 
 <h2><a name="implementability">8. Implementability</a></h2>
 
