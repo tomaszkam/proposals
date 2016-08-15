@@ -149,7 +149,7 @@ td { text-align: left; vertical-align: top;
    <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a></li>,
    as implicit deduction guides synthesized from <code>pair</code> and <code>tuple</code>
    constructors will not deduce reference type. And if special treatment of
-   <code>std::reference_wrapper&l;T&gt;</code> will be reintroduced, the same limitations
+   <code>std::reference_wrapper&lt;T&gt;</code> will be reintroduced, the same limitations
    will apply (<code>T</code> needs to be a complete type).</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
@@ -310,7 +310,7 @@ td { text-align: left; vertical-align: top;
 <p>For the purposes of SG10, we recommend the macro name <code>__cpp_lib_reference_wrapper</code>
 with value <code>20<em>YYMM</em></code> representing publication date, to be defined in the
 <code>&lt;functional&gt;</code> header. The intent is to allow reuse of the same macro to
-indicate presence of the original feature from C++11.</p>
+indicate presence of the original feature from C++11 standard.</p>
 
 <p>Usage example:</p>
 <pre>
