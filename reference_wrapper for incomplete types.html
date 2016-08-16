@@ -696,7 +696,7 @@ indicate presence of the original feature from C++11 standard.</p>
 
 <p>Usage example:</p>
 <pre>template&lt;typename T, typename U&gt;
-auto create_pair(T&amp; t, U &amp; u)
+auto my_tie(T&amp; t, U &amp; u)
 {
 #if __cpp_lib_reference_wrapper &gt;= 20<em>YYMM</em>
   return std::make_pair(std::ref(t), std::ref(u));
