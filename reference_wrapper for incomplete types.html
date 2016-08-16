@@ -352,6 +352,14 @@ public:
   { return std::invoke(*ptr, std::forward&lt;Args&gt;(args)...); }
 };</pre>
 
+<p>Carefull reader may notice, that the invocation of the <code>operator()</code> is requiring template parameter <code>T</code>
+   to be a complete type, and this requirement is not only limited to defintion of the function, but also its declaration, that uses
+   <code>std::result_of_t&lt;T&amp;(Args...)&gt;</code> to specify return type. 
+   However, this function is an template function member of the class and its declaration will not be instatiated during the instatiation
+   of enclosing <code>reference_wrapper</code> specialization, as the value of the <code>Args</code> template parameter pack are not know
+   at this point. As a consquence the user is allowed to use an object of <code>reference_wrapper&lt;T&gt;</code> with <code>T</code>
+   being an incomplete type, unless given object is called.</p>
+
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal,
