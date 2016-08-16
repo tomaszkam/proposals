@@ -93,15 +93,15 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper proposes change in <code>reference_wrapper</code> specification to
+<p>This paper proposes a change in <code>reference_wrapper</code>'s specification to
    support incomplete types.</p>
 
-<p>In addition to necessary removal of <code>result_type</code> and related typedefs
+<p>In addition to the necessary removal of <code>result_type</code> and related typedefs
    for <code>reference_wrapper</code>, the paper proposes to remove all deprecated
-   functional components placed in D7. Old adaptable function bindings
-   [depr.func.adaptor.binding] section of the standard. As consequence this paper
-   may be viewed as successor of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0005r4.html">
-   P0005R4: Adopt <code>not_fn</code> from Library Fundamentals 2 for C++17</a> paper.
+   functional components placed in the D7. Old adaptable function bindings
+   [depr.func.adaptor.binding] section of the standard. As a consequence this paper
+   may be viewed as a successor of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0005r4.html">
+   P0005R4: Adopt <code>not_fn</code> from Library Fundamentals 2 for C++17</a>.
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -118,37 +118,38 @@ td { text-align: left; vertical-align: top;
 </ul>
 
 
-</p><h2><a name="motivation">3. Motivation and Scope</a></h2>
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p><code>std::reference_wrapper</code> is an utility class created to allow to
-   use reference in the interface that was designed to pass objects by value.
-   However design of the standard component has a major drawback, when
-   compared to the alternative solutions based on the use of the raw 
-   pointers of boost version of this component: the referenced type is
-   required to be complete. As consequence, depending on the context
-   use of <code>reference_wrapper</code> may increase compilation time
-   by adding a new definition, or even be impossible in case when definition
-   of the class is not available to the programmer.</p>
+<p><code>std::reference_wrapper</code> is a utility class created to
+   allow references to be used in interfaces that were designed to pass
+   objects by value. However the design of the standard component has a
+   major drawback, when compared to the alternative solutions based on
+   the use of the raw pointers of boost version of this component: the
+   referenced type is required to be complete. As a consequence, depending 
+   on the context use of <code>reference_wrapper</code> may increase compilation
+   time by adding a new definition, or even be impossible in the case when the 
+   definition of the class is not available to the programmer.</p>
 
 <p>Moreover <code>std::reference_wrapper</code> specializations are
-   recognized by standard factory function, like: <code>std::make_pair</code>,
-   <code>std::make_tuple</code> or <code>std::bind</code> and allows
-   the programmer to create pair of references by use of:</p>
+   recognized by standard factory functions, like: <code>std::make_pair</code>,
+   <code>std::make_tuple</code> or <code>std::bind</code> which allow
+   the programmer to create pairs of references by use of:</p>
 <pre>auto p = std::make_pair(std::ref(t), std::ref(u));</pre>
 
 <p>Use of this feature, not only avoids cumbersome specification of the
    type, but also eliminates the possibility of encountering dangling reference
-   problems that it may introduce. For example in case of following declaration:</p>
+   problems that it may introduce. For example in the case of the following
+   definition:</p>
 <pre>std::pair&lt;std::string const&amp;, int&gt; p("test", 10);</pre>
 <p>every use of <code>p.first</code> leads to undefined behaviour caused by
-   read of dangling reference. Despite of all of above advantages, programmes
-   are still forced to use <code>pair&lt;T&amp;, U&amp;&gt;</code> solution, when
-   at least one of types <code>T</code> or <code>U</code> is incomplete.</p>
+   reading a dangling reference. Despite all of the above advantages, programmers
+   are still forced to use <code>pair&lt;T&amp;, U&amp;&gt;</code>, when at least
+   one of types the <code>T</code> or <code>U</code> is incomplete.</p>
 
 <p>Furthermore this problem is not addressed by inclusion of the
-   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a></li>,
+   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a>,
    as implicit deduction guides synthesized from <code>pair</code> and <code>tuple</code>
-   constructors will not deduce reference type. And if special treatment of
+   constructors will not deduce reference types. And if special treatment of
    <code>std::reference_wrapper&lt;T&gt;</code> will be reintroduced, the same limitations
    will apply (<code>T</code> needs to be a complete type).</p>
 
@@ -156,39 +157,40 @@ td { text-align: left; vertical-align: top;
 
 <p>Supporting incomplete types in <code>reference_wrapper</code> is currently impossible
    because the implementation is required to check the template parameter for presence
-   of <code>result_type</code> and related nested types. As consequence support for this
-   (now deprecated) features needs to be removed from standard.</p>
+   of <code>result_type</code> and related nested types. As a consequence support for these
+   (now deprecated) features needs to be removed from the standard.</p>
 
 <h3><a name="design.removal">4.1. Removal of deprecated functional components</a></h3>
 
-<p>Despite the fact that support for incomplete types require only removal support for
-   <i>weak result type</i> and argument typedefs for <code>reference_wrapper</code>,
-   this paper follow the original direction of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0005r4.html">P005R4: Adopt <code>not_fn</code> from Library Fundamentals 2 for C++17</a>
-   and proposes removal of all deprecated function bindings. As this paper is targeted for next standard
-   after C++17, it also follows committee guideline to introduce period of deprecation before removal.</p> 
+<p>Despite the fact that support for incomplete types requires only removal of support
+   for <i>weak result type</i> and argument typedefs for <code>reference_wrapper</code>,
+   this paper follows the original direction of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0005r4.html">P005R4: Adopt <code>not_fn</code> from Library Fundamentals 2 for C++17</a>
+   and proposes removal of all deprecated function bindings. As this paper is targeted for
+   the next standard after C++17, it also follows the committee guideline to introduce a
+   period of deprecation before removal.</p> 
 
-<p>In addition feature proposed with the paper conflicts with support for the old function
-   binding protocol and vendors will not longer be allowed to provide required typedefs in their
-   <code>std::reference_wrapper</code> implementations.</p>
+<p>In addition, the feature proposed with the paper conflicts with support for the old
+   function binding protocol and vendors will no longer be allowed to provide required
+   typedefs in their <code>std::reference_wrapper</code> implementations.</p>
 
 <h3><a name="design.is_transparent">4.2. Support for <code>is_transparent</code></a></h3>
 
-<p>In the C++14, another protocol based on the presence of the <code>is_transparent</code>
-   nested type was introduced, to indicate that given functor enables heterogeneous lookup
-   for associative container. As in case of <code>result_type</code> implementation of this
-   protocol in exact form for <code>reference_wrapper&lt;T&gt;</code> would reintroduce 
+<p>In C++14, another protocol based on the presence of the <code>is_transparent</code>
+   nested type was introduced, to indicate that a given functor enables heterogeneous lookup
+   for associative container. As in the case of <code>result_type</code> implementation of
+   this protocol in exact form for <code>reference_wrapper&lt;T&gt;</code> would reintroduce 
    requirement of completeness of <code>T</code> template parameter.</p>
 
 <p>Despite the fact that support for incomplete types and heterogeneous container lookup
-   in <code>reference_wrapper</code> may look incompatible, there is possibility to provide
-   both of them, via alternative design that rely on use metafunction instead of nested type,
-   as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
+   in <code>reference_wrapper</code> may look incompatible, there is the possibility to 
+   provide both of them, via an alternative design that relies on a metafunction instead of
+   a nested type, as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
    P0046R1: Change is_transparent to metafunction (Revision 1)</a>.</p>
 
 <h2><a name="standard">5. Impact On The Standard</a></h2>
 
-<p>This proposal depends on the deprecation of the <code>result_type</code> and related typedefs in the C++17,
-   so they can be removed in upcoming standard after period of deprecation.</p>
+<p>This proposal depends on the deprecation of the <code>result_type</code> and related
+   typedefs in C++17, so they can be removed in an upcoming standard after a period of deprecation.</p>
 
 <p>Nothing depends on this proposal.</p>
 
@@ -204,6 +206,7 @@ td { text-align: left; vertical-align: top;
     <dd><p>In namespace <code>std</code>, the following names are reserved for previous standardization:
     <code>auto_ptr</code><code></code>,
     <code>binary_function</code><code></code>,
+    <ins><code>binary_negate</code>,</ins>
     <code>bind1st</code>,
     <code>bind2nd</code>,
     <code>binder1st</code>,
@@ -212,23 +215,22 @@ td { text-align: left; vertical-align: top;
     <code>const_mem_fun1_t</code>,
     <code>const_mem_fun_ref_t</code>,
     <code>const_mem_fun_t</code>,
-    <ins>
-    <code>not1</code>, 
-    <code>not2</code>, 
-    <code>unary_negate</code>, 
-    <code>binary_negate</code>,
-    </ins>
     <code>mem_fun1_ref_t</code>,
     <code>mem_fun1_t</code>,
-    <code>mem_fun_ref_t</code>,
+    <del><code>mem_fun_ref_t</code>,</del>
+    <ins><code>mem_fun</code>,</ins>
     <code>mem_fun_ref</code>,
+    <ins><code>mem_fun_ref_t</code>,</ins>
     <code>mem_fun_t</code>,
-    <code>mem_fun</code>,
+    <del><code>mem_fun</code>,</del>
+    <ins><code>not1</code>,</ins>
+    <ins><code>not2</code>,</ins>
     <code>pointer_to_binary_function</code>,
     <code>pointer_to_unary_function</code>,
     <code>ptr_fun</code>,
     <code>random_shuffle</code>,
-    and <code>unary_function</code>.
+    <del>and </del><code>unary_function</code><ins>,</ins>
+    <ins>and <code>unary_negate</code></ins>.
     </p></dd>
 
     <dd><p><ins>It is unspecified whether function objects in the C++ standard library additionally
@@ -303,7 +305,7 @@ td { text-align: left; vertical-align: top;
   </dl>
 </blockquote>
 
-<p>Remove clause D7. Old adaptable function bindings [depr.func.adaptor.binding] entirely.</p>
+<p>Remove subclause D8. Old adaptable function bindings [depr.func.adaptor.binding] entirely.</p>
 
 <h2><a name="feature-testing">7. Feature-testing recommendation</a></h2>
 
