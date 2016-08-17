@@ -78,10 +78,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0358R1</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0358R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>3016-06-22</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-06-22</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -188,7 +188,7 @@ decltype(auto) operator()(Args&amp;&amp;... args) &amp;&amp;
   <li><code>G</code> is type of <code>g</code></li>
   <li><code><em>cv</em></code> is either <code>const</code> or empty</li>
   <li><code><em>ref</em></code> is either <code>&amp;</code> or <code>&amp;&amp;</code>
-</ul>
+</li></ul>
 
 <p>In addition, current wording does not clarify if the invocation <code>std::not_fn(f)(args...)</code> are 
    equivalent to <code>!std::invoke(f, args...)</code> in unevaluated context. Such a guarantee is important
@@ -285,8 +285,12 @@ private:
     </dl>
 
     <p class="function">
-      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) &amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());</code><br/>
-      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) const&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());</code>
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) &amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD&amp;(Args...)&gt;&gt;());</code><br>
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) const&amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD const&amp;(Args...)&gt;&gt;());</code>
     </p>
 
     <dl class="attribute">
@@ -295,8 +299,12 @@ private:
     </dl>
 
     <p class="function">
-      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) &amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br/>
-      <code>template&lt;class... Args&gt; auto operator()(Args&amp;&amp;... args) const&amp;&amp; -&gt; decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</code>
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) &amp;&amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD(Args...)&gt;&gt;());</code><br>
+      <code>template&lt;class... Args&gt; auto 
+operator()(Args&amp;&amp;... args) const&amp;&amp; -&gt; 
+decltype(!declval&lt;result_of_t&lt;FD const(Args...)&gt;&gt;());</code>
     </p>
 
     <dl class="attribute">
@@ -322,5 +330,6 @@ private:
 <ol>
 <li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4582, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4582.pdf</a>)</li>
 </ol>
+
 
 </body></html>
