@@ -112,9 +112,11 @@ td { text-align: left; vertical-align: top;
 <ul>
   <li>Minor corrections and clarifications to paper text. Clarified relation to
       <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a></li>
-  <li>Updated wording to refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12)</li>
+  <li>Updated wording to refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12)
+      and included content of removed subclause.</li>
   <li>Included proposed feature testing recommendation macro.</li>
   <li>Corrected included implementation for the <code>operator()</code> of <code>reference_wrapper</code>, so it is now const qualified.</li>
+  <li>Extended implementability section to discuss details of instantiation of <code>reference_wrapper</code> and <code>operator()</code> member.</li>
 </ul>
 
 
@@ -732,13 +734,13 @@ public:
   { return std::invoke(*ptr, std::forward&lt;Args&gt;(args)...); }
 };</pre>
 
-<p>Carefull reader may notice, that the invocation of the <code>operator()</code> is requiring template parameter <code>T</code>
-   to be a complete type, and this requirement is not only limited to defintion of the function, but also its declaration, that uses
+<p>Careful reader may notice, that the  <code>operator()</code> requires template parameter <code>T</code> to be a complete type,
+   and this requirement is not only limited to definition of the function, but also its declaration, that uses 
    <code>std::result_of_t&lt;T&amp;(Args...)&gt;</code> to specify return type. 
-   However, this function is an template function member of the class and its declaration will not be instatiated during the instatiation
+   However, this function is an template function member of the class and its declaration will not be instantiated during the instantiation
    of enclosing <code>reference_wrapper</code> specialization, as the value of the <code>Args</code> template parameter pack are not know
-   at this point. As a consquence the user is allowed to use an object of <code>reference_wrapper&lt;T&gt;</code> with <code>T</code>
-   being an incomplete type, unless given object is called.</p>
+   at this point. As a consequence the user is allowed to use an object of <code>reference_wrapper&lt;T&gt;</code> with <code>T</code>
+   being an incomplete type, unless it is actually called.</p>
 
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
