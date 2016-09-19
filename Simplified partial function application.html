@@ -273,7 +273,7 @@ auto make_bind_front(std::string s) { return bind_front(&amp;foo, s); }
 <p>Invocations in the form <code>make_bind("a")()</code> and <code>make_lambda("a")()</code> are well-formed and are 
    invoking function <code>foo</code> with lvalue reference to de-facto temporary string (member of temporary functor).
    In case of proposed functions, value category of the functor also affects stored arguments and corresponding call
-   <code>make_bind_front("a")()</code> are ill-formed.</p>
+   <code>make_bind_front("a")()</code> is ill-formed.</p>
 
 <h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</a></h3>
 
@@ -300,7 +300,7 @@ auto make_bind_front(int i) { return bind_front(CallableOnce{}, i); }
    As consequence multiple calls may be performed on single instance of <code>CallableOnce</code> class.</p>
 
 <p>It is also worth to notice, that one-shot callable functors may also be produced as a result on 
-   binding an non-moveable type. For example in situation when we want to bind arguments to a function <code>consume</code> 
+   binding an move-only type. For example in situation when we want to bind arguments to a function <code>consume</code> 
    that accepts <code>std::unique_ptr&lt;Obj&gt;</code> by value:</p>
 <pre>struct ConsumeBinder
 {
