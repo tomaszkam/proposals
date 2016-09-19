@@ -130,23 +130,22 @@ td { text-align: left; vertical-align: top;
 <h3><a name="motivation.arguments-passing">3.1. Passing arguments</a></h3>
 
 <p>Let consider an example task of writing the functor that will invoke <code>process</code> method on copy of
-   <code>strategy</code>
-   object:</p>
+   <code>strategy</code> object:</p>
 <pre>struct Strategy { double process(std:string, std::string, double, double); };
 std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
 
-<p>Firstly, such functor should not cause any additional overhead caused by passing the argument values form the call
+<p>Firstly, such functor should not cause any additional overhead caused by passing the argument values from the call
    side to the stored callable. To achieve desired effect in case of lambda based solution, we can use forwarding
    reference in combination with variadic number of arguments:</p>
 <pre>[s = createStrategy()] (auto&amp;&amp;... args) { return s-&gt;process(std::forward&lt;decltype(args)&gt;(args)...); }</pre>
 
-<p>In case of the functors produced by <code>std::bind</code>, perfect forwarding is used by default for the all call
+<p>In case of the functors produced by <code>std::bind</code>, perfect forwarding is used by default for all the call
    arguments that are passed in place of placeholders, so same effect may be achieved using:</p>
 <pre>std::bind(&amp;Strategy::process, createStrategy(), _1, _2, _3, _4)</pre>
    
 <p>However use of named placeholder requires user to decide on specific number of arguments passed to the function,
    so it  does not support variadic functors and require wrapper code to be adjusted each time when the number of
-   arguments accepted by target callable is changed. In addition to that it loop to more subtle and hard to sport
+   arguments accepted by target callable is changed. In addition to that it leads to more subtle and hard to spot
    problems presented in <a href="#design.placeholders">4.1. No arbitrary argument rearrangements</a> section of this paper.</p>
  
 <p>In contrast in case of proposed <code>bind_front</code> function, all arguments provided on the call side are
@@ -272,9 +271,9 @@ auto make_lambda(std::string s)     { return [s] { return foo(s); }; }
 auto make_bind_front(std::string s) { return bind_front(&amp;foo, s); }
 </pre>
 <p>Invocations in the form <code>make_bind("a")()</code> and <code>make_lambda("a")()</code> are well-formed and are 
-   invoking function <code>foo</code> with lvalue reference to temporary string. In case of proposed functions, value
-   category of the functor also affects stored arguments and corresponding call <code>make_bind_front("a")()</code> 
-   are ill-formed.</p>
+   invoking function <code>foo</code> with lvalue reference to de-facto temporary string (member of temporary functor).
+   In case of proposed functions, value category of the functor also affects stored arguments and corresponding call
+   <code>make_bind_front("a")()</code> are ill-formed.</p>
 
 <h3><a name="motivation.one_shot">3.5. Supporting one-shot invocation</a></h3>
 
@@ -346,10 +345,10 @@ private:
    of implementation is not only affecting the vendors, but also leads to unreadable error message produced to the
    user.</p>
 
-<p>Secondly, it allow wrapper created from <code>std::bind</code> to silently drops arguments that are not
+<p>Secondly, it allow wrapper created from <code>std::bind</code> to silently drop arguments that are not
    referenced by the placeholders. This functionality may seem to be unharmful, but in case of output parameters
    it prevents certain range of bugs from being detected as compile time. For example following code will silently
-   ignore potential error returned from <code>read_async</code> and will cause program to lead infinitely if such
+   ignore potential error passed to the <code>callback</code> and will cause program to loop infinitely if such
    error is reported:</p> 
 <pre>struct InputStream
 {
@@ -806,6 +805,8 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
 <p>Daniel Krügler offered tremendous amount of improvements for presented wording.</p>
+
+<p>Jonathan Wakely offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Proposed runtime version of <code>bind_front</code> and <code>bind_back</code> are inspired by their compile time counterparts from Eric Niebler's 
   <a href="http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/">Tiny Metaprogramming Library</a>.</p>
