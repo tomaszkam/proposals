@@ -146,7 +146,7 @@ std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
    
 <p>However use of named placeholder requires user to decide on specific number of arguments passed to the function,
    so it  does not support variadic functors and require wrapper code to be adjusted each time when the number of
-   arguments accepted by target callable is changed. In addition to that it leads to more subtle and hard to sport
+   arguments accepted by target callable is changed. In addition to that it loop to more subtle and hard to sport
    problems presented in <a href="#design.placeholders">4.1. No arbitrary argument rearrangements</a> section of this paper.</p>
  
 <p>In contrast in case of proposed <code>bind_front</code> function, all arguments provided on the call side are
