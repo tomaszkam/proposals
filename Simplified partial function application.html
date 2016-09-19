@@ -751,12 +751,12 @@ public:
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;
-    -&gt; std::result_of_t&lt;Func&amp;(BoundArgs&amp;..., CallArgs...)&gt;
+    -&gt; std::result_of_t&lt;Func&amp;(BoundArgs&amp;..., CallArgs&amp;&amp;...)&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;
-    -&gt; std::result_of_t&lt;Func const&amp;(BoundArgs const&amp;..., CallArgs...)&gt;
+    -&gt; std::result_of_t&lt;Func const&amp;(BoundArgs const&amp;..., CallArgs&amp;&amp;...)&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
