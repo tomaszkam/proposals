@@ -562,7 +562,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
         For each <code>Ti</code> in <code>BoundArgs</code>, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
-        <code>(is_constructible_v&lt;BoundArgs, Args&gt; &amp;&amp; ...)</code> shall be true.
+        <code>conjunction_v&lt;is_constructible_v&lt;BoundArgs, Args&gt;...&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
