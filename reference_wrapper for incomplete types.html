@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0357R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-08-17</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-09-29</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -737,10 +737,10 @@ public:
 <p>Careful reader may notice, that the  <code>operator()</code> requires template parameter <code>T</code> to be a complete type,
    and this requirement is not only limited to definition of the function, but also its declaration, that uses 
    <code>std::result_of_t&lt;T&amp;(Args...)&gt;</code> to specify return type. 
-   However, this function is an template function member of the class and its declaration will not be instantiated during the instantiation
-   of enclosing <code>reference_wrapper</code> specialization, as the value of the <code>Args</code> template parameter pack are not know
-   at this point. As a consequence the user is allowed to use an object of <code>reference_wrapper&lt;T&gt;</code> with <code>T</code>
-   being an incomplete type, unless it is actually called.</p>
+   However, call operator is an template function member of the class and its declaration will not be instantiated during the
+   instantiation of enclosing <code>reference_wrapper</code> specialization, as the <code>Args</code> template parameter pack 
+   are not know at this point. As a consequence the user is allowed to use an object of <code>reference_wrapper&lt;T&gt;</code>
+   with <code>T</code> being an incomplete type, unless it is actually called.</p>
 
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
