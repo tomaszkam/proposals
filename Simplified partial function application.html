@@ -551,10 +551,10 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
            of types <code>BoundArgs...</code> 
            constructed from <code>std::forward&lt;Args&gt;(args)...</code> respectively,</li>
 
-      <li><code>call_args</code> is a pack of expressions used as arguments for <code>g</code>,</li>
+      <li><code>call_args</code> is a pack of objects used as arguments for <code>g</code>,</li>
     </ul>
     where <code><em>DECAY_UNWRAP</em>(T)</code> is determined as follows: 
-    Let <code>U</code> be <code>std::decay_t&lt;T&gt;</code>.
+    Let <code>U</code> be <code>decay_t&lt;T&gt;</code>.
     Then <code><em>DECAY_UNWRAP</em>(T)</code> is <code>X&amp;</code> if <code>U</code> equals <code>reference_wrapper&lt;X&gt;</code>,
     otherwise <code><em>DECAY_UNWRAP</em>(T)</code> is <code>U</code>.<p></p></dd>
 
@@ -562,7 +562,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
         For each <code>Ti</code> in <code>BoundArgs</code>, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
-        <code>conjunction_v&lt;is_constructible_v&lt;BoundArgs, Args&gt;...&gt;</code> shall be true.
+        <code>conjunction_v&lt;is_constructible&lt;BoundArgs, Args&gt;...&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
@@ -687,7 +687,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
            of type <code>FD</code> 
            constructed from <code>std::forward&lt;F&gt;(f)</code>,</li>
       
-      <li><code>call_args</code> is a pack of expressions used as arguments for <code>g</code>.</li>
+      <li><code>call_args</code> is a pack of objects used as arguments for <code>g</code>.</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
@@ -806,7 +806,7 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
 <p>Daniel Krügler offered tremendous amount of improvements for presented wording.</p>
 
-<p>Jonathan Wakely offered many useful suggestions and corrections to the proposal.</p>
+<p>Jonathan Wakely and Stephan T. Lavavej offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Proposed runtime version of <code>bind_front</code> and <code>bind_back</code> are inspired by their compile time counterparts from Eric Niebler's 
   <a href="http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/">Tiny Metaprogramming Library</a>.</p>
