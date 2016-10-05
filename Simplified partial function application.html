@@ -490,7 +490,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          [ Note: This includes also the target object - end note ]. This propagation step shall ensure that
          the state object of type <code>T</code> is delivered as lvalue reference to <code>T <em>cv</em></code>
          when the call is performed on an lvalue of the call wrapper type and as rvalue reference to <code>T <em>cv</em></code>
-         otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper.
+         otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper
+         and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          </ins><p></p></dd>
  
      <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>,
