@@ -292,7 +292,7 @@ auto make_bind_front(int i) { return bind_front(CallableOnce{}, i); }
 <p>Only the invocation <code>make_bind_front(1)()</code> is well formed, as the other two (<code>make_bind(1)()</code> 
    and <code>make_lambda(1)()</code>) leads to unsupported call on the lvalue of <code>CallableOnce</code>.</p>
 
-<p>It case of use of lambda expression it would be possible to workaround the problem by explicit use of the 
+<p>Using a lambda expression it would be possible to workaround the problem by explicit use of the 
    <code>std::move</code>:</p>
 <pre>[f = CallableOnce{}, i] { return std::move(f)(i); }</pre>
 <p>However above code is forcing calls on rvalue of <code>CallableOnce</code>, even if lvalue functor is invoked.
