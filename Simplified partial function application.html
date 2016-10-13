@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-07-19</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2016-10-13</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -114,8 +114,7 @@ td { text-align: left; vertical-align: top;
   <li>Described problems caused by silent dropping of output parameters in <a href="#design.placeholders">4.1. No arbitrary argument rearrangements</a>
       section.</li>
   <li>Included proposed wording and feature testing macro.</li>
-  <li>Corrected included implementation for the rvalue-qualified <code>operator()</code> of <code>bind_front</code>, so the bound arguments
-      of reference type are not longer moved to the underlining callable.</li>
+  <li>Corrected uses of <code>std::result_of</code> in implementation.</li>
 </ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
@@ -762,12 +761,12 @@ public:
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;&amp;
     -&gt; std::result_of_t&lt;Func&amp;&amp;(BoundArgs&amp;&amp;..., CallArgs&amp;&amp;...)&gt;
-  { return bind_front_caller(std::move(func), std::forward&lt;BoundArgs&gt;(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
+  { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;&amp;
     -&gt; std::result_of_t&lt;Func const&amp;&amp;(BoundArgs const&amp;&amp;..., CallArgs&amp;&amp;...)&gt;
-  { return bind_front_caller(std::move(func), std::forward&lt;BoundArgs const&gt;(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
+  { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
 
 private:
   Func func;
