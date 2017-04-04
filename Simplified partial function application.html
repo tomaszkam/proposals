@@ -120,8 +120,8 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r3">2.3. Revision 2</a></h3>
 
 <ul>
+  <li>Replacedi uses of deprecated <code>result_of</code> with <code>invoke_result</code>.</li>
   <li>Reworked wording to reffer to "initialization" instead of "construction" of objects.</li>
-  
 </ul>
 
 
@@ -759,22 +759,22 @@ public:
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;
-    -&gt; std::result_of_t&lt;Func&amp;(BoundArgs&amp;..., CallArgs&amp;&amp;...)&gt;
+    -&gt; std::invoke_result_t&lt;Func&amp;, BoundArgs&amp;..., CallArgs...&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;
-    -&gt; std::result_of_t&lt;Func const&amp;(BoundArgs const&amp;..., CallArgs&amp;&amp;...)&gt;
+    -&gt; std::invoke_result_t&lt;Func const&amp;, BoundArgs const&amp;..., CallArgs...&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;&amp;
-    -&gt; std::result_of_t&lt;Func&amp;&amp;(BoundArgs&amp;&amp;..., CallArgs&amp;&amp;...)&gt;
+    -&gt; std::invoke_result_t&lt;Func, BoundArgs..., CallArgs...&gt;
   { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;&amp;
-    -&gt; std::result_of_t&lt;Func const&amp;&amp;(BoundArgs const&amp;&amp;..., CallArgs&amp;&amp;...)&gt;
+    -&gt; std::invoke_result_t&lt;Func const, BoundArgs const..., CallArgs...&gt;
   { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
 
 private:
