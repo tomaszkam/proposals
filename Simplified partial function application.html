@@ -123,6 +123,7 @@ td { text-align: left; vertical-align: top;
   <li>Updated wording to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf">N4659</a> (C++ Working Draft, 2017-03-21).</li>
   <li>Replaced uses of deprecated <code>result_of</code> with <code>invoke_result</code>.</li>
   <li>Reworked wording to reffer to "initialization" instead of "construction" of objects.</li>
+  <li>Replaced reference to "objects" to "entities" to cover binding references.</li>
 </ul>
 
 
@@ -466,9 +467,9 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument objects</em> that may be passed as arguments to target object.</ins><p></p></dd>
+    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument entities</em> that may be passed as arguments to target object.</ins><p></p></dd>
 
-    <dd><ins>The held target object and bound argument objects of the call wrapper are collectively referred as <em>state objects</em>.</ins><p></p></dd>
+    <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred as <em>state objects</em>.</ins><p></p></dd>
   </dl>
 </blockquote>
 
@@ -493,10 +494,10 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates its state objects to the underlying <code><em>INVOKE</em></code> expression
+         that propagates its state entities to the underlying <code><em>INVOKE</em></code> expression
          [ Note: This includes also the target object - end note ]. This propagation step shall ensure that
-         the state object of type <code>T</code> is delivered as lvalue reference to <code>T <em>cv</em></code>
-         when the call is performed on an lvalue of the call wrapper type and as rvalue reference to <code>T <em>cv</em></code>
+         the state entity of type <code>T</code> is delivered as <code>T <em>cv</em>&amp;</code>
+         when the call is performed on an lvalue of the call wrapper type and as <code>T <em>cv</em>&amp;&amp;</code>
          otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper
          and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
          </ins><p></p></dd>
@@ -505,12 +506,12 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
           shall ensure that postfix call expression preformed on expression of type of potentially const qualified reference 
           to <code>G</code> [ Note: This includes both lvalue and rvalue reference  - end note ] has effects
           equivalent to expression <code>e</code> determined as follows: every occurrence of the name of the
-          argument of the call wrapper or one of its state object shall be replaced with expression of reference
+          argument of the call wrapper or one of its state entities shall be replaced with expression of reference
           type determined by corresponding propagation rules.</ins><p></p></dd>
 
 
      <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
-         semantics as the implicitly-defined memberwise operation performed for its state objects ([class.copy])
+         semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
          [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
            implicit definition and they are declared as <code>constexpr</code> if corresponding implicit definition
            would be considered to be <code>constexpr</code> - end note. ]
@@ -556,7 +557,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
            of type <code>FD</code>
            initialized with initializer <code>(std::forward&lt;F&gt;(f))</code>,</li>
       <li><code>BoundArgs</code> is a pack of types equivalent to <code><em>DECAY_UNWRAP</em>(Args)...</code>,</li>
-      <li><code>bound_args</code> is a pack of bound argument objects of <code>g</code>
+      <li><code>bound_args</code> is a pack of bound argument entities of <code>g</code>
            of types <code>BoundArgs...</code> 
            initialized with initializers <code>(std::forward&lt;Args&gt;(args))...</code> respectively,</li>
 
@@ -579,7 +580,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code><em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by initialization of the state objects of <code>g</code>.</p></dd>
+    <dd><p>Any exception thrown by initialization of the state entities of <code>g</code>.</p></dd>
 
   </dl>
 </blockquote>
