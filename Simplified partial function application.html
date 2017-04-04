@@ -120,7 +120,8 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r3">2.3. Revision 2</a></h3>
 
 <ul>
-  <li>Replacedi uses of deprecated <code>result_of</code> with <code>invoke_result</code>.</li>
+  <li>Updated wording to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf">N4659</a> (C++ Working Draft, 2017-03-21).</li>
+  <li>Replaced uses of deprecated <code>result_of</code> with <code>invoke_result</code>.</li>
   <li>Reworked wording to reffer to "initialization" instead of "construction" of objects.</li>
 </ul>
 
@@ -443,8 +444,7 @@ functor. The author believes that in such case introduction of new functions wou
 
 <h2><a name="wording">6. Proposed Wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12).</p>
-
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf">N4659</a> (C++ Working Draft, 2017-03-21).</p>
 
 <h3><a name="wording.pfcw">6.1 Definition of <em>perfect forwarding call wrapper</em></a></h3>
 
@@ -526,7 +526,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <h3><a name="wording.bind_front">6.2 Wording for <code>bind_front</code></a></h3>
 
-<p>After the declaration of <code>not_fn</code> in the section [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
+<p>After the declaration of <code>not_fn</code> in the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
 
 <blockquote class="stdins"> 
 
@@ -590,7 +590,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <h3><a name="wording.dep_bind">6.3 Wording for deprecating <code>bind</code></a></h3>
 
-<p>Delete following declarations from the section [function.objects]/2 (Header <code>&lt;functional&gt;</code> synopsis):</p>
+<p>Delete following declarations from the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis):</p>
 
 <blockquote class="stddel"> 
 
@@ -853,8 +853,8 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
-      (N4606, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">
-              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf</a>)</li>
+      (N4659, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4606.pdf">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf</a>)</li>
 
   <li>Geoffrey Romer,
       "Working Draft, C++ Extensions for Library Fundamentals, Version 2"
