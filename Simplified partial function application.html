@@ -117,6 +117,14 @@ td { text-align: left; vertical-align: top;
   <li>Corrected uses of <code>std::result_of</code> in implementation.</li>
 </ul>
 
+<h3><a name="history.r3">2.3. Revision 2</a></h3>
+
+<ul>
+  <li>Reworked wording to reffer to "initialization" instead of "construction" of objects.</li>
+  
+</ul>
+
+
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>This paper proposes <code>bind_front</code> function for partial function application for first arguments of the function.
@@ -545,11 +553,12 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
-           of type <code>FD</code> constructed from <code>std::forward&lt;F&gt;(f)</code>,</li>
+           of type <code>FD</code>
+           initialized with initializer <code>(std::forward&lt;F&gt;(f))</code>,</li>
       <li><code>BoundArgs</code> is a pack of types equivalent to <code><em>DECAY_UNWRAP</em>(Args)...</code>,</li>
       <li><code>bound_args</code> is a pack of bound argument objects of <code>g</code>
            of types <code>BoundArgs...</code> 
-           constructed from <code>std::forward&lt;Args&gt;(args)...</code> respectively,</li>
+           initialized with initializers <code>(std::forward&lt;Args&gt;(args))...</code> respectively,</li>
 
       <li><code>call_args</code> is a pack of objects used as arguments for <code>g</code>,</li>
     </ul>
@@ -570,7 +579,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code><em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by construction of the state objects of <code>g</code>.</p></dd>
+    <dd><p>Any exception thrown by initialization of the state objects of <code>g</code>.</p></dd>
 
   </dl>
 </blockquote>
@@ -685,7 +694,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
            of type <code>FD</code> 
-           constructed from <code>std::forward&lt;F&gt;(f)</code>,</li>
+           initialized with initializer <code>(std::forward&lt;F&gt;(f))</code>,</li>
       
       <li><code>call_args</code> is a pack of objects used as arguments for <code>g</code>.</li>
     </ul><p></p></dd>
@@ -700,7 +709,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by construction of <code>fd</code>.</p></dd>
+    <dd><p>Any exception thrown by initialization of <code>fd</code>.</p></dd>
 
   </dl>
 </blockquote>
