@@ -298,17 +298,17 @@ public:
 };
 </pre>
 
-<p>Finally lets consider effects of the following calls (<a href="https://wandbox.org/permlink/fRAZoDDx8H0O3MnX">live example</a>):</p>
+<p>Finally lets consider effects of the following calls (<a href="https://wandbox.org/permlink/GTpTFNSZUeSyLfiz">live example</a>):</p>
 <pre>
 rotate(Iter{}, Iter{});                                               //1
 rotate(FixedReturnWrapper{Iter{}}, FixedReturnWrapper{Iter{}});       //2
 rotate(AutoReturnWrapper{Iter{}}, AutoReturnWrapper{Iter{}});         //3
-rotate(DecltypeReturnWrapper{Iter{}}, DecltypeReturnWrapper{Iter{}}); //3
-rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //4
+rotate(DecltypeReturnWrapper{Iter{}}, DecltypeReturnWrapper{Iter{}}); //4
+rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //5
 </pre>
 
-<p>In the case of the above code, the invocation with the <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (3) and
-   <code>ConceptWrapper&lt;Iter&gt;</code> (4) types are working as expected and calling the <code>rotate</code> overload that is accepting
+<p>In the case of the above code, the invocation with the <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (4) and
+   <code>ConceptWrapper&lt;Iter&gt;</code> (5) types are working as expected and calling the <code>rotate</code> overload that is accepting
    the <code>ForwardIterators</code>. This is expected, as operations on this types are properly <i>constrained</i>: candidate functions
    are only viable candidates in case when they body is well formed. This is achieved by either being normal function or usage on 
    expression SFINAE (in form of requires clause).</p>
@@ -341,8 +341,8 @@ rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //4
    local to function) or using expression SFINAE/ad-hoc requires clause (which requires repetition of the code).</p>
 
 <p>To illustrate, lets consider the case of following <code>on_each_month</code> functions:</p>
-<pre>void on_each_month(day_point start_date, int count, Invokable&lt;date&gt; f);
-void on_each_month(day_point start, int count, Invokable&lt;std::string_view&gt; f);</pre>
+<pre>void on_each_month(day_point start_date, int count, Invokable&lt;day_point&gt; f);
+void on_each_month(day_point start_date, int count, Invokable&lt;std::string_view&gt; f);</pre>
 
 <p>The goal of this function is call the provided functor for the specified <code>start_date</code> and them
    same day next month, two month in the future, up to <code>count - 1</code> months in future. The first
@@ -354,7 +354,7 @@ void on_each_month(day_point start, int count, Invokable&lt;std::string_view&gt;
 
 <p>Now consider following invocation in the user, where <code>day_of_week</code> is an library function
    returning a <code>duration</code> since midnight:</p>
-<code>on_each_date(day_point{2017_y/10_m/20_d} + 4h, 10, [](auto d) { return day_of_week(d) == friday; });</code>
+<code>on_each_date(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</code>
 
 <p>This code will fail to compilation due the hard-error in the return type deduction for the invocation of the
    lambda with the object of <code>std::string_view</code> type, caused by checking the viability of the second
