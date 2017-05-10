@@ -87,7 +87,11 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper proposes to make return type deduction failure a SFINAEable error instead of a hard error.</p>
+<p>This paper analysis impact of the threading return type deduction failure as the
+   hard error on the existing language and proposed Concepts Lite.</p>
+
+<p>Secondly we analyse possible ways of addressing the problems, with the recomendation
+   of mitigation it by introducing special (expression-body) syntax.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -97,8 +101,19 @@ td { text-align: left; vertical-align: top;
 
 <h3><a name="history.r1">2.1. Revision 1</a></h3>
 
+<p>This revision of the paper, extends the motivation section to better illustrate
+   of the impact of the Concept TS features. In addition the discussion section
+   was extend to include discussion of the possible alternative solution for the
+   problem.</p>
+
+<p>Finally we no longer propose to treat any return type deduction failure as 
+   hard error, instead we propose to limit it to only certain set of cases,
+   designed by use of expression body syntax: <code>=&gt; expr</code> that was 
+   proposed in
 <ul>
   <li>Reorganized motivation section of focusing on the relation with the Concepts.</li>
+  <li>Included discussion on the possible ways of addressing the lack of constrains.</li>
+  <li> 
 </ul>
 
 
@@ -117,7 +132,7 @@ public:
   template&lt;typename... Args&gt;
   auto operator()(Args&amp;&amp;... args)
     -&gt; decltype(!this->f_(std::forward&lt;Args&gt;(args)...))
-  { return !this->f_(std::forward&lt;Args&gt;(args)...); }
+  { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
 };
 
 template&lt;typename F&gt;
@@ -372,159 +387,280 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
     specific resolution of time (using fixed <code>time_point</code> type).</p>
 
 
-<h2><a name="design">Design Decisions</a></h2>
+<h2><a name="solutions">5. Alternative solutions</a></h2>
 
-<p>This paper proposes that any error occurring in function template instantiation required be return
-type deduction triggered in unevaluated context should lead to substitution failure instead of hard error.</p>
+<p>In this chapter we discuss the possible solutions for addressing an <i>unconstrained</i> template functions,
+   discussing their viability and impact both on the future of the language and user programs.</p>
 
-<h3><a name="design.overloading-on-function-body">Overloading on function body</a></h3>
+<h3><a name="solutions.concepts">5.1. Constraining functions using Concepts</a></h3>
 
-<p>During overload resolution for the call to the function <code>foo</code> no return type deduction is performed
-for the candidate declarations of the function <code>foo</code> that uses return type deduction.</p>
+<p>The most obvious solution is to assume (and consequence require) that the all operations on the types used with
+   the argument, will be constrained via appropriate concepts.</p>
 
-<p>For example in the case of the following declarations:</p>
+
+<p>Firstly we will consider the already presented example of the <code>varidatic_negator</code> class, defined as 
+   follows:</p>
 <pre>
 template&lt;typename F&gt;
-auto apply(F f, int i) { return f(i); }          // 1
-
-template&lt;typename F&gt;
-auto apply(F f, std::string s) { return f(s); }  // 2
-</pre>
-<p>Overload resolution for the invocation in the form <code>apply([](int x) { return x; }, std::string())</code> will still select
-second candidate and hard error will be produced by its instantiation. In addition the following two declarations will still lead
-to double definition error:</p>
-<pre>
-template&lt;typename T&gt;
-auto foo(T t) { return t == 0; }
-
-template&lt;typename T&gt;
-auto foo(T t) { return t == "0"; }
-</pre>
-
-<p>To summarize this paper does not require the compiler to eliminate the function overload based of validity of their body
-in case when return type deduction is used and, as consequence, does not impose need to support mangling of whole function body
-into signature.</p>
-
-<h3><a name="design.introducing-overload">Introducing new overloads</a></h3>
-
-<p>In some situations the user may still want to eliminate function overload based on the whole function body and
-changed proposed in this paper support such use cases by introducing additional level of indirection. For example
-following function:</p>
-<pre>template&lt;typename T&gt;
-decltype(auto) foo(T&amp;&amp; t) { <i>...</i> }</pre>
-<p>Can be transformed into:</p>
-<pre>template&lt;typename T&gt;
-decltype(auto) foo_impl(T&amp;&amp; t) { <i>...</i> }
-
-template&lt;typename T&gt;
-auto foo(T&amp;&amp; t) -&gt; decltype(foo_impl(std::forward&lt;T&gt;(t)))
-{ return foo_impl(std::forward&lt;T&gt;(t); }</pre>
-
-<p>Example use case of such feature would be implementation of the binary <code>overload</code> function
-(as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051R1: C++ generic overload function (Revision 1)</a>).</p>
-
-<p>If we consider implementation presented in the paper:</p>
-<pre>template&lt;class F1, class F2&gt; struct overloaded : F1, F2
+class variadic_negator_functor
 {
-  overloaded(F1 x1, F2 x2) : F1(x1), F2(x2) {}
-  using F1::operator();
-  using F2::operator();
-};
+  F f_;
 
-template&lt;class F1, class F2&gt;
-overloaded&lt;F1, F2&gt; overload(F1 f1, F2 f2)
-{ return overloaded&lt;F1, F2&gt;(f1, f2); 
-</pre>
-<p>For this implementation every call to the functor <code>f = overload([](auto t) { return t == 0; }, [](auto t) { return t.empty(); })</code> will
-be lead to ambiguity error, as each lambda can accept any movable type. However with the proposed change and slight change of the <code>overloaded</code>
-code, we would be able to make such call unambiguous unless passed object is both comparable with <code>0</code> and have <code>empty()</code> method.</p>
-<pre>
-template&lt;class F1, class F2&gt; struct overloaded : F1, F2
-{
-  overloaded(F1 x1, F2 x2) : F1(x1), F2(x2) {}
+public:
+  explicit variadic_negator_functor(F a_f) : f_(a_f) {}
 
   template&lt;typename... Args&gt;
-  auto operator()(Args&amp;&amp;... args)
-    -&gt; decltype(this-&gt;F1::operator()(std::forward&lt;Args&gt;(args)...))
-  { return this-&gt;F1::operator()(std::forward&lt;Args&gt;(args)...); }
-
-  template&lt;typename... Args&gt;
-  auto operator()(Args&amp;&amp;... args)
-    -&gt; decltype(this-&gt;F2::operator()(std::forward&lt;Args&gt;(args)...))
-  { return this-&gt;F2::operator()(std::forward&lt;Args&gt;(args)...); }
+  decltype(auto) operator()(Args&amp;&amp;... args)
+  { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
 };
 </pre>
 
-<h3><a name="design.build-times">Impact on build times</a></h3>
+<p>At first glance we may consider that this function can be easily constrained by use of the standard
+   <code>Predicate</code> concept, leading to following solution:</p>
+<pre>
+template&lt;typename F&gt;
+class variadic_negator_functor
+{
+  F f_;
 
-<p>The increase of build times caused by additional failed function template instantiation may be considered as the main argument against
-introduction of proposed change. This section discuss in detail scope of potential impact compared to alternatives.</p>
+public:
+  explicit variadic_negator_functor(F a_f) : f_(a_f) {}
 
-<p>Firstly lets consider the impact on build time of existing valid programs. By definition every return type deduction preformed in such
-program was successful (otherwise hard-error would be emitted and program would be invalid), so no additional instantiations will be introduced.
-As consequence build time of existing code should not be affected.</p>
+  template&lt;typename... Args&gt;
+    requires Predicate&lt;F&amp;, Args...&gt;
+  decltype(auto) operator()(Args&amp;&amp;... args)
+  { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
+};
+</pre>
 
-<p>Secondly lets out consider the program for which one of return type deduction failed. If failed instantiation was not triggered in unevaluated
-context, such program will remain ill-formed. Lets assume that above deduction failure occurred during overload resolution from the set
-of candidate that contains <i>N</i> function using return type deduction, out of which <i>K</i> would be instantiated without any error. According
-the current rules the hard error will be emitted during the first failed deduction, so depending on the implementation program may already
-perform between <i>1</i> (1st checked candidate failed) and <i>K + 1</i> (all well-formed candidates were checked before failure) template instantiations.
-In case of the proposed change up-to <i>N</i> instantiations may be performed.</p>
+<p>A closer look into produced design exposes in an flaw in this approach: by requiring imposing and 
+   <code>Predicate</code> concept we impose the restriction on the <code>F</code> returns type to be
+   an (object convertible to) <code>bool</code>. In contrast the original design supported any 
+   object on which <code>operator!</code> can be applied. To restore original functionality
+   we may reduce the strength of the concept, by using <code>Invokable</code> instead:</p>
+<pre>
+template&lt;typename F&gt;
+class variadic_negator_functor
+{
+  F f_;
 
-<p>As showed above, acceptance of this change will increase the limit of potential functions template instantiations and by consequence increase
-compilation time. However we should also consider the cost of currently existing alternative, that will make such program well-formed. The simplest
-approach would be to change the definition of existing function to use <code>decltype(expr)</code>, where <code>expr</code> would be valid
-if the function body would be well formed. Such transformation may be already done by transforming statement into coma-separated list of expression
-(local lambda should be transformed to functions object declared outside of function scope). It is not unreasonable to assume that the cost of checking
-validity of such expression would be comparable to potential cost of function body instantiations. In addition the use of <code>decltype(expr)</code>
-approach incurs additional cost of mangling of function signature.</p>
+public:
+  explicit variadic_negator_functor(F a_f) : f_(a_f) {}
 
-<h2><a name="standard">Impact On The Standard</a></h2>
+  template&lt;typename... Args&gt;
+    requires Invokable&lt;F&amp;, Args...&gt;
+  decltype(auto) operator()(Args&amp;&amp;... args)
+  { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
+};
+</pre>
+<p>However, in this situation, the function again become <i>underconstrained</i> as we no longer
+   guarantee the call of <code>operator!</code> on <code>f</code>'s invocation result will be 
+   well-fromed.</p>
 
-<p>This proposal has no dependencies beyond a C++14 standard.</p>
+<p>Finally to restore original functionality of this simple class, we would be forced to 
+   combine and <code>Invokable&lt;F&amp;, Args...&gt;</code> with additional on result type
+   being negable. To achieve this we will need to add at hoc exprsion constrain
+   (by using <code>decltype(expr)</code> or in-place <code>requires</code> expression),
+   which will reintroduce the code repetition that we want to eliminate.</p>
 
-<p>Nothing depends on this proposal.</p>
+<p>Alternatively we may consider introducing an (set of) standardized syntactic concepts
+   (like <code>has_negation</code>) to be used in such situation, but by doing so, we will
+   essentially recreate an failed pre-C++11 concept design with its overwhelming number
+   of constrains.</p>
 
-<h2><a name="wording">Proposed wording</a></h2>
+<h3><a name="solutions.body-sfinae">5.2. Turning return type deduction failure into soft-error</a></h3>
 
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4567.pdf">N4567</a> (C++ Working Draft, 2015-11-09).</p>
+<p>In this section we discuss originally proposed solution, based on turning the return type deduction failures
+   into soft errors. Choosing this solution will basically resolve all the problems related to use
+   <code>auto</code> return type, by making them <i>constrained</i>: they by, definition, will be viable
+   if and only if the their body is well-formed.</p>
 
-<p>Change the paragraph 7.1.6.4 <code>auto</code> specifier [dcl.spec.auto] p8.</p>
+<p>However it have their own drawbacks. Firstly it promotes defining the interface of the function
+   in terms of terms of their implementation. This should be considered as the bad practice for the large
+   function, like generic algorithms. For example, we may consider the implementation of the sort algorithm,
+   that will be based on the basic quick-sort algorithm, which performs only swap of the elements. Inferring
+   interface (requirement of the accepted iterator and their value types) from this implementation, will
+   prevent future optimization, like switching to insertion sort after certain number of recursive calls, 
+   as performing this step, will require additional operations on the types (creating an copy) and break
+   existing calls.</p>
 
-<blockquote class="std"> 
+<p>Secondly, this approach effectively requires language to be able to backtrack from the any error
+   occurring in the function body, as consequence any newly introduced feature language feature would
+   need to be considered in this context. This will increase the amount of work required for the
+   introduction of the new language features, like constexpr-if or structured binding, that are currently
+   limited to function bodies and cannot appear in unevaluated context and finally cripple the 
+   evolution of the language.</code>
 
-  <dl class="attribute">
+<p>Finally, the complexity of the implementation of the implementation and the existence of the 
+   features limited to language bodies, suggest an alternative solution that will reduce number
+   of SFINAEable errors to only certain constructs (expression) or kinds of the function bodies.
+   One of the option may be to consider applying this change only to function with body consisting
+   on single return statement. The author believe that such design will be very surprising for the
+   user, as simple refactoring, like splitting large expression and saving their result in local 
+   variables, will turn cause previously well formed code to throw error from seemingly unrelated
+   template instantiation. For reference please check the difference between invocation of (4) 
+   and (2) from <a href="#concepts.sfinae-usage">4.1. Concepts checks depends on SFINAE</a>
+   section.</p>
 
-   <dd><p>Return type deduction for a function template with a placeholder in its declared type occurs when the
-   definition is instantiated even if the function body contains a <code>return</code> statement with a 
-   non-type-dependent operand. 
-   [ <i>Note:</i> Therefore, any use of a specialization of the function template will cause an implicit instantiation.
-     <del> Any errors that arise from this instantiation are not in the immediate context of the function type and can
-     result in the program being ill-formed.</del> <i>— end note</i> ]
-   <ins>If this instantiation occurs as part of template argument substitution, any errors that arise from it should
-   lead to deduction failure ([temp.deduct] 14.8.2).</ins></p></dd>
-  </dl>
+<h2><a name="expr-body">6. Proposed solution: expression body</a></h2>
 
-</blockquote>
+<p>In this chapter we present recommended solution for the problem of constraining small functions,
+   based on the introduction of the new function definition syntax limited to function consisting
+   of single expression. We propose to reuse syntax proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
+   P0573R0: Abbreviated Lambdas for Fun and Profit</a>, while allowing them to be applied to
+   all functions (including member functions).</p> 
 
-<h2><a name="implementability">Implementability</a></h2>
+<p>To ilustrate following definitioni:</p>
+<pre>template&lt;typename C&gt; auto size(C const&amp; c) =&gt; c.size();</pre>
+<p>, will have same semantics as:</p>
+<pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size()) -&gt; decltype(c.size()) { return c.size(); }</pre>
 
-<p>This paper requires compiler implementers to be able to turn instantiation error from function body into substitution error. As consequence
-the compiler vendors would be required to implement the ability to backtrack from the errors occurring in expression that are not allowed
-in unevaluated context (like lambda expression), however no mangling support for this expression is required.</p>
+<p>Firstly it allow to infer the interface of the function from it implementation, but still
+   can be combined with constrains based on the concept, for in cause of the
+   <code>varidatic_negator_example</code>, we can still express requirement of callability 
+   via concept (and benefit from better error messages), without losing flexibility of 
+   original solution:</p>
+<pre>
+template&lt;typename F&gt;
+class variadic_negator_functor
+{
+  F f_;
 
-<h2><a name="acknowledgements">Acknowledgements</a></h2>
+public:
+  explicit variadic_negator_functor(F a_f) : f_(a_f) {}
+
+  template&lt;typename... Args&gt;
+    requires Invokable&lt;F&amp;, Args...&gt;
+  auto operator()(Args&amp;&amp;... args) =&gt; !this-&gt;f_(std::forward&lt;Args&gt;(args)...);
+};
+</pre>
+
+<p>Secondly, the limitation of the functions to the single expression is actually benifitial,
+   as it prevents overuse of the facility for larger functions (like discussed sort example),
+   while still covering large amount of use cases, as large body of the lambda functions still
+   consist of single return statement.</p>
+
+<h3><a name="expr-body.projections">6.1. Using lambda to write an projections</a></h3>
+
+<p>The default return type deduction for the lambda returns object by copy (<code>auto</code> deduction),
+   is not well suited for writing projections (lambda returning a member, calling a getter), as
+   they will become inefficient. This will become more important in case of the development of i
+   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf"/>Ranges TS</a>
+   that allow projections to be provided to the standard algorithm.</p>
+
+<p>For example in case of following code:</p>
+<pre>
+struct Employee
+{
+   std::string first_name;
+   std::string last_name;
+};
+std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
+
+<p>The invocation in form:</p>
+<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) { return e.first_name; });</pre>
+<p>Will create an two copies of string <b>for each</b> comparison of the employee objects
+   in <code>ve</code>, creating <code>O(ve.size())</code> copies of the string.</p>
+
+<p>In contrast if we declare projection using proposed expression body syntax:</p>
+<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first_name);</pre>
+<p>Will return an (const) reference to string, and the code will not create any addtional
+   copies than STL1 like solution:</p>
+<pre>ranges::sort(ve, [] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; });</pre>
+
+<p>Furthermore in case of the predicates (and other lambdas producing the new object), result
+   will be returned by value regardless of which syntax is used, so following lambdas functions 
+   have <code>bool</code> return type:</p>
+<pre>[] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; }</pre>
+<pre>[] (Employee const&amp; e1, Employee const&amp; e2) =&gt; e1.first_name &lt; e2.first_name</pre>
+
+
+<h3><a name="expr-body.noexcept">6.2. Inferring <code>noexcept</code></a></h3>
+
+<p>We also require an expression body to inffer an function excpetion specification from the 
+   implementation. This matches recent development of the language, that makes 
+   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
+   exception specification part of type system</a>.</p>
+
+<p>Furthermore, with he decision of terminating the program in case of exception
+   being throw from invocation of the functor passed to parallel, we need the
+   ability to check if given function may throw an exception to allow to seemlessly
+   parallelize user code:</p>
+<pre>template&lt;typename It, typename F&gt;
+void unsequenced_for(It first, It last, F f)
+{
+  if constexpr(noexcept(f(*first)))
+    std::for_each(std::par, first, last, f);
+  else
+    std::for_each(std::seq, first, last, f);
+};</pre>
+<p>We need to avoid use of <code>std::par</code> execution policy in case
+   of throwing functor, to avoid terminating the program in case of exception.</p>
+
+<p>Some concerns may be also raised that marking the lambda as <code>noexcept</code>,
+   in generic case, requires insertion of additional handling code that will terminate
+   program, which may negatively impact performance of program. However in case
+   of proposed functionality, lambda will be marked as <code>noexcept</code>, only
+   of its is body will be know to not produce any exceptions (any eventual handling
+   code is already present in code of called function), so adding this specification
+   should not impact generated code.</p> 
+   
+    
+<h2><a name="wording">7. Proposed wording</a></h2>
+
+<p>To be defined.</p>
+
+<p>The generic idea is to introduce new expression body syntax, that can be used
+   for the normal functions, template functions and the lambda expression. We propose
+   that for the functions using expression body:</p>
+<ul>
+  <li>will be implicitly treated as inline,</li>
+  <li>need to use trailing return type introducer: <code>auto</code>,</li>
+  <li>cannot be forward declared.</li>
+</ul>
+
+</p>In case of the potential ambiguity caused by use of lambda with expression body
+    as middle argument of the function, we propose to choose shortest possible 
+    expression as body, i.e.</p>
+<pre>f([](auto x) => x + 2, 3, 4);</pre>
+<p>should be interpreted as:</p>
+<pre>f(([](auto x) => x + 2), 3, 4);</pre>
+
+<h2><a name="implementability">8. Implementability</a></h2>
+
+<p>Proposed expression body is basically an terse notation for existing language syntax, 
+   that avoids unnecessary code repetition. As such it should not impose major implementation
+   problems for compilers already implementing expression-SFINAE.</p>
+
+<h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
 <p>Ville Voutilainen and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
-<h2><a name="literature">References</a></h2>
+<h2><a name="literature">10. References</a></h2>
 
 <ol>
-  <li>Marshall Clow, "C++ Standard Library Defect Report List (Revision R93)" (N4485, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html</a>)</li>
-  <li>Howard Hinnant, "date library" (P0051R1, <a href="https://github.com/HowardHinnant/date">https://github.com/HowardHinnant/date</a>)</li>
+  <li>Marshall Clow, 
+      "C++ Standard Library Defect Report List (Revision R93)"
+      (N4485, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html">
+                       http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html</a>)</li>
+  <li>Howard Hinnant, 
+      "date library" 
+      (<a href="https://github.com/HowardHinnant/date">https://github.com/HowardHinnant/date</a>)</li>
 
-  <li>Vicente J. Botet Escriba, "C++ generic overload function (Revision 1)" (P0051R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf</a>)</li>
-  <li>Richard Smith, "Working Draft, Standard for Programming Language C++" (N4567, <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4567.pdf">http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2015/n4567.pdf</a>)</li>
+  <li>Barry Revzin, 
+      "Abbreviated Lambdas for Fun and Profit" 
+      (P0573R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
+                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html</a>)</li>
+  <li>Eric Niebler, Casey Carter,
+      "Working Draft, C++ Extensions for Ranges" 
+      (N4651, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf">
+                       http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf</a>)</li>
+
+  <li>Jens Maurer,
+      "P0012R1: Make exception specifications be part of the type system, version 5" 
+      (P0012R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
+                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html</a>)</li>
+
 </ol>
 
 </body></html>
