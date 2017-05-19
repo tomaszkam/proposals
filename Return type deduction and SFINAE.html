@@ -87,11 +87,11 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper analysis impact of the threading return type deduction failure as the
+<p>This paper analysis impact of the treating return type deduction failure as the
    hard error on the existing language and proposed Concepts Lite.</p>
 
 <p>Secondly, we analyse possible ways of addressing the problems, with the recommendation
-   of mitigation it by introducing special (expression-body) syntax.</p>
+   of mitigating it by introducing special (expression-body) syntax.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -140,7 +140,7 @@ variadic_negator_functor&lt;F&gt; variadic_negator(F f)
 <p>In the implementation, we can see an obvious repetition of the function invocation
    that is placed both in the return type declaration and in the return statement.
    We could avoid this necessary repetition by using return type deduction for the 
-   normal function and declare return type as <code>decltype(auto)</code>. 
+   and declare return type as <code>decltype(auto)</code>. 
    As consequence of this change we would affect the overload resolution for calls of
    the <code>operator()</code>: in case of <code>decltype(expr)</code> this candidate
    was not considered to be viable in case when the <code>f</code> was is not callable
@@ -148,9 +148,9 @@ variadic_negator_functor&lt;F&gt; variadic_negator(F f)
    case of use of <code>decltype(auto)</code> this candidate is always viable.</p>
 
 <p>In the context of the discussed class for every invocation <code>variadic_negator(f)(args...)</code>
-   there is only one function candidate, and at first glance, we may consider this
-   change to be acceptable, as it will only change the error messages caused by invalid
-   invocations of the functor. However, such reasoning omits situations when the availability
+   there is only one candidate, and at first glance, we may consider this change to be acceptable,
+   as it will only change the error messages caused by invalid invocations of the functor.
+   However, such reasoning omits situations when the availability
    of other functions depends on the validity of the call to <code>variadic_negator</code>.
    As an example, we may consider the following:</p>
 <pre>
@@ -182,7 +182,7 @@ bool test(int);
 <h3><a name="motivation.std_function">3.1. Functions accepting <code>std::function</code> as parameter</a></h3>
 
 <p>In may be pointed out that presented example of the <code>invoke</code> function is artificial
-   and such situations will not normally occur in the code. However as result of resolutioni
+   and such situations will not normally occur in the code. However as result of resolution
    of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html#2132">LWG issue #2132</a> 
    similar mechanism is used to eliminate <code>std::function</code> constructor in case when
    object is not callable. As consequence same problem would occur in case when <code>invoke</code>
@@ -211,7 +211,7 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 bool invoke(std::function&lt;bool(int)&gt; f);         //1
 bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 </pre>
-<p>The expression in the form <code>[](int x) { return x == 2; }</code> is well formed an selectsi
+<p>The expression in the form <code>[](int x) { return x == 2; }</code> is well formed an selects
    first overload, while seemingly identical expression that uses new generic lambda 
    <code>[](auto x) { return x == 2; }</code> produces hard error.</p>
 
@@ -224,18 +224,17 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 <h2><a name="concepts">4. Impact on Concepts</a></h2>
 
 <p>In this section, we discuss the relation between SFINAE (and by consequence proposed feature) and
-   currently proposed Concept TS design, by enumerating situations in which lack of the SFINAE negatively
-   affects this feature.</p> 
+   currently proposed Concept TS design.</p> 
 
 
 <h3><a name="concepts.sfinae-usage">4.1. Concepts checks depends on SFINAE</a></h3>
 
 <p>One of major additions of the proposed Concepts design is the <code>requires</code> expression,
    that provides a simple syntax for checking the validity of the certain expression performed on the
-   given types. However, the underlying mechanism is same as existing expression-SFINAE solutions, and for
-   its to function properly functions used inside expression must be properly <i>constrained</i>: 
+   given types. However, the underlying mechanism is same as in existing expression-SFINAE implementations,
+   ant to function properly it requires, that functions used in expression must be properly <i>constrained</i>: 
    they should not be a viable candidate unless they body is well formed. As consequence, the operations
-   used on types passed to the constrained function must also be constrained.</p>
+   used on passed passed to the constrained function must also be constrained.</p>
 
 <p>To illustrate above point, lets our consider following (very simplified) concept hierarchy and constrained
    generic function:</p>
@@ -260,7 +259,7 @@ I rotate(I first, I last) {
   ++first; --first; return first;
 }
 </pre>
-<p>And following class implementing concepts:</p>
+<p>And following class implementing above concepts:</p>
 <pre>
 struct Iter { 
   Iter operator++() { return *this; }; 
@@ -331,80 +330,80 @@ rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //5
 </pre>
 
 <p>In the case of the above code, the invocation with the <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (4) and
-   <code>ConceptWrapper&lt;Iter&gt;</code> (5) types are working as expected and calling the <code>rotate</code> overload that is accepting
-   the <code>ForwardIterators</code>. This is expected, as operations on this types are properly <i>constrained</i>: candidate functions
+   <code>ConceptWrapper&lt;Iter&gt;</code> (5) types, are calling the <code>rotate</code> overload that is accepting the <code>ForwardIterators</code>.
+   This is desired and expected behaviour, as operations on this types are properly <i>constrained</i>: candidate functions
    are only viable candidates in a case when they body is well formed. This is achieved by either being normal function or usage on 
    expression SFINAE (in form of requires clause).</p>
 
 <p>Regretfully in the case of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2), we encounter a compilation error from body of the
-   <code>FixedReturnWrapper::operator--</code> body called from <code>rotate</code> function. This is caused 
-   by the fact that the  <code>operator--</code> on this function is effectively <i>underconstrained</i>: it is considered to be a viable candidate,
+   <code>FixedReturnWrapper::operator--</code>, that is called from <code>rotate</code> function. This is caused 
+   by the fact that the  <code>operator--</code> for this type is effectively <i>underconstrained</i>: it is considered to be a viable candidate,
    even if its body is ill formed, which is consequence leads to a false-positive result of <code>Bidirectional&lt;FixedReturnWrapper&lt;Iter&gt;</code>
    and selecting wrong overload of <code>rotate</code> function.</p>
 
 <p>Finally, in case of the <code>AutoReturnWrapper&lt;Iter&gt;</code> (3), we encounter a compilation error from the body of 
    the <code>FixedReturnWrapper::operator--</code> triggered from the return type deduction for the <code>auto</code>
    placeholder. As any error occurring during this stage is treated as hard error, this basically stops the compilation,
-   without giving the ability to select appropriate overload of <code>rotate</code> function (<code>ForwardIterator</code>)
+   limiting ability to select appropriate overload of <code>rotate</code> function (<code>ForwardIterator</code>)
    version.</p>
 
 <p>As we can see from the example of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2) and <code>AutoReturnWrapper&lt;Iter&gt;</code> (3),
-   Concepts fails to deliver their major promises: more readable error message and overloading based on
+   concepts fails to deliver their major promises: more readable error message and overloading based on
    the subsumption in situation when they are fed with unconstrained argument.</p>
 
 
 <h3><a name="concepts.lambda">4.2. Lambdas as arguments for constrained parameters</a></h3>
 
 <p>The introduction of the C++14 generic lambdas provides an easy way to create unconstrained functors, that will
-   encounter problems described in the previous section when used with constrained functions. This problem is deepened
-   because one of the major usages for the lambda-expression is to provide predicates/functors for the STL algorithms,
-   that was selected as flagship concept library. In addition due the ad-hoc nature of the lambdas, the possibility
-   that standard with already contain matching concepts (like in the <code>Iterator</code> case) is very limited,
-   with leads user with only a few options: like creating their own Concepts (which in contrast to lambdas cannot be
-   local to function) or using expression SFINAE/ad-hoc requires clause (which requires repetition of the code).</p>
+   be prone to problems described in the previous section, when they are used with constrained functions. 
+   This is deepened, by the fact that one of the major usages for the lambda-expression is to provide predicates/functors
+   for the STL algorithms,  that was selected as flagship conceptualized library.
+   In addition due the ad-hoc nature of the lambdas, the possibility, that standard with already contain matching concepts
+   (like in the <code>Iterator</code> case) is very limited, which leaves users with only a few options, like:
+   creating their own concepts (which in contrast to lambdas cannot be  local to function) or using expression SFINAE/ad-hoc
+   requires clause (which introduces code repetition).</p>
 
 <p>To illustrate, lets consider the case of following <code>on_each_month</code> functions:</p>
 <pre>void on_each_month(day_point start_date, int count, Invokable&lt;day_point&gt; f);
 void on_each_month(day_point start_date, int count, Invokable&lt;std::string_view&gt; f);</pre>
 
-<p>The goal of this function is to call the provided functor for the specified <code>start_date</code> and them
+<p>The goal of this function is to call the provided functor for the specified <code>start_date</code>, and then
    same day next month, two months in the future, up to <code>count - 1</code> months in future. The first
-   overload provides and <code>day_point</code> in the numeric format (let us assume very similar format to 
-   (<a href="https://github.com/HowardHinnant/date">Howard Hinnant's date library</a>). Second is an 
-   optimized version that feeds provided function with the serialized date, by providing this overload
+   overload provides and <code>day_point</code> in the numeric format (we assume very similar format to 
+   <a href="https://github.com/HowardHinnant/date">Howard Hinnant's date library</a>). Second is an 
+   optimized version that feeds provided function with the serialized date - by providing this overload
    we can avoid performing multiple allocations and perform operation directly on this representation (incrementing
    month).</p>
 
-<p>Now consider following invocation in the user, where <code>day_of_week</code> is an library function
+<p>Now consider following invocation, where <code>day_of_week</code> is an library function
    returning a <code>duration</code> since midnight:</p>
 <code>on_each_date(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</code>
 
-<p>This code will fail to compilation due to the hard-error in the return type deduction for the invocation of the
+<p>This code will fail to compile, due to error in the return type deduction for the invocation of the
    lambda with the object of <code>std::string_view</code> type, caused by checking the viability of the second
-   overload of <code>on_each_month</code> function. 
-   To fix above problem the user is required to:</p>
+   overload of <code>on_each_month</code> function.
+   To fix above problem the user is required to either:</p>
 <ul>
   <li>change the parameter <code>day_point</code></li>
   <li>repeat the constrains <code>day_of_week</code> function in the lambda argument</li>
-  <li>infer constrains from <code>day_of_week</code> by triggering SFINAE via specifying return type:
+  <li>infer constrains from <code>day_of_week</code> by specifying return type:
       <code>[](auto d) -&gt; decltype(day_of_week(d) == friday) { return day_of_week(d) == friday };</code></li>
 </ul>
 
-</p>Each of above solutions requires either code-repetition, via copying repeating either entire lambda body,
-    or reproducing constrain of the library function, or makes the code less robust by committing to the
+</p>Each of above solutions introduces code-repetition: via repeating entire lambda body,
+    or reproducing constrain of the library function; or makes the code less robust by committing to the
     specific resolution of time (using fixed <code>time_point</code> type).</p>
 
 
 <h2><a name="solutions">5. Alternative solutions</a></h2>
 
-<p>In this chapter we discuss the possible solutions for addressing <i>unconstrained</i> template functions,
+<p>In this section we discuss the possible solutions for <i>constraining</i> template functions,
    discussing their viability and impact both on the future of the language and user programs.</p>
 
 <h3><a name="solutions.concepts">5.1. Constraining functions using Concepts</a></h3>
 
-<p>The most obvious solution is to assume (and consequence require) that all operations on the types used with
+<p>The most obvious solution is to assume (and consequence require) that all operations on objects used with
    the argument, will be constrained via appropriate concepts.</p>
-
 
 <p>Firstly we will consider the already presented example of the <code>varidatic_negator</code> class, defined as 
    follows:</p>
@@ -424,7 +423,7 @@ public:
 </pre>
 
 <p>At first glance we may consider that this function can be easily constrained by the use of the standard
-   <code>Predicate</code> concept, leading to the following solution:</p>
+   <code>Predicate</code> concept:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -441,11 +440,10 @@ public:
 };
 </pre>
 
-<p>A closer look into this code exposes in a flaw in this approach: by requiring imposing and 
-   <code>Predicate</code> concept we impose the restriction on the <code>F</code> returns type to be
-   an (object convertible to) <code>bool</code>. In contrast, the original design supported any 
-   object on which <code>operator!</code> can be applied. To restore original functionality
-   we may reduce the strength of the concept, by using <code>Invokable</code> instead:</p>
+<p>A closer look into this code exposes a flaw in this approach: by using the  <code>Predicate</code>
+   concept we impose the restriction on the <code>F</code> returns type, to be convertible to <code>bool</code>.
+   In contrast, the original design supported any  object on which <code>operator!</code> can be applied.
+   To restore original functionality we may reduce the strength of the concept, by using <code>Invokable</code> instead:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -461,12 +459,12 @@ public:
   { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
 };
 </pre>
-<p>However, in this situation, the function again become <i>underconstrained</i> as we no longer
+<p>However, in this situation, the function again become <i>underconstrained</i>, as we no longer
    guarantee the call of <code>operator!</code> on <code>f</code>'s invocation result will be 
    well-formed.</p>
 
-<p>Finally to restore original functionality of this simple class, we would be forced to 
-   combine and <code>Invokable&lt;F&amp;, Args...&gt;</code> with additional on result type
+<p>Finally to restore original functionality of this simple class, we need to  combine
+   <code>Invokable&lt;F&amp;, Args...&gt;</code> constrain with additional one, requiring result type
    being negable. To achieve this we will need to add at-hoc expression constrain
    (by using <code>decltype(expr)</code> or in-place <code>requires</code> expression),
    which will reintroduce the code repetition that we want to eliminate.</p>
@@ -479,30 +477,28 @@ public:
 <h3><a name="solutions.body-sfinae">5.2. Turning return type deduction failure into soft-error</a></h3>
 
 <p>In this section, we discuss originally proposed solution, based on turning the return type deduction failures
-   into soft errors. Choosing this solution will basically resolve all the problems related to use
-   <code>auto</code> return type, by making them <i>constrained</i>: they by, definition, will be viable
+   into soft errors. Choosing this solution will basically resolve all the problems related to uses
+   <code>auto</code> return type, by making them <i>constrained</i>: they, by definition, will be viable
    if and only if their body is well-formed.</p>
 
 <p>However, it has their own drawbacks. Firstly it promotes defining the interface of the function
    in terms of terms of their implementation. This should be considered as the bad practice for the large
    function, like generic algorithms. For example, we may consider the implementation of the sort algorithm,
-   that will be based on the basic quick-sort algorithm, which performs only swap on the elements. Inferring
-   interface (requirement of the accepted iterator and their value types) from this implementation, will
+   that will be based on the quick-sort, which performs only swap on the elements. 
+   Inferring interface (requirement on accepted iterators and their value types) from this implementation, will
    prevent future optimization, like switching to insertion sort after a certain number of recursive calls, 
-   as performing this step, will require additional operations on the types (creating an copy) and break
-   existing calls.</p>
+   as they will require additional operations on the types (creating an copy), and will break  existing calls.</p>
 
-<p>Secondly, this approach effectively requires language to be able to backtrack from any error
-   occurring in the function body, as consequence any newly introduced feature language feature would
+<p>Secondly, this approach effectively requires compilers to be able to backtrack from any error
+   occurring in the function body. As consequence newly introduced language features would
    need to be considered in this context. This will increase the amount of work required for the
    introduction of the new language features, like constexpr-if or structured binding, that are currently
-   limited to function bodies and cannot appear in unevaluated context and, in the end, cripple the 
+   limited to function bodies and cannot appear in unevaluated context, and, in the end, cripple the 
    evolution of the language.</code>
 
-<p>Finally, the complexity of the implementation of the implementation and the existence of the 
-   features limited to language bodies, suggest an alternative solution that will reduce SFINAEable
-   errors to only certain constructs (expression) or kinds of the function bodies.
-   One of the options may be to consider applying this change only to function with a body consisting
+<p>Finally, the complexity of the implementation of such feature, suggest an alternative solution that
+   will reduce SFINAEable errors to only certain constructs in function bodies.
+   One of the options, is to limit this change only to function with a body consisting
    on single return statement. The author believes that such design will be very surprising for the
    user, as simple refactoring, like splitting large expression and saving their result in local 
    variables, will cause previously well-formed code to emit compilation error from seemingly unrelated
@@ -523,8 +519,8 @@ public:
 <p>, will have same semantics as:</p>
 <pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size()) -&gt; decltype(c.size()) { return c.size(); }</pre>
 
-<p>Firstly it allows to infer the interface of the function from its implementation, but still
-   can be combined with constrains based on the concept, for in cause of the
+<p>Firstly it allows to infer the interface of the function from its implementation, but 
+   the still can be combined with constrains based on the concept, for in cause of the
    <code>varidatic_negator_example</code>, we can still express requirement of callability 
    via concept (and benefit from better error messages), without losing the flexibility of 
    original solution:</p>
@@ -543,16 +539,15 @@ public:
 };
 </pre>
 
-<p>Secondly, the limitation of the functions to the single expression is actually beneficial,
+<p>Secondly, limiting the function body to the single expression is actually beneficial,
    as it prevents overuse of the facility for larger functions (like discussed sort example),
-   while still covering large amount of use cases, as large body of the lambda functions still
-   consist of single a return statement.</p>
+   while still covering large amount of use cases.</p>
 
 <h3><a name="expr-body.projections">6.1. Using lambda to write projections</a></h3>
 
-<p>The default return type deduction for the lambda returns an object by copy (<code>auto</code> deduction),
-   is not well suited for writing projections (lambda returning a member, calling a getter), as
-   they will become inefficient. This will become more important in the case of the 
+<p>The default return type deduction for the lambda, that returns an object by copy (<code>auto</code> deduction),
+   is not well suited for writing projections (lambda returning a member, calling a getter). 
+   This will become more important in the case of the 
    <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf"/>Ranges TS</a>
    that allow projections to be provided to the standard algorithm.</p>
 
@@ -567,18 +562,18 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 
 <p>The invocation in form:</p>
 <pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) { return e.first_name; });</pre>
-<p>Will create two copies of string <b>for each</b> comparison of the employee objects
-   in <code>ve</code>, creating <code>O(ve.size())</code> copies of the string.</p>
+<p>Will create two copies of string <b>for each</b> comparison of the employee objects,
+    creating <code>O(ve.size())</code> unnecessary copies of the string in total.</p>
 
 <p>In contrast if we declare projection using proposed expression body syntax:</p>
 <pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first_name);</pre>
-<p>Will return an (const) reference to string, and the code will not create any addtional
-   copies than STL1 like solution:</p>
+<p>Will return an (const) reference to string, and the code will not create any additional
+   copies compared to STL1 like solution:</p>
 <pre>ranges::sort(ve, [] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; });</pre>
 
-<p>Furthermore in case of the predicates (and other lambdas producing the new object), result
+<p>Furthermore in case of the predicates (and other lambdas producing new object), result
    will be returned by value regardless of which syntax is used, so following lambdas functions 
-   have <code>bool</code> return type:</p>
+   will have <code>bool</code> return type:</p>
 <pre>[] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; }</pre>
 <pre>[] (Employee const&amp; e1, Employee const&amp; e2) =&gt; e1.first_name &lt; e2.first_name</pre>
 
@@ -591,9 +586,9 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
    exception specification part of type system</a>.</p>
 
 <p>Furthermore, with the direction of terminating the program in case of a exception
-   being thrown from an invocation of the functor passed to parallel, we need the
-   ability to check if given function may throw an exception to allow to seamlessly
-   parallelize user code:</p>
+   being thrown from an invocation of the functor passed to parallel algorithm,
+   we need the ability to check if given function may throw an exception to allow
+   to allow seamless parallelization of user code:</p>
 <pre>template&lt;typename It, typename F&gt;
 void unsequenced_for(It first, It last, F f)
 {
@@ -603,14 +598,14 @@ void unsequenced_for(It first, It last, F f)
     std::for_each(std::seq, first, last, f);
 };</pre>
 <p>We need to avoid the use of <code>std::par</code> execution policy in case
-   of throwing functor, to avoid terminating the program in case of exception.</p>
+   of throwing functor, to prevent program from termination, in case of exception.</p>
 
 <p>Some concerns may be also raised that marking the lambda as <code>noexcept</code>,
-   in generic case, requires insertion of additional handling code that will terminate
-   the program, which may negatively impact performance of program. However in the case
-   of proposed functionality, lambda will be marked as <code>noexcept</code>, only
-   if it's body will be know to not produce any exceptions (any eventual handling
-   code is already present in a code of called function), so adding this specification
+   in generic case, requires insertion of additional handling code that will <code>std::terminate</code>,
+   which may negatively impact performance of program. 
+   However in the case of proposed functionality, lambda will be marked as <code>noexcept</code>,
+   only  if it's body will be know to not produce any exceptions (any eventual handling
+   code is already present in code of called functions), so adding this specification
    should not impact generated code.</p> 
    
     
@@ -618,9 +613,9 @@ void unsequenced_for(It first, It last, F f)
 
 <p>To be defined.</p>
 
-<p>The generic idea is to introduce new expression body syntax, that can be used
-   for the normal functions, template functions, and the lambda expression. We propose
-   that for the functions using expression body:</p>
+<p>The general idea is to introduce new expression body syntax, that can be used
+   for the normal functions, template functions, and lambda expressions. We propose
+   that functions using expression body:</p>
 <ul>
   <li>will be implicitly treated as inline,</li>
   <li>need to use trailing return type introducer: <code>auto</code>,</li>
