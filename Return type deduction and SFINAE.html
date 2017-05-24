@@ -595,7 +595,7 @@ void parallel_for(It first, It last, F f)
   if constexpr(noexcept(f(*first)))
     std::for_each(std::par, first, last, f);
   else
-    std::for_each(std::seq, first, last, f);
+    std::for_each(first, last, f);
 };</pre>
 <p>We need to avoid the use of <code>std::par</code> execution policy in case
    of throwing functor, to prevent program from termination, in case of exception.</p>
