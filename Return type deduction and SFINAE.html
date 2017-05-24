@@ -590,7 +590,7 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
    we need the ability to check if given function may throw an exception to allow
    to allow seamless parallelization of user code:</p>
 <pre>template&lt;typename It, typename F&gt;
-void unsequenced_for(It first, It last, F f)
+void parallel_for(It first, It last, F f)
 {
   if constexpr(noexcept(f(*first)))
     std::for_each(std::par, first, last, f);
