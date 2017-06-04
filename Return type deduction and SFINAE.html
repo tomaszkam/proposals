@@ -44,7 +44,7 @@ blockquote.std { color: #000000; background-color: #F1F1F1;
 blockquote.stddel { text-decoration: line-through;
   color: #000000; background-color: #FFEBFF;
   border: 1px solid #ECD7EC;
-  padding-left: 0.5empadding-right: 0.5em; ; }
+  padding-left: 0.5em padding-right: 0.5em; ; }
 
 blockquote.stdins { text-decoration: underline;
   color: #000000; background-color: #C8FFC8;
@@ -93,6 +93,117 @@ td { text-align: left; vertical-align: top;
 <p>Secondly, we analyse possible ways of addressing the problems, with the recommendation
    of mitigating it by introducing special (expression-body) syntax.</p>
 
+<p>Proposed syntax, in addition to be useful for the template functions, allows
+   generic lambdas to be used with the constrained libraries (like Ranges TS), without
+   losing their major features (better error messages, overloading) while preserving
+   their terness:</p>
+
+<table>
+  <tr>
+    <th>Problematic statement</th>
+    <th>Current workaround</th>
+    <th>Proposed solution<th>
+  </tr>
+
+  <tr>
+    <td colspan="3">
+<pre>std::vector&lt;std::strings&gt; strs{ /*...*/ };</pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
+<pre>ranges::find_if(strs, 
+  [](auto const&amp; s) { return s == 2; });
+</pre>
+    </td>
+    <td>
+<pre>ranges::find_if(strs, 
+  [](auto const&amp; s) -&gt; decltype(s == 2) 
+  { return s == 2; });             
+</pre>
+    </td>
+    <td>
+<pre>ranges::find_if(strs, 
+  [](auto const&amp; s) =&gt; s == 2));
+</pre>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3">For above example us of return type deduction for first lambda,
+      prevents compiler from performing concepts checks and generating short and readable
+      error message (see <a href="#concepts.lambda.errors">section 4.2.1</a> for details).
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="3">
+<pre>void on_each_month(day_point start_date, int count, Invokable&lt;day_point&gt; f);
+void on_each_month(day_point start_date, int count, Invokable&lt;std::string_view&gt; f);</pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
+<pre>on_each_month(
+  day_point{2017_y/10_m/20_d}, 10,
+  [](auto d) { return day_of_week(d) == friday; });</pre>
+    </td>
+    <td>
+<pre>on_each_month(
+  day_point{2017_y/10_m/20_d}, 10,
+  [](auto d) -&gt; decltype(day_of_week(d) == friday)
+  { return day_of_week(d) == friday; });</pre>
+    </td>
+    <td>
+<pre>on_each_month(
+  day_point{2017_y/10_m/20_d}, 10,
+  [](auto d) =&gt; day_of_week(d) == friday);</pre>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3">Again in this case, return type deduction prevents the compiler
+      for performing concepts checks and selection <code>day_point</code> overloads,
+      making the code ill-formed instead (see <a href="#concepts.lambda.overloading">section 4.2.2</a> for details).
+    </td>
+  </tr>
+
+
+  <tr>
+    <td colspan="3">
+<pre>struct Employee
+{
+   std::string const&amp; first_name() const;
+   std::string const&amp; last_name() const;
+};
+std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
+    </td>
+  </tr>
+  <tr>
+    <td>
+<pre>ranges::sort(ve, std::less&lt;&gt;{},
+  [] (Employee const&amp; e) { return e.first_name(); });</pre>
+    </td>
+    <td>
+<pre>ranges::sort(ve, std::less&lt;&gt;{},
+  [] (Employee const&amp; e) -&gt; decltype(auto) 
+  { return e.first_name(); });</pre>
+    </td>
+    <td>
+<pre>ranges::sort(ve, std::less&lt;&gt;{}, 
+  [] (Employee const&amp; e) =&gt; e.first_name());</pre>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3">Default lambda behaviour of returnin result by value,
+      leads to creation of the unnecessary copies of the <code>std::string</code> objects
+      (two copies for each performed comparison). Use of <code>decltype</code>-based 
+      return type eliminates the problem, and will remain correct if function
+      would be changed to return <code>std::string_view</code> by value
+      (see <a href="#expr-body.projections">section 6.1</a> for details).
+    </td>
+  </tr>
+
+</table>
+
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <!--h2><a name="revision">Revision history</a></h2-->
@@ -126,7 +237,7 @@ public:
 
   template&lt;typename... Args&gt;
   auto operator()(Args&amp;&amp;... args)
-    -&gt; decltype(!this->f_(std::forward&lt;Args&gt;(args)...))
+    -&gt; decltype(!this-&gt;f_(std::forward&lt;Args&gt;(args)...))
   { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
 };
 
@@ -201,19 +312,21 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
    nuances and design their code accordingly.</p>
 
 <p>However with generic lambdas in C++14 provides we have introduced short syntax for declaration
-   of such classes, for example the expression <code>[](auto x) { return x == 2 }</code> creates
+   of such classes, for example the expression <code>[](auto x) { return !test(x); }</code> creates
    an unnamed class with template <code>operator()</code> that uses <code>auto</code> return type
    deduction. As consequence programmers are exposed to quirks of design of return type deduction
-   even for simple code.</p>
+   even for simple code, like lambda implementation of negator.</p>
 
 <p>If we consider following declarations:</p>
 <pre>
+bool test(int);
+
 bool invoke(std::function&lt;bool(int)&gt; f);         //1
 bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 </pre>
-<p>The expression in the form <code>[](int x) { return x == 2; }</code> is well formed an selects
-   first overload, while seemingly identical expression that uses new generic lambda 
-   <code>[](auto x) { return x == 2; }</code> produces hard error.</p>
+<p>Call of the <code>invoke</code> with with <code>[](int x) { return !test(x); }</code>  is well
+   formed an selects first overload, while seemingly identical expression that uses new generic lambda 
+   <code>[](auto x) { return !test(x); }</code> produces hard error.</p>
 
 <p>Furthermore, it is worth noticing that in above example created closure is not used in a polymorphic
    way and we could use <code>int</code> parameter. However, we may still argue that use of <code>auto</code>
@@ -358,12 +471,56 @@ rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //5
    be prone to problems described in the previous section, when they are used with constrained functions. 
    This is deepened, by the fact that one of the major usages for the lambda-expression is to provide predicates/functors
    for the STL algorithms,  that was selected as flagship conceptualized library.
-   In addition due the ad-hoc nature of the lambdas, the possibility, that standard with already contain matching concepts
-   (like in the <code>Iterator</code> case) is very limited, which leaves users with only a few options, like:
+   In addition due the ad-hoc nature of the lambdas, the possibility, that standard will already contain matching concepts
+   (like in the <code>Iterator</code> case) is very limited, which leaves users with only a few workarounds, like:
    creating their own concepts (which in contrast to lambdas cannot be  local to function) or using expression SFINAE/ad-hoc
    requires clause (which introduces code repetition).</p>
 
-<p>To illustrate, lets consider the case of following <code>on_each_month</code> functions:</p>
+
+<h4><a name="concepts.lambda.errors">4.2.1. Error messages</a></h4>
+
+<p>To illustrate, lets consider following simplified version of the <code>find_if</code> (we focus only on the
+   functor constrain):</p>
+<pre>template&lt;typename F, typename... T&gt;
+concept bool Predicate = requires(F f, T... t) {
+    { f(t...) } -&gt; bool;
+};
+
+template&lt;typename Iterator, Predicate&lt;typename std::iterator_traits&lt;Iterator&gt;::reference&gt; F&gt;
+Iterator find_if(Iterator b, Iterator e, F f);
+</pre>
+
+<p>and following invocations (<a href="https://wandbox.org/permlink/zvf0b4AENETCoeek">live example</a>):</p>
+<pre>
+std::vector&lt;std::string&gt; vs;
+find_if(vs.begin(), vs.end(), [](auto const&amp; s) { return s == 2; }); //1
+find_if(vs.begin(), vs.end(), [](auto const&amp; s) -&gt; decltype(s == 2) { return s == 2; }); //2
+</pre>
+
+<p>In the case of the second invocation (2), the compiler will produce an short error message indicating
+   that suplied lambda does not fullflill <code>Predicate</code> concept:</p>
+<pre>
+prog.cc:11:10: note:   constraints not satisfied
+ Iterator find_if(Iterator b, Iterator e, F f);
+          ^~~~~~~
+prog.cc:6:14: note: within 'template&lt;class F, class ... T&gt; concept const bool Predicate&lt;F, T ...&gt; [with F = main()::&lt;lambda(const auto:1&amp;)&gt;; T = {std::__iterator_traits&lt;__gnu_cxx::__normal_iterator&lt;std::__cxx11::basic_string&lt;char&gt;*, std::vector&lt;std::__cxx11::basic_string&lt;char&gt; &gt; &gt;, void&gt;::reference}]'
+ concept bool Predicate = requires(F f, T... t) {
+              ^~~~~~~~~
+prog.cc:6:14: note:     with 'main()::&lt;lambda(const auto:1&amp;)&gt; f'
+prog.cc:6:14: note:     with 'std::__cxx11::basic_string&lt;char&gt;&amp; t#0'
+prog.cc:6:14: note: the required expression 'f(t ...)' would be ill-formed
+</pre>
+
+<p>However in case of the first invocation (1) the compiler produces a few hunderts lines of errors, mentoining lack of comparision operator between
+   <code>std::string</code> and <code>int</code>. This is caused by the fact that the concept check for the <code>F</code> parameter of the
+   <code>find_if</code> (performed in case of the both examples) requires determination of the return type for the supplied functor with
+   <code>std::string&amp;</code> argument. In case of first example, this triggers return type deduction for the lambda, and as consequence
+   leads to its instatation with given arguments - as error produced from this instatiation is an hard error, compiler emits error from the instation,
+   and stops processing in middle of the concept check.</p>
+
+<h4><a name="concepts.lambda.overloading">4.2.2. Overloading using concepts</a></h4>
+
+<p>Lets consider the case of following <code>on_each_month</code> functions:</p>
 <pre>void on_each_month(day_point start_date, int count, Invokable&lt;day_point&gt; f);
 void on_each_month(day_point start_date, int count, Invokable&lt;std::string_view&gt; f);</pre>
 
@@ -377,7 +534,7 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
 
 <p>Now consider following invocation, where <code>day_of_week</code> is an library function
    returning a <code>duration</code> since midnight:</p>
-<code>on_each_date(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</code>
+<pre>on_each_month(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</pre>
 
 <p>This code will fail to compile, due to error in the return type deduction for the invocation of the
    lambda with the object of <code>std::string_view</code> type, caused by checking the viability of the second
@@ -390,7 +547,7 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
       <code>[](auto d) -&gt; decltype(day_of_week(d) == friday) { return day_of_week(d) == friday };</code></li>
 </ul>
 
-</p>Each of above solutions introduces code-repetition: via repeating entire lambda body,
+<p>Each of above solutions introduces code-repetition: via repeating entire lambda body,
     or reproducing constrain of the library function; or makes the code less robust by committing to the
     specific resolution of time (using fixed <code>time_point</code> type).</p>
 
@@ -481,7 +638,7 @@ public:
    <code>auto</code> return type, by making them <i>constrained</i>: they, by definition, will be viable
    if and only if their body is well-formed.</p>
 
-<p>However, it has their own drawbacks. Firstly it promotes defining the interface of the function
+<p>However, it has its own drawbacks. Firstly it promotes defining the interface of the function
    in terms of terms of their implementation. This should be considered as the bad practice for the large
    function, like generic algorithms. For example, we may consider the implementation of the sort algorithm,
    that will be based on the quick-sort, which performs only swap on the elements. 
@@ -494,7 +651,7 @@ public:
    need to be considered in this context. This will increase the amount of work required for the
    introduction of the new language features, like constexpr-if or structured binding, that are currently
    limited to function bodies and cannot appear in unevaluated context, and, in the end, cripple the 
-   evolution of the language.</code>
+   evolution of the language.</p>
 
 <p>Finally, the complexity of the implementation of such feature, suggest an alternative solution that
    will reduce SFINAEable errors to only certain constructs in function bodies.
@@ -548,7 +705,7 @@ public:
 <p>The default return type deduction for the lambda, that returns an object by copy (<code>auto</code> deduction),
    is not well suited for writing projections (lambda returning a member, calling a getter). 
    This will become more important in the case of the 
-   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf"/>Ranges TS</a>
+   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf">Ranges TS</a>
    that allow projections to be provided to the standard algorithm.</p>
 
 <p>For example in case the of following code:</p>
@@ -622,12 +779,12 @@ void parallel_for(It first, It last, F f)
   <li>cannot be forward declared.</li>
 </ul>
 
-</p>In case of the potential ambiguity caused by use of lambda with expression body
+<p>In case of the potential ambiguity caused by use of lambda with expression body
     as middle argument of the function, we propose to choose shortest possible 
     expression as body, i.e.</p>
-<pre>f([](auto x) => x + 2, 3, 4);</pre>
+<pre>f([](auto x) =&gt; x + 2, 3, 4);</pre>
 <p>should be interpreted as:</p>
-<pre>f(([](auto x) => x + 2), 3, 4);</pre>
+<pre>f(([](auto x) =&gt; x + 2), 3, 4);</pre>
 
 <h2><a name="implementability">8. Implementability</a></h2>
 
@@ -637,7 +794,7 @@ void parallel_for(It first, It last, F f)
 
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
-<p>Ville Voutilainen and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+<p>Casey Carter, Ville Voutilainen and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">10. References</a></h2>
 
