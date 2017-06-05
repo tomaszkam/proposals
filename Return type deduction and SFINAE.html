@@ -162,7 +162,7 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
   </tr>
   <tr>
     <td colspan="3">Problem: return type deduction prevents the compiler
-      from performing concept checks and selecting between <code>day_point</code> overloads,
+      from performing concept checks and selecting <code>day_point</code> overload,
       which makes the code ill-formed instead (see <a href="#concepts.lambda.overloading">section 4.2.2</a> for details).
     </td>
   </tr>
@@ -669,13 +669,14 @@ public:
 <p>In this chapter, we present recommended solution for the problem of constraining small functions,
    based on the introduction of the new function definition syntax limited to function consisting
    of a single expression. We propose to reuse syntax proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
-   P0573R0: Abbreviated Lambdas for Fun and Profit</a>, while allowing them to be applied to
-   all functions (including member functions).</p> 
+   P0573R0: Abbreviated Lambdas for Fun and Profit</a>, and making <code>=&gt; expr</code>
+   syntax equivalent to <code>noexcept(noexcept(expr)) -&gt; decltype((expr)) { return expr; }</code>,
+   while extending it to be allowed with all functions (including member functions).</p> 
 
 <p>To illustrate following definition:</p>
 <pre>template&lt;typename C&gt; auto size(C const&amp; c) =&gt; c.size();</pre>
 <p>, will have same semantics as:</p>
-<pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size()) -&gt; decltype(c.size()) { return c.size(); }</pre>
+<pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size())) -&gt; decltype((c.size())) { return c.size(); }</pre>
 
 <p>Firstly it allows to infer the interface of the function from its implementation, but 
    the still can be combined with constrains based on the concept, for in cause of the
@@ -725,8 +726,8 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 
 <p>In contrast if we declare projection using proposed expression body syntax:</p>
 <pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first_name);</pre>
-<p>Will return an (const) reference to string, and the code will not create any additional
-   copies compared to STL1 like solution:</p>
+<p>Will return an (const) reference to string (notice use of double parenthesis in <code>decltype((expr))</code>,
+    and the code will not create any additional copies compared to STL1 like solution:</p>
 <pre>ranges::sort(ve, [] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; });</pre>
 
 <p>Furthermore in case of the predicates (and other lambdas producing new object), result
