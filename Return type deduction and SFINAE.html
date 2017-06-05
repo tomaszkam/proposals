@@ -726,8 +726,8 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 
 <p>In contrast if we declare projection using proposed expression body syntax:</p>
 <pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first_name);</pre>
-<p>Will return an (const) reference to string (notice use of double parenthesis in <code>decltype((expr))</code>,
-    and the code will not create any additional copies compared to STL1 like solution:</p>
+<p>Will return an (const) reference to string (notice use of double parenthesis in <code>decltype((expr))</code>),
+   and the code will not create any additional copies compared to STL1 like solution:</p>
 <pre>ranges::sort(ve, [] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; });</pre>
 
 <p>Furthermore in case of the predicates (and other lambdas producing new object), result
