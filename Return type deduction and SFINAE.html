@@ -87,16 +87,17 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper analysis impact of the treating return type deduction failure as the
-   hard error on the existing language and proposed Concepts Lite.</p>
+<p>Currently, return type deduction failures are treated as hard errors.
+   This paper describes the impact of this choice on the existing language
+   and the proposed Concepts Lite.</p>
 
 <p>Secondly, we analyse possible ways of addressing the problems, with the recommendation
-   of mitigating it by introducing special (expression-body) syntax.</p>
+   of introducing a special (expression-body) syntax.</p>
 
-<p>Proposed syntax, in addition to be useful for the template functions, allows
-   generic lambdas to be used with the constrained libraries (like Ranges TS), without
-   losing their major features (better error messages, overloading) while preserving
-   their terness:</p>
+<p>The proposed syntax, in addition to being useful for declaring function templates, allows
+   generic lambdas to be used with concept-constrained libraries (like Ranges TS), without
+   compromisin their major features (better error messages, overloading) while preserving
+   their terseness:</p>
 
 <table>
   <tr>
@@ -129,8 +130,8 @@ td { text-align: left; vertical-align: top;
     </td>
   </tr>
   <tr>
-    <td colspan="3">For above example us of return type deduction for first lambda,
-      prevents compiler from performing concepts checks and generating short and readable
+    <td colspan="3">Problem above: return type deduction in the lambda
+      prevents compiler from performing concept checks and generating a short and readable
       error message (see <a href="#concepts.lambda.errors">section 4.2.1</a> for details).
     </td>
   </tr>
@@ -160,9 +161,9 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
     </td>
   </tr>
   <tr>
-    <td colspan="3">Again in this case, return type deduction prevents the compiler
-      for performing concepts checks and selection <code>day_point</code> overloads,
-      making the code ill-formed instead (see <a href="#concepts.lambda.overloading">section 4.2.2</a> for details).
+    <td colspan="3">Problem: return type deduction prevents the compiler
+      from performing concept checks and selecting between <code>day_point</code> overloads,
+      which makes the code ill-formed instead (see <a href="#concepts.lambda.overloading">section 4.2.2</a> for details).
     </td>
   </tr>
 
@@ -193,11 +194,11 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
     </td>
   </tr>
   <tr>
-    <td colspan="3">Default lambda behaviour of returnin result by value,
-      leads to creation of the unnecessary copies of the <code>std::string</code> objects
+    <td colspan="3">Problem: lambda by default returns by value,
+      this creates unnecessary copies of <code>std::string</code> objects
       (two copies for each performed comparison). Use of <code>decltype</code>-based 
       return type eliminates the problem, and will remain correct if function
-      would be changed to return <code>std::string_view</code> by value
+      is changed to return <code>std::string_view</code> by value
       (see <a href="#expr-body.projections">section 6.1</a> for details).
     </td>
   </tr>
