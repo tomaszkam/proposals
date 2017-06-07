@@ -218,8 +218,8 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
    was extended to include discussion of the possible alternative solution for the
    problem.</p>
 
-<p>Finally we no longer propose to treat any return type deduction failure as 
-   hard error, instead, we propose to limit it to certain set of cases,
+  <p>Finally, we no longer propose to treat <em>any</em> return type deduction failure as 
+   a SFINAE-able error. Instead, we propose to limit the solution to certain set of cases,
    designed by use of expression body syntax: <code>=&gt; expr</code> that was 
    proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
    P0573R0: Abbreviated Lambdas for Fun and Profit</a>.</p>
