@@ -622,12 +622,12 @@ public:
    well-formed.</p>
 
 <p>Finally to restore original functionality of this simple class, we need to  combine
-   <code>Invokable&lt;F&amp;, Args...&gt;</code> constrain with additional one, requiring result type
+   <code>Invokable&lt;F&amp;, Args...&gt;</code> concept with additional constrain, requiring result type
    being negable. To achieve this we will need to add at-hoc expression constrain
    (by using <code>decltype(expr)</code> or in-place <code>requires</code> expression),
    which will reintroduce the code repetition that we want to eliminate.</p>
 
-<p>Alternatively, we may consider introducing a (set of) standardized syntactic concepts
+<p>Alternatively, we may consider introducing a (set of) standardized syntactic constrains
    (like <code>has_negation</code>) to be used in such situation, but by doing so, we will
    essentially recreate a failed pre-C++11 concept design with its overwhelming number
    of constrains.</p>
@@ -679,7 +679,7 @@ public:
 <pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size())) -&gt; decltype((c.size())) { return c.size(); }</pre>
 
 <p>Firstly it allows to infer the interface of the function from its implementation, but 
-   the still can be combined with constrains based on the concept, for in cause of the
+   the still can be combined with proper concept, for in cause of the
    <code>varidatic_negator_example</code>, we can still express requirement of callability 
    via concept (and benefit from better error messages), without losing the flexibility of 
    original solution:</p>
@@ -824,8 +824,7 @@ void parallel_for(It first, It last, F f)
                          http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html</a>)</li>
   <li>Andrew Sutton, Bjarne Stroustrup,
       "Design of Concept Libraries for C++" 
-      (<a href="http://www.stroustrup.com/sle2011-concepts.pdf">
-                         http://www.stroustrup.com/sle2011-concepts.pdf</a>)</li>
+      (<a href="http://www.stroustrup.com/sle2011-concepts.pdf">http://www.stroustrup.com/sle2011-concepts.pdf</a>)</li>
   
 </ol>
 
