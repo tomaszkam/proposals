@@ -567,15 +567,15 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
 
 <h2><a name="solutions">5. Alternative solutions</a></h2>
 
-<p>In this section we discuss the possible solutions for <i>constraining</i> template functions,
-   discussing their viability and impact both on the future of the language and user programs.</p>
+<p>In this section we examine possible solutions for <i>constraining</i> function templates,
+   discussing their viability and impact both on the future of the language and on user programs.</p>
 
 <h3><a name="solutions.concepts">5.1. Constraining functions using Concepts</a></h3>
 
-<p>The most obvious solution is to assume (and consequence require) that all operations on objects used with
+<p>The most obvious solution is to assume (and, in consequence, require) that all operations on objects used with
    the argument, will be constrained via appropriate concepts.</p>
 
-<p>Firstly we will consider the already presented example of the <code>varidatic_negator</code> class, defined as 
+<p>First, let's consider the already presented example of class <code>varidatic_negator</code>, defined as 
    follows:</p>
 <pre>
 template&lt;typename F&gt;
@@ -592,8 +592,8 @@ public:
 };
 </pre>
 
-<p>At first glance we may consider that this function can be easily constrained by the use of the standard
-   <code>Predicate</code> concept:</p>
+<p>At first glance we may consider that this function can be easily constrained by the standard concept
+   <code>Predicate</code>:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -610,10 +610,10 @@ public:
 };
 </pre>
 
-<p>A closer look into this code exposes a flaw in this approach: by using the  <code>Predicate</code>
-   concept we impose the restriction on the <code>F</code> returns type, to be convertible to <code>bool</code>.
-   In contrast, the original design supported any  object on which <code>operator!</code> can be applied.
-   To restore original functionality we may reduce the strength of the concept, by using <code>Invokable</code> instead:</p>
+<p>A closer look into this code exposes a flaw in this approach: by using concept  <code>Predicate</code>
+   we impose the restriction on the <code>F</code> return type, to be convertible to <code>bool</code>.
+   In contrast, the original design supported any object on which <code>operator!</code> can be applied.
+   To restore original functionality we may relax the constraint, by using concept <code>Invokable</code> instead:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -629,50 +629,50 @@ public:
   { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
 };
 </pre>
-<p>However, in this situation, the function again become <i>underconstrained</i>, as we no longer
-   guarantee the call of <code>operator!</code> on <code>f</code>'s invocation result will be 
+<p>However, in this situation, the function again becomes <i>underconstrained</i>, as we no longer
+   guarantee the call to <code>operator!</code> on the result of <code>f</code> will be 
    well-formed.</p>
 
-<p>Finally to restore original functionality of this simple class, we need to  combine
-   <code>Invokable&lt;F&amp;, Args...&gt;</code> concept with additional constrain, requiring result type
-   being negable. To achieve this we will need to add at-hoc expression constrain
-   (by using <code>decltype(expr)</code> or in-place <code>requires</code> expression),
-   which will reintroduce the code repetition that we want to eliminate.</p>
+<p>Finally, to restore the original functionality of this simple class, we need to combine concept
+   <code>Invokable&lt;F&amp;, Args...&gt;</code> with an additional constrain, requiring result type
+   being negatable. To achieve this we will need to add an ad-hoc expression constraint
+   (by using <code>decltype(expr)</code> or an in-place <code>requires</code> expression),
+   which will re-introduce the code repetition that we want to eliminate.</p>
 
 <p>Alternatively, we may consider introducing a (set of) standardized syntactic constrains
    (like <code>has_negation</code>) to be used in such situation, but by doing so, we will
    essentially recreate a failed pre-C++11 concept design with its overwhelming number
-   of constrains.</p>
+   of concepts.</p>
 
-<h3><a name="solutions.body-sfinae">5.2. Turning return type deduction failure into soft-error</a></h3>
+<h3><a name="solutions.body-sfinae">5.2. Turning <em>any</em> return type deduction failure into soft-error</a></h3>
 
-<p>In this section, we discuss originally proposed solution, based on turning the return type deduction failures
-   into soft errors. Choosing this solution will basically resolve all the problems related to uses
+<p>In this section, we discuss the originally proposed solution, based on turning the return type deduction failures
+   into soft errors. Choosing this solution will basically resolve all the problems related to uses of
    <code>auto</code> return type, by making them <i>constrained</i>: they, by definition, will be viable
    if and only if their body is well-formed.</p>
 
 <p>However, it has its own drawbacks. Firstly it promotes defining the interface of the function
-   in terms of terms of their implementation. This should be considered as the bad practice for the large
+   in terms of terms of its implementation. This should be considered a bad practice for the large
    function, like generic algorithms. For example, we may consider the implementation of the sort algorithm,
    that will be based on the quick-sort, which performs only swap on the elements. 
    Inferring interface (requirement on accepted iterators and their value types) from this implementation, will
    prevent future optimization, like switching to insertion sort after a certain number of recursive calls, 
-   as they will require additional operations on the types (creating an copy), and will break  existing calls.</p>
+   as they will require additional operations on the types (creating an copy), and will break existing calls.</p>
 
 <p>Secondly, this approach effectively requires compilers to be able to backtrack from any error
-   occurring in the function body. As consequence newly introduced language features would
-   need to be considered in this context. This will increase the amount of work required for the
-   introduction of the new language features, like constexpr-if or structured binding, that are currently
-   limited to function bodies and cannot appear in unevaluated context, and, in the end, cripple the 
+   occurring in the function body. As a consequence, newly introduced language features would
+   need to be considered in this context. This will increase the amount of work required to
+   introduce any new language features, like constexpr-if or structured binding, that are currently
+   limited to function bodies and cannot appear in unevaluated context. In the end such solution would cripple the 
    evolution of the language.</p>
 
 <p>Finally, the complexity of the implementation of such feature, suggest an alternative solution that
-   will reduce SFINAEable errors to only certain constructs in function bodies.
-   One of the options, is to limit this change only to function with a body consisting
-   on single return statement. The author believes that such design will be very surprising for the
-   user, as simple refactoring, like splitting large expression and saving their result in local 
-   variables, will cause previously well-formed code to emit compilation error from seemingly unrelated
-   template instantiation. For reference please check the difference between invocation of (4) 
+   will reduce SFINAE-able errors to only certain constructs in function bodies.
+   One of the options, is to limit this capability only to functiosn with a body consisting
+   of a single return statement. The author believes that such design will be very surprising for the
+   user, because even a simple refactoring, like splitting large expression and saving their result in local 
+   variables, will cause previously well-formed code to emit compilation error from a seemingly unrelated
+   template instantiation. For reference, please check the difference between invocation of (4) 
    and (2) from <a href="#concepts.sfinae-usage">4.1. Concepts checks depends on SFINAE</a>
    section.</p>
 
