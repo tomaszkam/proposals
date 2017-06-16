@@ -348,14 +348,14 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 <h3><a name="concepts.sfinae-usage">4.1. Concepts checks depends on SFINAE</a></h3>
 
 <p>One of major additions of the proposed Concepts design is the <code>requires</code> expression,
-   that provides a simple syntax for checking the validity of the certain expression performed on the
+   which provides a simple syntax for checking the validity of a given expression performed on
    given types. However, the underlying mechanism is same as in existing expression-SFINAE implementations,
-   ant to function properly it requires, that functions used in expression must be properly <i>constrained</i>: 
-   they should not be a viable candidate unless they body is well formed. As consequence, the operations
-   used on passed passed to the constrained function must also be constrained.</p>
+   and in order to work properly it requires that functions used in expression must be properly <i>constrained</i>: 
+   they should not be viable candidates unless they body is well formed. As a consequence, it is required that 
+   the operations tested in constrained function must also be constrained.</p>
 
-<p>To illustrate above point, lets our consider following (very simplified) concept hierarchy and constrained
-   generic function:</p>
+<p>To illustrate the above point, let's consider the following (very simplified) concept hierarchy and constrained
+   generic function overloads:</p>
 <pre>
 template&lt;typename I&gt;
 concept bool ForwardIterator = requires (I i) { ++i; };
@@ -377,7 +377,8 @@ I rotate(I first, I last) {
   ++first; --first; return first;
 }
 </pre>
-<p>And following class implementing above concepts:</p>
+  
+<p>Now, consider the following types modelling the above concepts:</p>
 <pre>
 struct Iter { 
   Iter operator++() { return *this; }; 
@@ -438,7 +439,7 @@ public:
 };
 </pre>
 
-<p>Finally lets consider effects of the following calls (<a href="https://wandbox.org/permlink/GTpTFNSZUeSyLfiz">live example</a>):</p>
+<p>Finally, let's consider the effects of the following calls (<a href="https://wandbox.org/permlink/GTpTFNSZUeSyLfiz">live example</a>):</p>
 <pre>
 rotate(Iter{}, Iter{});                                               //1
 rotate(FixedReturnWrapper{Iter{}}, FixedReturnWrapper{Iter{}});       //2
@@ -447,45 +448,49 @@ rotate(DecltypeReturnWrapper{Iter{}}, DecltypeReturnWrapper{Iter{}}); //4
 rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //5
 </pre>
 
-<p>In the case of the above code, the invocation with the <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (4) and
-   <code>ConceptWrapper&lt;Iter&gt;</code> (5) types, are calling the <code>rotate</code> overload that is accepting the <code>ForwardIterators</code>.
-   This is desired and expected behaviour, as operations on this types are properly <i>constrained</i>: candidate functions
-   are only viable candidates in a case when they body is well formed. This is achieved by either being normal function or usage on 
-   expression SFINAE (in form of requires clause).</p>
+<p>Invocations with types <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (4) and
+   <code>ConceptWrapper&lt;Iter&gt;</code> (5) are calling the <code>rotate</code> overload that is
+   accepting the <code>ForwardIterators</code>.
+   This is a desired and expected behaviour, as operations on these types are properly <i>constrained</i>: candidate functions
+   are viable candidates <em>only</em> when they body is well formed. This is achieved by either by being a non-template function
+   or by the usage of expression SFINAE (possibly in the form of a <code>requires</code> clause).</p>
 
-<p>Regretfully in the case of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2), we encounter a compilation error from body of the
-   <code>FixedReturnWrapper::operator--</code>, that is called from <code>rotate</code> function. This is caused 
-   by the fact that the  <code>operator--</code> for this type is effectively <i>underconstrained</i>: it is considered to be a viable candidate,
-   even if its body is ill formed, which is consequence leads to a false-positive result of <code>Bidirectional&lt;FixedReturnWrapper&lt;Iter&gt;</code>
-   and selecting wrong overload of <code>rotate</code> function.</p>
+<p>Regretfully, in the case of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2) we encounter a compilation error from body of
+   <code>FixedReturnWrapper::operator--</code>, which is called from <code>rotate</code> function. This is caused 
+   by the fact that <code>operator--</code> for this type is effectively <i>underconstrained</i>: it is considered to be
+   a viable candidate even if its body is ill formed, which in consequence leads to a false-positive result of
+   <code>Bidirectional&lt;FixedReturnWrapper&lt;Iter&gt;</code> check
+   and the selection of the wrong overload of function <code>rotate</code>.</p>
 
-<p>Finally, in case of the <code>AutoReturnWrapper&lt;Iter&gt;</code> (3), we encounter a compilation error from the body of 
-   the <code>FixedReturnWrapper::operator--</code> triggered from the return type deduction for the <code>auto</code>
-   placeholder. As any error occurring during this stage is treated as hard error, this basically stops the compilation,
-   limiting ability to select appropriate overload of <code>rotate</code> function (<code>ForwardIterator</code>)
-   version.</p>
+<p>Finally, in case of the <code>AutoReturnWrapper&lt;Iter&gt;</code> (3) we encounter a compilation error from the body of 
+   the <code>FixedReturnWrapper::operator--</code> instantiated while performing return type deduction for the <code>auto</code>
+   placeholder. As any other error occurring during function template body instantiation, it is treated as hard error;
+   this basically stops the compilation, thus limiting the ability to select the appropriate overload of function <code>rotate</code>
+   (the <code>ForwardIterator</code> version).</p>
 
-<p>As we can see from the example of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2) and <code>AutoReturnWrapper&lt;Iter&gt;</code> (3),
-   concepts fails to deliver their major promises: more readable error message and overloading based on
-   the subsumption in situation when they are fed with unconstrained argument.</p>
+<p>As we can see from the example of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2)
+   and <code>AutoReturnWrapper&lt;Iter&gt;</code> (3),
+   concepts fails to deliver their major promises: more readable error messages and overloading based on
+   the subsumption in situation when they are fed with an unconstrained argument.</p>
 
 
 <h3><a name="concepts.lambda">4.2. Lambdas as arguments for constrained parameters</a></h3>
 
-<p>The introduction of the C++14 generic lambdas provides an easy way to create unconstrained functors, that will
+<p>The introduction of C++14's generic lambdas provides an easy way to create unconstrained functors, which will
    be prone to problems described in the previous section, when they are used with constrained functions. 
-   This is deepened, by the fact that one of the major usages for the lambda-expression is to provide predicates/functors
-   for the STL algorithms,  that was selected as flagship conceptualized library.
-   In addition due the ad-hoc nature of the lambdas, the possibility, that standard will already contain matching concepts
-   (like in the <code>Iterator</code> case) is very limited, which leaves users with only a few workarounds, like:
-   creating their own concepts (which in contrast to lambdas cannot be  local to function) or using expression SFINAE/ad-hoc
-   requires clause (which introduces code repetition).</p>
+   At the same time one of the major usages for the lambda-expression is to provide predicates/functors
+   for the STL algorithms, which was selected as flagship conceptualized library.
+   In addition, due to the ad-hoc nature of the lambdas, the possibility that the Standard Library will already
+   contain matching concepts
+   (like in the <code>Iterator</code> case) is very limited; which leaves users with only a few workarounds, like:
+   creating their own concepts (which in contrast to lambdas cannot be local to function), or using expression SFINAE or ad-hoc
+   requires clauses (which introduces code repetition).</p>
 
 
 <h4><a name="concepts.lambda.errors">4.2.1. Error messages</a></h4>
 
-<p>To illustrate, lets consider following simplified version of the <code>find_if</code> (we focus only on the
-   functor constrain):</p>
+<p>To illustrate the problem with error messages, let's consider following simplified version of <code>find_if</code>
+   (we focus only on the functor constrain):</p>
 <pre>template&lt;typename F, typename... T&gt;
 concept bool Predicate = requires(F f, T... t) {
     { f(t...) } -&gt; bool;
@@ -495,15 +500,15 @@ template&lt;typename Iterator, Predicate&lt;typename std::iterator_traits&lt;Ite
 Iterator find_if(Iterator b, Iterator e, F f);
 </pre>
 
-<p>and following invocations (<a href="https://wandbox.org/permlink/zvf0b4AENETCoeek">live example</a>):</p>
+<p>and the following invocations (<a href="https://wandbox.org/permlink/zvf0b4AENETCoeek">live example</a>):</p>
 <pre>
 std::vector&lt;std::string&gt; vs;
 find_if(vs.begin(), vs.end(), [](auto const&amp; s) { return s == 2; }); //1
 find_if(vs.begin(), vs.end(), [](auto const&amp; s) -&gt; decltype(s == 2) { return s == 2; }); //2
 </pre>
 
-<p>In the case of the second invocation (2), the compiler will produce an short error message indicating
-   that suplied lambda does not fullflill <code>Predicate</code> concept:</p>
+<p>In the case of the second invocation (2), the compiler will produce a short error message indicating
+   that the suplied lambda does not model concept <code>Predicate</code>:</p>
 <pre>
 prog.cc:11:10: note:   constraints not satisfied
  Iterator find_if(Iterator b, Iterator e, F f);
@@ -516,44 +521,46 @@ prog.cc:6:14: note:     with 'std::__cxx11::basic_string&lt;char&gt;&amp; t#0'
 prog.cc:6:14: note: the required expression 'f(t ...)' would be ill-formed
 </pre>
 
-<p>However in case of the first invocation (1) the compiler produces a few hunderts lines of errors, mentoining lack of comparision operator between
-   <code>std::string</code> and <code>int</code>. This is caused by the fact that the concept check for the <code>F</code> parameter of the
-   <code>find_if</code> (performed in case of the both examples) requires determination of the return type for the supplied functor with
-   <code>std::string&amp;</code> argument. In case of first example, this triggers return type deduction for the lambda, and as consequence
-   leads to its instatation with given arguments - as error produced from this instatiation is an hard error, compiler emits error from the instation,
-   and stops processing in middle of the concept check.</p>
+<p>However, in case of the first invocation (1), the compiler produces a few hundreds of lines of errors,
+   mentoining the lack of comparision operator between <code>std::string</code> and <code>int</code>.
+   This is caused by the fact that the concept check for parameter <code>F</code> of <code>find_if</code>
+   (performed in both examples) requires the determination of the return type for the supplied functor with
+   <code>std::string&amp;</code> argument. In case of the first example, this triggers return type deduction for the lambda,
+   and in consequence leads to its instatation with provided arguments &mdash; as the error produced from this instatiation
+   is a hard error, compiler emits error from the instation, and stops processing in the middle of the concept check.</p>
 
 <h4><a name="concepts.lambda.overloading">4.2.2. Overloading using concepts</a></h4>
 
-<p>Lets consider the case of following <code>on_each_month</code> functions:</p>
+<p>Let's consider the case of the following <code>on_each_month</code> functions:</p>
+  
 <pre>void on_each_month(day_point start_date, int count, Invokable&lt;day_point&gt; f);
 void on_each_month(day_point start_date, int count, Invokable&lt;std::string_view&gt; f);</pre>
 
 <p>The goal of this function is to call the provided functor for the specified <code>start_date</code>, and then
    same day next month, two months in the future, up to <code>count - 1</code> months in future. The first
-   overload provides and <code>day_point</code> in the numeric format (we assume very similar format to 
-   <a href="https://github.com/HowardHinnant/date">Howard Hinnant's date library</a>). Second is an 
-   optimized version that feeds provided function with the serialized date - by providing this overload
+   overload provides a <code>day_point</code> in the numeric format (we assume very similar format to 
+   <a href="https://github.com/HowardHinnant/date">Howard Hinnant's date library</a>). The second is an 
+   optimized version that feeds provided function with the serialized date &mdash; by providing this overload
    we can avoid performing multiple allocations and perform operation directly on this representation (incrementing
    month).</p>
 
-<p>Now consider following invocation, where <code>day_of_week</code> is an library function
+<p>Now, consider the following invocation, where <code>day_of_week</code> is a library function
    returning a <code>duration</code> since midnight:</p>
 <pre>on_each_month(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</pre>
 
-<p>This code will fail to compile, due to error in the return type deduction for the invocation of the
-   lambda with the object of <code>std::string_view</code> type, caused by checking the viability of the second
-   overload of <code>on_each_month</code> function.
+<p>This code will fail to compile, due to an error in the return type deduction for the invocation of the
+   lambda with the object of type <code>std::string_view</code>, caused by checking the viability of the second
+   overload of <code>on_each_month</code>.
    To fix above problem the user is required to either:</p>
 <ul>
-  <li>change the parameter <code>day_point</code></li>
-  <li>repeat the constrains <code>day_of_week</code> function in the lambda argument</li>
-  <li>infer constrains from <code>day_of_week</code> by specifying return type:
+  <li>change the lambda parameter type to <code>day_point</code></li>
+  <li>constrain the lambda with whatever function <code>day_of_week</code> is constrained with</li>
+  <li>infer constrains from <code>day_of_week</code> by specifying the lambda's return type:
       <code>[](auto d) -&gt; decltype(day_of_week(d) == friday) { return day_of_week(d) == friday };</code></li>
 </ul>
 
-<p>Each of above solutions introduces code-repetition: via repeating entire lambda body,
-    or reproducing constrain of the library function; or makes the code less robust by committing to the
+<p>Each of the above solutions introduces code repetition: either via repeating entire lambda body,
+    or reproducing the constrains of the library function; or makes the code less robust by committing to the
     specific resolution of time (using fixed <code>time_point</code> type).</p>
 
 
