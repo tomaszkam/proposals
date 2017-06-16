@@ -87,17 +87,16 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>Currently, a failure to deduce funcion's return type results in a hard error.
-   In this paper we analyze the impact of this behavior on the existing language;
-   in particular, how it compromizes the goals of Concepts Lite:
-   descriptive error messages and concept-based overloading.</p>
+<p>Currently, return type deduction failures are treated as hard errors.
+   This paper describes the impact of this choice on the existing language
+   and the proposed Concepts Lite.</p>
 
 <p>Secondly, we analyse possible ways of addressing the problems, with the recommendation
-   of introducing a special "expression-body" syntax for declaring function template bodies.</p>
+   of introducing a special (expression-body) syntax.</p>
 
-<p>The proposed syntax, also allows
+<p>The proposed syntax, in addition to being useful for declaring function templates, allows
    generic lambdas to be used with concept-constrained libraries (like Ranges TS), without
-   compromising their major features (better error messages, overloading) while preserving
+   compromisin their major features (better error messages, overloading) while preserving
    their terseness:</p>
 
 <table>
@@ -215,19 +214,20 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 <h3><a name="history.r1">2.1. Revision 1</a></h3>
 
 <p>This revision of the paper extends the motivation section to better illustrate
-   the impact of the Concept TS features. In addition, the discussion section
-   was extended to include discussion of the possible alternative solution for the
+   the impact on the Concept TS features. In addition, the discussion section
+   was extended to include the discussion of alternative solutions for the
    problem.</p>
 
   <p>Finally, we no longer propose to treat <em>any</em> return type deduction failure as 
-   a SFINAE-able error. Instead, we propose to limit the solution to certain set of cases,
-   designed by use of expression body syntax: <code>=&gt; expr</code> that was 
+   a SFINAE-able error. Instead, we propose to narrow the solution to certain set of cases,
+   explicitly designated by the use of expression body syntax: <code>=&gt; expr</code> that was 
    proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
    P0573R0: Abbreviated Lambdas for Fun and Profit</a>.</p>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>Let's consider the following implementation of <code>variadic_negator</code>:</p>
+<p>Let's consider the following implementation of <code>variadic_negator</code> &mdash; 
+   an adapter that takes a predicate and retuns the opposite value to the one returned by the original:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -252,20 +252,22 @@ variadic_negator_functor&lt;F&gt; variadic_negator(F f)
 
 <p>In the implementation, we can see an obvious repetition of the function invocation
    that is placed both in the return type declaration and in the return statement.
-   We could avoid this necessary repetition by using return type deduction for the 
-   and declare return type as <code>decltype(auto)</code>. 
-   As consequence of this change we would affect the overload resolution for calls of
-   the <code>operator()</code>: in case of <code>decltype(expr)</code> this candidate
-   was not considered to be viable in case when the <code>f</code> was is not callable
-   with <code>args...</code> or result of the invocation cannot be negated, while in
-   case of use of <code>decltype(auto)</code> this candidate is always viable.</p>
-
-<p>In the context of the discussed class for every invocation <code>variadic_negator(f)(args...)</code>
-   there is only one candidate, and at first glance, we may consider this change to be acceptable,
-   as it will only change the error messages caused by invalid invocations of the functor.
-   However, such reasoning omits situations when the availability
-   of other functions depends on the validity of the call to <code>variadic_negator</code>.
-   As an example, we may consider the following:</p>
+   We could think of avoiding this repetition by using function's return type deduction 
+   and declare the return type as <code>decltype(auto)</code>. But the resulting code would 
+   not have the same semantics as before.
+   As a consequence of this change we would affect the overload resolution for calls to
+   <code>operator()</code>: when we used <code>decltype(expr)</code> this candidate
+   was not considered viable in cases when <code>f</code> was not callable
+   with <code>args...</code>, or the result of the invocation could not be negated. 
+   In contrast, when we use <code>decltype(auto)</code> this candidate is always viable.</p>
+  
+<p>When there is only one <code>f</code> to be considered as candidate to call
+   <code>variadic_negator(f)(args...)</code>, the nuanced difference explained above might seem
+   irrelevant, as it will only change the error messages caused by invalid invocations
+   of the functor from "no viable candidate found" to "(long) error instantiatin a template".
+   However, the negative results are more grave when the viability/validity of other functions
+   depends on the validity of the call to <code>variadic_negator</code>.
+   For example, consider the following:</p>
 <pre>
 template&lt;typename F&gt;
 auto invoke(F f) -&gt; decltype(f(0));             //1
@@ -276,30 +278,30 @@ auto invoke(F f) -&gt; decltype(f(std::string())); //2
 bool test(int);
 </pre>
 
-<p>For above declarations the expression <code>invoke(&amp;test)</code> is valid and selects
-   the first overload, the same applies for <code>invoke(variadic_negator(&amp;test))</code>
-   if <code>decltype(expr)</code> is used as return type. However in case of the <code>decltype(auto)</code>
-   implementation, the code will emit hard error about lack of conversion from <code>std::string</code>
-   to <code>int</code>.</p> 
+<p>iven the above declarations the expression <code>invoke(&amp;test)</code> is valid and selects
+   the first overload, the same applies to <code>invoke(variadic_negator(&amp;test))</code>
+   if <code>decltype(expr)</code> is used for return type.
+   However, in case of <code>decltype(auto)</code> return type, the code will emit hard error
+   about the lack of conversion from <code>std::string</code> to <code>int</code>
+   while instantiating a function template.</p> 
 
 <p>To understand this situation we need to realize that expression in the form 
-   <code>decltype(foo(args...))</code> requires compiler to determine return type of selected
+   <code>decltype(foo(args...))</code> requires compiler to determine return type of the selected
    overload of <code>foo</code> which in case of function template that uses return type
-   deduction leads to its instantiation and according to current wording, any error occurring 
-   in such instantiation is considered to be hard-error. In case of our example the expression
-   <code>invoke(variadic_negator(&amp;test))</code> leads to instantiation of <code>operator()</code>
-   with <code>std::string&amp;&amp;</code>, that is invalid as <code>&amp;test</code> accepts
-   only integers.</p>
-
+   deduction leads to its instantiation, and according to the current wording, any error occurring 
+   in such instantiation is considered to be a hard-error. In case of our example the expression
+   <code>invoke(variadic_negator(&amp;test))</code> leads to the instantiation of
+   <code>operator()</code> with <code>std::string&amp;&amp;</code>, and
+   that is invalid as <code>&amp;test</code> accepts only integers.</p>
 
 <h3><a name="motivation.std_function">3.1. Functions accepting <code>std::function</code> as parameter</a></h3>
 
-<p>In may be pointed out that presented example of the <code>invoke</code> function is artificial
-   and such situations will not normally occur in the code. However as result of resolution
+<p>In may be pointed out that the presented example of the <code>invoke</code> function is artificial
+   and such situations will not normally occur in the code. However, as the result of resolution
    of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4485.html#2132">LWG issue #2132</a> 
-   similar mechanism is used to eliminate <code>std::function</code> constructor in case when
-   object is not callable. As consequence same problem would occur in case when <code>invoke</code>
-   would be defined as:</p>
+   a similar mechanism is used to eliminate <code>std::function</code> constructor in case when
+   the object is not callable. As a consequence, the same problem would occur in case <code>invoke</code>
+   was defined as follows:</p>
 <pre>
 bool invoke(std::function&lt;bool(int)&gt; f);         //1
 bool invoke(std::function&lt;bool(std::string)&gt; f); //2
@@ -307,33 +309,34 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 
 <h3><a name="motivation.lambda">3.2. Interoperation with lambda functions</a></h3>
 
-<p>The problem that is intended to be addressed by this paper occurs only in situations when
-   functor with template <code>operator()</code> that uses return type deduction is passed
-   to the function. As writing such classes is rarely involved in day-to-day programming, it's
+<p>The problem described by this paper occurs only in situations when a
+   functor with templated <code>operator()</code> that uses return type deduction is passed
+   to a function. As writing such classes is rarely involved in day-to-day programming, its
    impact may be neglected as affecting only experts, that should be aware of above SFINAE 
    nuances and design their code accordingly.</p>
 
-<p>However with generic lambdas in C++14 provides we have introduced short syntax for declaration
-   of such classes, for example the expression <code>[](auto x) { return !test(x); }</code> creates
-   an unnamed class with template <code>operator()</code> that uses <code>auto</code> return type
-   deduction. As consequence programmers are exposed to quirks of design of return type deduction
-   even for simple code, like lambda implementation of negator.</p>
+<p>However, with generic lambdas in C++14 we have introduced short syntax for declaring
+   such classes; for example expression <code>[](auto x) { return !test(x); }</code> creates
+   an unnamed class with template <code>operator()</code> that uses <code>decltype(auto)</code>
+   return type deduction. As a consequence programmers are exposed to the quirks
+   of the detailed behavior of return type deduction even in simple code,
+   like lambda implementation of a negator.</p>
 
-<p>If we consider following declarations:</p>
+<p>If we consider the following declarations:</p>
 <pre>
 bool test(int);
 
 bool invoke(std::function&lt;bool(int)&gt; f);         //1
 bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 </pre>
-<p>Call of the <code>invoke</code> with with <code>[](int x) { return !test(x); }</code>  is well
-   formed an selects first overload, while seemingly identical expression that uses new generic lambda 
-   <code>[](auto x) { return !test(x); }</code> produces hard error.</p>
+<p>The call to <code>invoke</code> with <code>[](int x) { return !test(x); }</code> is well
+   formed and selects the first overload, while seemingly identical expression that uses the new generic lambda 
+   <code>[](auto x) { return !test(x); }</code> produces a hard error.</p>
 
-<p>Furthermore, it is worth noticing that in above example created closure is not used in a polymorphic
-   way and we could use <code>int</code> parameter. However, we may still argue that use of <code>auto</code>
-   lambda parameter leads to better code, in the same way as for the use <code>auto</code> instead
-   of specific type in variable declaration (no unintended conversion, better maintainability).</p>
+<p>Furthermore, it is worth noting that in the above example the created closure is not used in a polymorphic
+   way and we could use an <code>int</code> parameter. However, programmers are often taught that <code>auto</code>
+   lambda parameters lead to better code, in the same way as in the use <code>auto</code> instead
+   of specific type in variable declarations (no unintended conversion, better maintainability, etc...).</p>
 
 
 <h2><a name="concepts">4. Impact on Concepts</a></h2>
