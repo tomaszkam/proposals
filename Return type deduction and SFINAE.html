@@ -810,7 +810,11 @@ void parallel_for(It first, It last, F f)
 <h2><a name="implementability">8. Implementability</a></h2>
 
 <p>Proposed expression body is basically a terse notation for existing language syntax, 
-   that avoids unnecessary code repetition. As such it should not impose major implementation
+   that avoids unnecessary code repetition and can be already simulated using following
+   macro:</p>
+<pre>#define EXPR_BODY(expr) noexcept(expr) -&gt; decltype((expr)) { return expr; }</pre>
+
+<p>Given above it should not impose major implementation
    problems for compilers already implementing expression-SFINAE.</p>
 
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
