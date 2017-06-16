@@ -348,14 +348,14 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 <h3><a name="concepts.sfinae-usage">4.1. Concepts checks depends on SFINAE</a></h3>
 
 <p>One of major additions of the proposed Concepts design is the <code>requires</code> expression,
-   that provides a simple syntax for checking the validity of the certain expression performed on the
+   which provides a simple syntax for checking the validity of a given expression performed on
    given types. However, the underlying mechanism is same as in existing expression-SFINAE implementations,
-   ant to function properly it requires, that functions used in expression must be properly <i>constrained</i>: 
-   they should not be a viable candidate unless they body is well formed. As consequence, the operations
-   used on passed passed to the constrained function must also be constrained.</p>
+   and in order to work properly it requires that functions used in expression must be properly <i>constrained</i>: 
+   they should not be viable candidates unless they body is well formed. As a consequence, it is required that 
+   the operations tested in constrained function must also be constrained.</p>
 
-<p>To illustrate above point, lets our consider following (very simplified) concept hierarchy and constrained
-   generic function:</p>
+<p>To illustrate the above point, let's consider the following (very simplified) concept hierarchy and constrained
+   generic function overloads:</p>
 <pre>
 template&lt;typename I&gt;
 concept bool ForwardIterator = requires (I i) { ++i; };
@@ -377,7 +377,8 @@ I rotate(I first, I last) {
   ++first; --first; return first;
 }
 </pre>
-<p>And following class implementing above concepts:</p>
+  
+<p>Now, consider the following types modelling the above concepts:</p>
 <pre>
 struct Iter { 
   Iter operator++() { return *this; }; 
@@ -438,7 +439,7 @@ public:
 };
 </pre>
 
-<p>Finally lets consider effects of the following calls (<a href="https://wandbox.org/permlink/GTpTFNSZUeSyLfiz">live example</a>):</p>
+<p>Finally, let's consider the effects of the following calls (<a href="https://wandbox.org/permlink/GTpTFNSZUeSyLfiz">live example</a>):</p>
 <pre>
 rotate(Iter{}, Iter{});                                               //1
 rotate(FixedReturnWrapper{Iter{}}, FixedReturnWrapper{Iter{}});       //2
@@ -447,45 +448,49 @@ rotate(DecltypeReturnWrapper{Iter{}}, DecltypeReturnWrapper{Iter{}}); //4
 rotate(ConceptWrapper{Iter{}}, ConceptWrapper{Iter{}});               //5
 </pre>
 
-<p>In the case of the above code, the invocation with the <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (4) and
-   <code>ConceptWrapper&lt;Iter&gt;</code> (5) types, are calling the <code>rotate</code> overload that is accepting the <code>ForwardIterators</code>.
-   This is desired and expected behaviour, as operations on this types are properly <i>constrained</i>: candidate functions
-   are only viable candidates in a case when they body is well formed. This is achieved by either being normal function or usage on 
-   expression SFINAE (in form of requires clause).</p>
+<p>Invocations with types <code>Iter</code> (1), <code>DecltypeReturnWrapper&lt;Iter&gt;</code> (4) and
+   <code>ConceptWrapper&lt;Iter&gt;</code> (5) are calling the <code>rotate</code> overload that is
+   accepting the <code>ForwardIterators</code>.
+   This is a desired and expected behaviour, as operations on these types are properly <i>constrained</i>: candidate functions
+   are viable candidates <em>only</em> when they body is well formed. This is achieved by either by being a non-template function
+   or by the usage of expression SFINAE (possibly in the form of a <code>requires</code> clause).</p>
 
-<p>Regretfully in the case of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2), we encounter a compilation error from body of the
-   <code>FixedReturnWrapper::operator--</code>, that is called from <code>rotate</code> function. This is caused 
-   by the fact that the  <code>operator--</code> for this type is effectively <i>underconstrained</i>: it is considered to be a viable candidate,
-   even if its body is ill formed, which is consequence leads to a false-positive result of <code>Bidirectional&lt;FixedReturnWrapper&lt;Iter&gt;</code>
-   and selecting wrong overload of <code>rotate</code> function.</p>
+<p>Regretfully, in the case of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2) we encounter a compilation error from body of
+   <code>FixedReturnWrapper::operator--</code>, which is called from <code>rotate</code> function. This is caused 
+   by the fact that <code>operator--</code> for this type is effectively <i>underconstrained</i>: it is considered to be
+   a viable candidate even if its body is ill formed, which in consequence leads to a false-positive result of
+   <code>Bidirectional&lt;FixedReturnWrapper&lt;Iter&gt;</code> check
+   and the selection of the wrong overload of function <code>rotate</code>.</p>
 
-<p>Finally, in case of the <code>AutoReturnWrapper&lt;Iter&gt;</code> (3), we encounter a compilation error from the body of 
-   the <code>FixedReturnWrapper::operator--</code> triggered from the return type deduction for the <code>auto</code>
-   placeholder. As any error occurring during this stage is treated as hard error, this basically stops the compilation,
-   limiting ability to select appropriate overload of <code>rotate</code> function (<code>ForwardIterator</code>)
-   version.</p>
+<p>Finally, in case of the <code>AutoReturnWrapper&lt;Iter&gt;</code> (3) we encounter a compilation error from the body of 
+   the <code>FixedReturnWrapper::operator--</code> instantiated while performing return type deduction for the <code>auto</code>
+   placeholder. As any other error occurring during function template body instantiation, it is treated as hard error;
+   this basically stops the compilation, thus limiting the ability to select the appropriate overload of function <code>rotate</code>
+   (the <code>ForwardIterator</code> version).</p>
 
-<p>As we can see from the example of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2) and <code>AutoReturnWrapper&lt;Iter&gt;</code> (3),
-   concepts fails to deliver their major promises: more readable error message and overloading based on
-   the subsumption in situation when they are fed with unconstrained argument.</p>
+<p>As we can see from the example of the <code>FixedReturnWrapper&lt;Iter&gt;</code> (2)
+   and <code>AutoReturnWrapper&lt;Iter&gt;</code> (3),
+   concepts fails to deliver their major promises: more readable error messages and overloading based on
+   the subsumption in situation when they are fed with an unconstrained argument.</p>
 
 
 <h3><a name="concepts.lambda">4.2. Lambdas as arguments for constrained parameters</a></h3>
 
-<p>The introduction of the C++14 generic lambdas provides an easy way to create unconstrained functors, that will
+<p>The introduction of C++14's generic lambdas provides an easy way to create unconstrained functors, which will
    be prone to problems described in the previous section, when they are used with constrained functions. 
-   This is deepened, by the fact that one of the major usages for the lambda-expression is to provide predicates/functors
-   for the STL algorithms,  that was selected as flagship conceptualized library.
-   In addition due the ad-hoc nature of the lambdas, the possibility, that standard will already contain matching concepts
-   (like in the <code>Iterator</code> case) is very limited, which leaves users with only a few workarounds, like:
-   creating their own concepts (which in contrast to lambdas cannot be  local to function) or using expression SFINAE/ad-hoc
-   requires clause (which introduces code repetition).</p>
+   At the same time one of the major usages for the lambda-expression is to provide predicates/functors
+   for the STL algorithms, which was selected as flagship conceptualized library.
+   In addition, due to the ad-hoc nature of the lambdas, the possibility that the Standard Library will already
+   contain matching concepts
+   (like in the <code>Iterator</code> case) is very limited; which leaves users with only a few workarounds, like:
+   creating their own concepts (which in contrast to lambdas cannot be local to function), or using expression SFINAE or ad-hoc
+   requires clauses (which introduces code repetition).</p>
 
 
 <h4><a name="concepts.lambda.errors">4.2.1. Error messages</a></h4>
 
-<p>To illustrate, lets consider following simplified version of the <code>find_if</code> (we focus only on the
-   functor constrain):</p>
+<p>To illustrate the problem with error messages, let's consider following simplified version of <code>find_if</code>
+   (we focus only on the functor constrain):</p>
 <pre>template&lt;typename F, typename... T&gt;
 concept bool Predicate = requires(F f, T... t) {
     { f(t...) } -&gt; bool;
@@ -495,15 +500,15 @@ template&lt;typename Iterator, Predicate&lt;typename std::iterator_traits&lt;Ite
 Iterator find_if(Iterator b, Iterator e, F f);
 </pre>
 
-<p>and following invocations (<a href="https://wandbox.org/permlink/zvf0b4AENETCoeek">live example</a>):</p>
+<p>and the following invocations (<a href="https://wandbox.org/permlink/zvf0b4AENETCoeek">live example</a>):</p>
 <pre>
 std::vector&lt;std::string&gt; vs;
 find_if(vs.begin(), vs.end(), [](auto const&amp; s) { return s == 2; }); //1
 find_if(vs.begin(), vs.end(), [](auto const&amp; s) -&gt; decltype(s == 2) { return s == 2; }); //2
 </pre>
 
-<p>In the case of the second invocation (2), the compiler will produce an short error message indicating
-   that suplied lambda does not fullflill <code>Predicate</code> concept:</p>
+<p>In the case of the second invocation (2), the compiler will produce a short error message indicating
+   that the suplied lambda does not model concept <code>Predicate</code>:</p>
 <pre>
 prog.cc:11:10: note:   constraints not satisfied
  Iterator find_if(Iterator b, Iterator e, F f);
@@ -516,58 +521,60 @@ prog.cc:6:14: note:     with 'std::__cxx11::basic_string&lt;char&gt;&amp; t#0'
 prog.cc:6:14: note: the required expression 'f(t ...)' would be ill-formed
 </pre>
 
-<p>However in case of the first invocation (1) the compiler produces a few hunderts lines of errors, mentoining lack of comparision operator between
-   <code>std::string</code> and <code>int</code>. This is caused by the fact that the concept check for the <code>F</code> parameter of the
-   <code>find_if</code> (performed in case of the both examples) requires determination of the return type for the supplied functor with
-   <code>std::string&amp;</code> argument. In case of first example, this triggers return type deduction for the lambda, and as consequence
-   leads to its instatation with given arguments - as error produced from this instatiation is an hard error, compiler emits error from the instation,
-   and stops processing in middle of the concept check.</p>
+<p>However, in case of the first invocation (1), the compiler produces a few hundreds of lines of errors,
+   mentoining the lack of comparision operator between <code>std::string</code> and <code>int</code>.
+   This is caused by the fact that the concept check for parameter <code>F</code> of <code>find_if</code>
+   (performed in both examples) requires the determination of the return type for the supplied functor with
+   <code>std::string&amp;</code> argument. In case of the first example, this triggers return type deduction for the lambda,
+   and in consequence leads to its instatation with provided arguments &mdash; as the error produced from this instatiation
+   is a hard error, compiler emits error from the instation, and stops processing in the middle of the concept check.</p>
 
 <h4><a name="concepts.lambda.overloading">4.2.2. Overloading using concepts</a></h4>
 
-<p>Lets consider the case of following <code>on_each_month</code> functions:</p>
+<p>Let's consider the case of the following <code>on_each_month</code> functions:</p>
+  
 <pre>void on_each_month(day_point start_date, int count, Invokable&lt;day_point&gt; f);
 void on_each_month(day_point start_date, int count, Invokable&lt;std::string_view&gt; f);</pre>
 
 <p>The goal of this function is to call the provided functor for the specified <code>start_date</code>, and then
    same day next month, two months in the future, up to <code>count - 1</code> months in future. The first
-   overload provides and <code>day_point</code> in the numeric format (we assume very similar format to 
-   <a href="https://github.com/HowardHinnant/date">Howard Hinnant's date library</a>). Second is an 
-   optimized version that feeds provided function with the serialized date - by providing this overload
+   overload provides a <code>day_point</code> in the numeric format (we assume very similar format to 
+   <a href="https://github.com/HowardHinnant/date">Howard Hinnant's date library</a>). The second is an 
+   optimized version that feeds provided function with the serialized date &mdash; by providing this overload
    we can avoid performing multiple allocations and perform operation directly on this representation (incrementing
    month).</p>
 
-<p>Now consider following invocation, where <code>day_of_week</code> is an library function
+<p>Now, consider the following invocation, where <code>day_of_week</code> is a library function
    returning a <code>duration</code> since midnight:</p>
 <pre>on_each_month(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</pre>
 
-<p>This code will fail to compile, due to error in the return type deduction for the invocation of the
-   lambda with the object of <code>std::string_view</code> type, caused by checking the viability of the second
-   overload of <code>on_each_month</code> function.
+<p>This code will fail to compile, due to an error in the return type deduction for the invocation of the
+   lambda with the object of type <code>std::string_view</code>, caused by checking the viability of the second
+   overload of <code>on_each_month</code>.
    To fix above problem the user is required to either:</p>
 <ul>
-  <li>change the parameter <code>day_point</code></li>
-  <li>repeat the constrains <code>day_of_week</code> function in the lambda argument</li>
-  <li>infer constrains from <code>day_of_week</code> by specifying return type:
+  <li>change the lambda parameter type to <code>day_point</code></li>
+  <li>constrain the lambda with whatever function <code>day_of_week</code> is constrained with</li>
+  <li>infer constrains from <code>day_of_week</code> by specifying the lambda's return type:
       <code>[](auto d) -&gt; decltype(day_of_week(d) == friday) { return day_of_week(d) == friday };</code></li>
 </ul>
 
-<p>Each of above solutions introduces code-repetition: via repeating entire lambda body,
-    or reproducing constrain of the library function; or makes the code less robust by committing to the
+<p>Each of the above solutions introduces code repetition: either via repeating entire lambda body,
+    or reproducing the constrains of the library function; or makes the code less robust by committing to the
     specific resolution of time (using fixed <code>time_point</code> type).</p>
 
 
 <h2><a name="solutions">5. Alternative solutions</a></h2>
 
-<p>In this section we examine possible solutions for <i>constraining</i> function templates,
-   discussing their viability and impact both on the future of the language and on user programs.</p>
+<p>In this section we discuss the possible solutions for <i>constraining</i> template functions,
+   discussing their viability and impact both on the future of the language and user programs.</p>
 
 <h3><a name="solutions.concepts">5.1. Constraining functions using Concepts</a></h3>
 
-<p>The most obvious solution is to assume (and, in consequence, require) that all operations on objects used with
+<p>The most obvious solution is to assume (and consequence require) that all operations on objects used with
    the argument, will be constrained via appropriate concepts.</p>
 
-<p>First, let's consider the already presented example of class <code>varidatic_negator</code>, defined as 
+<p>Firstly we will consider the already presented example of the <code>varidatic_negator</code> class, defined as 
    follows:</p>
 <pre>
 template&lt;typename F&gt;
@@ -584,8 +591,8 @@ public:
 };
 </pre>
 
-<p>At first glance we may consider that this function can be easily constrained by the standard concept
-   <code>Predicate</code>:</p>
+<p>At first glance we may consider that this function can be easily constrained by the use of the standard
+   <code>Predicate</code> concept:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -602,10 +609,10 @@ public:
 };
 </pre>
 
-<p>A closer look into this code exposes a flaw in this approach: by using concept  <code>Predicate</code>
-   we impose the restriction on the <code>F</code> return type, to be convertible to <code>bool</code>.
-   In contrast, the original design supported any object on which <code>operator!</code> can be applied.
-   To restore original functionality we may relax the constraint, by using concept <code>Invokable</code> instead:</p>
+<p>A closer look into this code exposes a flaw in this approach: by using the  <code>Predicate</code>
+   concept we impose the restriction on the <code>F</code> returns type, to be convertible to <code>bool</code>.
+   In contrast, the original design supported any  object on which <code>operator!</code> can be applied.
+   To restore original functionality we may reduce the strength of the concept, by using <code>Invokable</code> instead:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -621,71 +628,71 @@ public:
   { return !this-&gt;f_(std::forward&lt;Args&gt;(args)...); }
 };
 </pre>
-<p>However, in this situation, the function again becomes <i>underconstrained</i>, as we no longer
-   guarantee the call to <code>operator!</code> on the result of <code>f</code> will be 
+<p>However, in this situation, the function again become <i>underconstrained</i>, as we no longer
+   guarantee the call of <code>operator!</code> on <code>f</code>'s invocation result will be 
    well-formed.</p>
 
-<p>Finally, to restore the original functionality of this simple class, we need to combine concept
-   <code>Invokable&lt;F&amp;, Args...&gt;</code> with an additional constrain, requiring result type
-   being negatable. To achieve this we will need to add an ad-hoc expression constraint
-   (by using <code>decltype(expr)</code> or an in-place <code>requires</code> expression),
-   which will re-introduce the code repetition that we want to eliminate.</p>
+<p>Finally to restore original functionality of this simple class, we need to  combine
+   <code>Invokable&lt;F&amp;, Args...&gt;</code> concept with additional constrain, requiring result type
+   being negable. To achieve this we will need to add at-hoc expression constrain
+   (by using <code>decltype(expr)</code> or in-place <code>requires</code> expression),
+   which will reintroduce the code repetition that we want to eliminate.</p>
 
 <p>Alternatively, we may consider introducing a (set of) standardized syntactic constrains
    (like <code>has_negation</code>) to be used in such situation, but by doing so, we will
    essentially recreate a failed pre-C++11 concept design with its overwhelming number
-   of concepts.</p>
+   of constrains.</p>
 
-<h3><a name="solutions.body-sfinae">5.2. Turning <em>any</em> return type deduction failure into soft-error</a></h3>
+<h3><a name="solutions.body-sfinae">5.2. Turning return type deduction failure into soft-error</a></h3>
 
-<p>In this section, we discuss the originally proposed solution, based on turning the return type deduction failures
-   into soft errors. Choosing this solution will basically resolve all the problems related to uses of
+<p>In this section, we discuss originally proposed solution, based on turning the return type deduction failures
+   into soft errors. Choosing this solution will basically resolve all the problems related to uses
    <code>auto</code> return type, by making them <i>constrained</i>: they, by definition, will be viable
    if and only if their body is well-formed.</p>
 
 <p>However, it has its own drawbacks. Firstly it promotes defining the interface of the function
-   in terms of terms of its implementation. This should be considered a bad practice for the large
+   in terms of terms of their implementation. This should be considered as the bad practice for the large
    function, like generic algorithms. For example, we may consider the implementation of the sort algorithm,
    that will be based on the quick-sort, which performs only swap on the elements. 
    Inferring interface (requirement on accepted iterators and their value types) from this implementation, will
    prevent future optimization, like switching to insertion sort after a certain number of recursive calls, 
-   as they will require additional operations on the types (creating an copy), and will break existing calls.</p>
+   as they will require additional operations on the types (creating an copy), and will break  existing calls.</p>
 
 <p>Secondly, this approach effectively requires compilers to be able to backtrack from any error
-   occurring in the function body. As a consequence, newly introduced language features would
-   need to be considered in this context. This will increase the amount of work required to
-   introduce any new language features, like constexpr-if or structured binding, that are currently
-   limited to function bodies and cannot appear in unevaluated context. In the end such solution would cripple the 
+   occurring in the function body. As consequence newly introduced language features would
+   need to be considered in this context. This will increase the amount of work required for the
+   introduction of the new language features, like constexpr-if or structured binding, that are currently
+   limited to function bodies and cannot appear in unevaluated context, and, in the end, cripple the 
    evolution of the language.</p>
 
 <p>Finally, the complexity of the implementation of such feature, suggest an alternative solution that
-   will reduce SFINAE-able errors to only certain constructs in function bodies.
-   One of the options, is to limit this capability only to functiosn with a body consisting
-   of a single return statement. The author believes that such design will be very surprising for the
-   user, because even a simple refactoring, like splitting large expression and saving their result in local 
-   variables, will cause previously well-formed code to emit compilation error from a seemingly unrelated
-   template instantiation. For reference, please check the difference between invocation of (4) 
+   will reduce SFINAEable errors to only certain constructs in function bodies.
+   One of the options, is to limit this change only to function with a body consisting
+   on single return statement. The author believes that such design will be very surprising for the
+   user, as simple refactoring, like splitting large expression and saving their result in local 
+   variables, will cause previously well-formed code to emit compilation error from seemingly unrelated
+   template instantiation. For reference please check the difference between invocation of (4) 
    and (2) from <a href="#concepts.sfinae-usage">4.1. Concepts checks depends on SFINAE</a>
    section.</p>
 
 <h2><a name="expr-body">6. Proposed solution: expression body</a></h2>
 
-<p>In this chapter, we present recommended solution for the problem of constraining small functions,
-   based on the introduction of the new function definition syntax limited to function consisting
-   of a single expression. We propose to reuse syntax proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
+<p>In this chapter, we present the recommended solution for the problem of constraining small functions,
+   based on the introduction of the new function definition syntax, limited to functions consisting
+   of a single expression. We propose to reuse the syntax proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r0.html">
    P0573R0: Abbreviated Lambdas for Fun and Profit</a>, and making <code>=&gt; expr</code>
    syntax equivalent to <code>noexcept(noexcept(expr)) -&gt; decltype((expr)) { return expr; }</code>,
-   while extending it to be allowed with all functions (including member functions).</p> 
+   while extending it to be allowed for all functions (including member functions).</p> 
 
-<p>To illustrate following definition:</p>
+<p>To illustrate, the following definition:</p>
 <pre>template&lt;typename C&gt; auto size(C const&amp; c) =&gt; c.size();</pre>
-<p>, will have same semantics as:</p>
+<p>will have same semantics as:</p>
 <pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size())) -&gt; decltype((c.size())) { return c.size(); }</pre>
 
-<p>Firstly it allows to infer the interface of the function from its implementation, but 
-   the still can be combined with proper concept, for in cause of the
+<p>Firstly, it allows to infer the interface of the function (including SFINAE validity) from its implementation, but 
+   still can be combined with a proper concept constraint; for instance, in case of the
    <code>varidatic_negator_example</code>, we can still express requirement of callability 
-   via concept (and benefit from better error messages), without losing the flexibility of 
+   via a concept (and benefit from better error messages), without losing the flexibility and correctness of 
    original solution:</p>
 <pre>
 template&lt;typename F&gt;
@@ -702,19 +709,19 @@ public:
 };
 </pre>
 
-<p>Secondly, limiting the function body to the single expression is actually beneficial,
-   as it prevents overuse of the facility for larger functions (like discussed sort example),
+<p>Secondly, limiting the function body to a single expression is actually beneficial,
+   as it prevents overuse of the facility for larger functions (like the discussed sort example),
    while still covering large amount of use cases.</p>
 
 <h3><a name="expr-body.projections">6.1. Using lambda to write projections</a></h3>
 
-<p>The default return type deduction for the lambda, that returns an object by copy (<code>auto</code> deduction),
+<p>The return type deduction for a lambda, that returns an object by copy (the <code>auto</code> deduction),
    is not well suited for writing projections (lambda returning a member, calling a getter). 
    This will become more important in the case of the 
    <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4651.pdf">Ranges TS</a>
    that allow projections to be provided to the standard algorithm.</p>
 
-<p>For example in case the of following code:</p>
+<p>For example, in the following code:</p>
 <pre>
 struct Employee
 {
@@ -723,20 +730,25 @@ struct Employee
 };
 std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 
-<p>The invocation in form:</p>
+<p>The invocation of the form:</p>
+  
 <pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) { return e.first_name; });</pre>
-<p>Will create two copies of string <b>for each</b> comparison of the employee objects,
+  
+<p>will create two copies of string <b>for each</b> comparison of employee objects,
     creating <code>O(ve.size())</code> unnecessary copies of the string in total.</p>
 
-<p>In contrast if we declare projection using proposed expression body syntax:</p>
+<p>In contrast, if we declare projection using the proposed expression body syntax:</p>
+  
 <pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first_name);</pre>
-<p>Will return an (const) reference to string (notice use of double parenthesis in <code>decltype((expr))</code>),
-   and the code will not create any additional copies compared to STL1 like solution:</p>
+  
+<p>the lambda will return a (const) reference to the string (note the use of double parentheses in <code>decltype((expr))</code>),
+   and the code will not create any additional copies compared to an STL1-like solution:</p>
+  
 <pre>ranges::sort(ve, [] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; });</pre>
 
-<p>Furthermore in case of the predicates (and other lambdas producing new object), result
-   will be returned by value regardless of which syntax is used, so following lambdas functions 
-   will have <code>bool</code> return type:</p>
+<p>Furthermore, in case of predicates (and other lambdas producing a new object), result
+   will be returned by value regardless of which syntax is used, so the following lambdas functions 
+   will have a <code>bool</code> return type:</p>
 <pre>[] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; }</pre>
 <pre>[] (Employee const&amp; e1, Employee const&amp; e2) =&gt; e1.first_name &lt; e2.first_name</pre>
 
@@ -744,14 +756,15 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 <h3><a name="expr-body.noexcept">6.2. Inferring <code>noexcept</code></a></h3>
 
 <p>We also require an expression body to infer a function exception specification from the 
-   implementation. This matches recent development of the language, that makes 
+   returned expression. This matches recent development of the language, that makes 
    <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
    exception specification part of type system</a>.</p>
 
-<p>Furthermore, with the direction of terminating the program in case of a exception
-   being thrown from an invocation of the functor passed to parallel algorithm,
-   we need the ability to check if given function may throw an exception to allow
-   to allow seamless parallelization of user code:</p>
+<p>Furthermore, with the direction of terminating the program in case of an exception
+   being thrown from an invocation of the functor passed to a parallel algorithm,
+   we need the ability to check if a given function may throw an exception, to allow
+   a seamless parallelization of user code:</p>
+  
 <pre>template&lt;typename It, typename F&gt;
 void parallel_for(It first, It last, F f)
 {
@@ -760,16 +773,17 @@ void parallel_for(It first, It last, F f)
   else
     std::for_each(first, last, f);
 };</pre>
+  
 <p>We need to avoid the use of <code>std::par</code> execution policy in case
-   of throwing functor, to prevent program from termination, in case of exception.</p>
+   of a throwing functor, to prevent program from termination, in case of an exception.</p>
 
 <p>Some concerns may be also raised that marking the lambda as <code>noexcept</code>,
-   in generic case, requires insertion of additional handling code that will <code>std::terminate</code>,
-   which may negatively impact performance of program. 
-   However in the case of proposed functionality, lambda will be marked as <code>noexcept</code>,
-   only  if it's body will be know to not produce any exceptions (any eventual handling
+   in generic case, requires the insertion of additional handling code that will <code>std::terminate</code>,
+   which may negatively impact the performance of a program. 
+   However, in the case of the proposed functionality, lambda will be marked as <code>noexcept</code>,
+   only  if its body is know not to produce any exceptions (any eventual handling
    code is already present in code of called functions), so adding this specification
-   should not impact generated code.</p> 
+   should not impact the generated code.</p> 
    
     
 <h2><a name="wording">7. Proposed wording</a></h2>
