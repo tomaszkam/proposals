@@ -87,16 +87,17 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>Currently, return type deduction failures are treated as hard errors.
-   This paper describes the impact of this choice on the existing language
-   and the proposed Concepts Lite.</p>
+<p>Currently, a failure to deduce funcion's return type results in a hard error.
+   In this paper we analyze the impact of this behavior on the existing language;
+   in particular, how it compromizes the goals of Concepts Lite:
+   descriptive error messages and concept-based overloading.</p>
 
 <p>Secondly, we analyse possible ways of addressing the problems, with the recommendation
-   of introducing a special (expression-body) syntax.</p>
+   of introducing a special "expression-body" syntax for declaring function template bodies.</p>
 
-<p>The proposed syntax, in addition to being useful for declaring function templates, allows
+<p>The proposed syntax, also allows
    generic lambdas to be used with concept-constrained libraries (like Ranges TS), without
-   compromisin their major features (better error messages, overloading) while preserving
+   compromising their major features (better error messages, overloading) while preserving
    their terseness:</p>
 
 <table>
