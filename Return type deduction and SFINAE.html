@@ -690,7 +690,7 @@ public:
 <p>will have same semantics as:</p>
 <pre>template&lt;typename C&gt; auto size(C const&amp; c) noexcept(noexcept(c.size())) -&gt; decltype((c.size())) { return c.size(); }</pre>
 
-<p>Firstly, it allows to infer the interface of the function (including SFINAE validity) from its implementation, but 
+<p>It allows to infer the interface of the function (including SFINAE validity) from its implementation, but 
    still can be combined with a proper concept constraint; for instance, in case of the
    <code>varidatic_negator_example</code>, we can still express requirement of callability 
    via a concept (and benefit from better error messages), without losing the flexibility and correctness of 
@@ -709,8 +709,14 @@ public:
   auto operator()(Args&amp;&amp;... args) =&gt; !this-&gt;f_(std::forward&lt;Args&gt;(args)...);
 };
 </pre>
+  
+<p>This feature also enables a practice for constraining templates indicated in [6], 
+   that apart form decent concepts will well defined axioms and semantics you sometimes need a simpler,
+   pure syntactic constraint. The expression body allows such limited syntactic only constraints for ad-hoc use,
+  while leaving full intuitive, axiomatized constraints for <code>concept</code>s.
+  </p>
 
-<p>Secondly, limiting the function body to a single expression is actually beneficial,
+<p>Also, limiting the function body to a single expression is actually beneficial,
    as it prevents overuse of the facility for larger functions (like the discussed sort example),
    while still covering large amount of use cases.</p>
 
