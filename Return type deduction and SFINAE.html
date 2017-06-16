@@ -278,7 +278,7 @@ auto invoke(F f) -&gt; decltype(f(std::string())); //2
 bool test(int);
 </pre>
 
-<p>iven the above declarations the expression <code>invoke(&amp;test)</code> is valid and selects
+<p>Given the above declarations the expression <code>invoke(&amp;test)</code> is valid and selects
    the first overload, the same applies to <code>invoke(variadic_negator(&amp;test))</code>
    if <code>decltype(expr)</code> is used for return type.
    However, in case of <code>decltype(auto)</code> return type, the code will emit hard error
@@ -317,7 +317,7 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
 
 <p>However, with generic lambdas in C++14 we have introduced short syntax for declaring
    such classes; for example expression <code>[](auto x) { return !test(x); }</code> creates
-   an unnamed class with template <code>operator()</code> that uses <code>decltype(auto)</code>
+   an unnamed class with template <code>operator()</code> that uses <code>auto</code>
    return type deduction. As a consequence programmers are exposed to the quirks
    of the detailed behavior of return type deduction even in simple code,
    like lambda implementation of a negator.</p>
@@ -334,7 +334,7 @@ bool invoke(std::function&lt;bool(std::string)&gt; f); //2
    <code>[](auto x) { return !test(x); }</code> produces a hard error.</p>
 
 <p>Furthermore, it is worth noting that in the above example the created closure is not used in a polymorphic
-   way and we could use an <code>int</code> parameter. However, programmers are often taught that <code>auto</code>
+   way and we could use an <code>int</code> parameter. However, it may be pointed that <code>auto</code>
    lambda parameters lead to better code, in the same way as in the use <code>auto</code> instead
    of specific type in variable declarations (no unintended conversion, better maintainability, etc...).</p>
 
@@ -800,7 +800,7 @@ void parallel_for(It first, It last, F f)
 
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
-<p>Casey Carter, Ville Voutilainen and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+<p>Andrzej Krzemieński, Casey Carter and Ville Voutilainen offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">10. References</a></h2>
 
