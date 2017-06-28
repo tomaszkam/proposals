@@ -755,7 +755,7 @@ std::vector&lt;EmployeeSalary&gt; ve{ /*...*/ };</pre>
 
 <p>In contrast, if we declare projection using the proposed expression body syntax:</p>
   
-<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first.first_name);</pre>
+<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (EmployeeSalary const&amp; e) =&gt; e.first.first_name);</pre>
   
 <p>the lambda will return a (const) reference to the string (note the use of double parentheses in <code>decltype((expr))</code>),
    and the code will not create any additional copies compared to an STL1-like solution:</p>
