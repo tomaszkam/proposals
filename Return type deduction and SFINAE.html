@@ -70,7 +70,7 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0238R1</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0238R2</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-05-08</td>
@@ -87,7 +87,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>Currently, a failure to deduce funcion's return type results in a hard error.
+<p>Currently, a failure to deduce function's return type results in a hard error.
    In this paper we analyze the impact of this behavior on the existing language;
    in particular, how it compromizes the goals of Concepts Lite:
    descriptive error messages and concept-based overloading.</p>
@@ -212,7 +212,14 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 
 <h2><a name="history">2. Revision history</a></h2>
 
-<h3><a name="history.r1">2.1. Revision 1</a></h3>
+
+<h3><a name="history.r2">2.1. Revision 2</a></h3>
+
+<ul>
+  <li>Editorial fixes to text of document.</li>
+</ul>
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
 
 <p>This revision of the paper extends the motivation section to better illustrate
    the impact on the Concept TS features. In addition, the discussion section
@@ -228,7 +235,7 @@ std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>Let's consider the following implementation of <code>variadic_negator</code> &mdash; 
-   an adapter that takes a predicate and retuns the opposite value to the one returned by the original:</p>
+   an adapter that takes a predicate and returns the opposite value to the one returned by the original:</p>
 <pre>
 template&lt;typename F&gt;
 class variadic_negator_functor
@@ -265,7 +272,7 @@ variadic_negator_functor&lt;F&gt; variadic_negator(F f)
 <p>When there is only one <code>f</code> to be considered as candidate to call
    <code>variadic_negator(f)(args...)</code>, the nuanced difference explained above might seem
    irrelevant, as it will only change the error messages caused by invalid invocations
-   of the functor from "no viable candidate found" to "(long) error instantiatin a template".
+   of the functor from "no viable candidate found" to "(long) error instantiating a template".
    However, the negative results are more grave when the viability/validity of other functions
    depends on the validity of the call to <code>variadic_negator</code>.
    For example, consider the following:</p>
@@ -523,7 +530,7 @@ prog.cc:6:14: note: the required expression 'f(t ...)' would be ill-formed
 </pre>
 
 <p>However, in case of the first invocation (1), the compiler produces a few hundreds of lines of errors,
-   mentoining the lack of comparision operator between <code>std::string</code> and <code>int</code>.
+   mentioning the lack of comparision operator between <code>std::string</code> and <code>int</code>.
    This is caused by the fact that the concept check for parameter <code>F</code> of <code>find_if</code>
    (performed in both examples) requires the determination of the return type for the supplied functor with
    <code>std::string&amp;</code> argument. In case of the first example, this triggers return type deduction for the lambda,
@@ -666,9 +673,9 @@ public:
    limited to function bodies and cannot appear in unevaluated context. In the end such solution would cripple the 
    evolution of the language.</p>
 
-<p>Finally, the complexity of the implementation of such feature, suggest an alternative solution that
+<p>Finally, the complexity of the implementation of such feature, suggests an alternative solution that
    will reduce SFINAE-able errors to only certain constructs in function bodies.
-   One of the options, is to limit this capability only to functiosn with a body consisting
+   One of the options, is to limit this capability only to functions with a body consisting
    of a single return statement. The author believes that such design will be very surprising for the
    user, because even a simple refactoring, like splitting large expression and saving their result in local 
    variables, will cause previously well-formed code to emit compilation error from a seemingly unrelated
@@ -711,8 +718,8 @@ public:
 </pre>
   
 <p>This feature also enables a practice for constraining templates indicated in [6], 
-   that apart form decent concepts will well defined axioms and semantics you sometimes need a simpler,
-   pure syntactic constraint. The expression body allows such limited syntactic only constraints for ad-hoc use,
+   that apart from decent concepts with well-defined axioms and semantics you sometimes need a simpler,
+   purely syntactic constraint. The expression body allows such limited syntactic only constraints for ad-hoc use,
   while leaving full intuitive, axiomatized constraints for <code>concept</code>s.
   </p>
 
