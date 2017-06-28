@@ -742,29 +742,31 @@ struct Employee
    std::string first_name;
    std::string last_name;
 };
-std::vector&lt;Employee&gt; ve{ /*...*/ };</pre>
+
+using EmployeeSalary = std::pair&lt;Employee, Project&gt;;
+std::vector&lt;EmployeeSalary&gt; ve{ /*...*/ };</pre>
 
 <p>The invocation of the form:</p>
   
-<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) { return e.first_name; });</pre>
+<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (EmployeeSalary const&amp; ep) { return e.first.first_name; });</pre>
   
-<p>will create two copies of string <b>for each</b> comparison of employee objects,
+<p>will create two copies of string <b>for each</b> comparison of sorted objects,
     creating <code>O(ve.size())</code> unnecessary copies of the string in total.</p>
 
 <p>In contrast, if we declare projection using the proposed expression body syntax:</p>
   
-<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first_name);</pre>
+<pre>ranges::sort(ve, std::less&lt;&gt;{}, [] (Employee const&amp; e) =&gt; e.first.first_name);</pre>
   
 <p>the lambda will return a (const) reference to the string (note the use of double parentheses in <code>decltype((expr))</code>),
    and the code will not create any additional copies compared to an STL1-like solution:</p>
   
-<pre>ranges::sort(ve, [] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; });</pre>
+<pre>ranges::sort(ve, [] (EmployeeSalary const&amp; e1, EmployeeSalary const&amp; e2) { return e1.first.first_name &lt; e2.first.first_name; });</pre>
 
 <p>Furthermore, in case of predicates (and other lambdas producing a new object), result
    will be returned by value regardless of which syntax is used, so the following lambdas functions 
    will have a <code>bool</code> return type:</p>
-<pre>[] (Employee const&amp; e1, Employee const&amp; e2) { return e1.first_name &lt; e2.first_name; }</pre>
-<pre>[] (Employee const&amp; e1, Employee const&amp; e2) =&gt; e1.first_name &lt; e2.first_name</pre>
+<pre>[] (EmployeeSalary const&amp; e1, EmployeeSalary const&amp; e2) { return e1.first.first_name &lt; e2.first.first_name; }</pre>
+<pre>[] (EmployeeSalary const&amp; e1, EmployeeSalary const&amp; e2) =&gt; e1.first.first_name &lt; e2.first.first_name</pre>
 
 
 <h3><a name="expr-body.noexcept">6.2. Inferring <code>noexcept</code></a></h3>
