@@ -554,8 +554,7 @@ void on_each_month(day_point start_date, int count, Invokable&lt;std::string_vie
    we can avoid performing multiple allocations and perform operation directly on this representation (incrementing
    month).</p>
 
-<p>Now, consider the following invocation, where <code>day_of_week</code> is a library function
-   returning a <code>duration</code> since midnight:</p>
+<p>Now, consider the following invocation:</p>
 <pre>on_each_month(day_point{2017_y/10_m/20_d}, 10, [](auto d) { return day_of_week(d) == friday; });</pre>
 
 <p>This code will fail to compile, due to an error in the return type deduction for the invocation of the
