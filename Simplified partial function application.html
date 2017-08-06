@@ -569,9 +569,9 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     otherwise <code><em>DECAY_UNWRAP</em>(T)</code> is <code>U</code>.<p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd><code>is_move_constructible_v&lt;FD&gt;</code> shall be true.
+    <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
-        <code>conjunction_v&lt;is_move_constructible&lt;BoundArgs&gt;...&gt;</code> shall be true.
+        For each <code>Ti</code> in <code>BoundArgs</code>, if <code>Ti</code> is an object type, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>conjunction_v&lt;is_constructible&lt;BoundArgs, Args&gt;...&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
@@ -701,7 +701,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd><code>is_move_constructible_v&lt;FD&gt;</code> shall be true.
+    <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
