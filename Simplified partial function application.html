@@ -467,9 +467,10 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a set of <em>bound argument entities</em> that may be passed as arguments to target object.</ins><p></p></dd>
+    <dd><ins>A call wrapper type may additionally hold a set of objects, references to functions and references to objects, that may be passed as arguments to the target object.
+             This entities are collectively referred as <em>bound argument entities</em>.</ins><p></p></dd>
 
-    <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred as <em>state objects</em>.</ins><p></p></dd>
+    <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred as <em>state entities</em>.</ins><p></p></dd>
   </dl>
 </blockquote>
 
@@ -494,20 +495,19 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates its state entities to the underlying <code><em>INVOKE</em></code> expression
-         [ Note: This includes also the target object - end note ]. This propagation step shall ensure that
-         the state entity of type <code>T</code> is delivered as <code>T <em>cv</em>&amp;</code>
-         when the call is performed on an lvalue of the call wrapper type and as <code>T <em>cv</em>&amp;&amp;</code>
-         otherwise, where <code><em>cv</em></code> represents <em>cv</em>-qualifiers of the call wrapper
-         and where <code><em>cv</em></code> shall be neither <code>volatile</code> nor <code>const volatile</code>.
-         </ins><p></p></dd>
+         that propagates its state entities to the underlying <code><em>INVOKE</em></code> expression.
+         This propagation step shall ensure that the state entity of type <code>T</code> is delivered 
+         as <code>T <em>cv</em>&amp;</code> when the call is performed on an lvalue of the call wrapper
+         type and as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
+         <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
+         <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
  
-     <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>,
-          shall ensure that postfix call expression preformed on expression of type of potentially const qualified reference 
+     <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>
+          shall ensure that a postfix call expression performed on an expression of type of potentially const qualified reference 
           to <code>G</code> [ Note: This includes both lvalue and rvalue reference  - end note ] has effects
-          equivalent to expression <code>e</code> determined as follows: every occurrence of the name of the
-          argument of the call wrapper or one of its state entities shall be replaced with expression of reference
-          type determined by corresponding propagation rules.</ins><p></p></dd>
+          equivalent to an expression <code>e</code> determined as follows: every occurrence of the name of the
+          argument of the call wrapper or one of its state entities in <code>cp</code> shall be replaced with 
+          an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
 
 
      <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
@@ -550,7 +550,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dd>In the text that follows:
     <ul>
-      <li><code>g</code> is a value of the result of <code>bind_front</code> invocation,</li>
+      <li><code>g</code> is a value of the result of a <code>bind_front</code> invocation,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
@@ -561,7 +561,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
            of types <code>BoundArgs...</code> 
            initialized with initializers <code>(std::forward&lt;Args&gt;(args))...</code> respectively,</li>
 
-      <li><code>call_args</code> is a pack of objects used as arguments for <code>g</code>,</li>
+      <li><code>call_args</code> is a argument pack used in a function call expression of <code>g</code>,</li>
     </ul>
     where <code><em>DECAY_UNWRAP</em>(T)</code> is determined as follows: 
     Let <code>U</code> be <code>decay_t&lt;T&gt;</code>.
@@ -569,9 +569,9 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     otherwise <code><em>DECAY_UNWRAP</em>(T)</code> is <code>U</code>.<p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+    <dd><code>is_move_constructible_v&lt;FD&gt;</code> shall be true.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
-        For each <code>Ti</code> in <code>BoundArgs</code>, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+        <code>conjunction_v&lt;is_move_constructible&lt;BoundArgs&gt;...&gt;</code> shall be true.
         <code>conjunction_v&lt;is_constructible&lt;BoundArgs, Args&gt;...&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
@@ -690,18 +690,18 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dd>In the text that follows:
     <ul>
-      <li><code>g</code> is a value of the result of <code>not_fn</code> invocation,</li>
+      <li><code>g</code> is a value of the result of a <code>not_fn</code> invocation,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
       <li><code>fd</code> is a target object of <code>g</code> 
            of type <code>FD</code> 
            initialized with initializer <code>(std::forward&lt;F&gt;(f))</code>,</li>
       
-      <li><code>call_args</code> is a pack of objects used as arguments for <code>g</code>.</li>
+      <li><code>call_args</code> is a argument pack used in a function call expression of <code>g</code>.</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
-    <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
+    <dd><code>is_move_constructible_v&lt;FD&gt;</code> shall be true.
         <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
