@@ -468,9 +468,9 @@ functor. The author believes that in such case introduction of new functions wou
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
     <dd><ins>A call wrapper type may additionally hold a set of objects, references to functions and references to objects, that may be passed as arguments to the target object.
-             This entities are collectively referred as <em>bound argument entities</em>.</ins><p></p></dd>
+             These entities are collectively referred to as <em>bound argument entities</em>.</ins><p></p></dd>
 
-    <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred as <em>state entities</em>.</ins><p></p></dd>
+    <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred to as <em>state entities</em>.</ins><p></p></dd>
   </dl>
 </blockquote>
 
@@ -570,17 +570,18 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dt>Requires:</dt> 
     <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
-        <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
-        For each <code>Ti</code> in <code>BoundArgs</code>, if <code>Ti</code> is an object type, <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
-        <code>conjunction_v&lt;is_constructible&lt;BoundArgs, Args&gt;...&gt;</code> shall be true.
+        For each <code>Ti</code> in <code>BoundArgs</code>, if <code>Ti</code> is an object type, 
+        <code>Ti</code> shall satisfy the requirements of <code>MoveConstructible</code>.
         <code>fd</code> shall be a callable object ([func.def]).
+        If <code>is_constructible_v&lt;FD, F&gt; &amp;&amp; conjunction_v&lt;is_constructible&lt;BoundArgs, Args&gt;...&gt;</code> is false,
+        the program is ill-formed.
     <p></p></dd>
 
     <dt>Effects:</dt>
     <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code><em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by initialization of the state entities of <code>g</code>.</p></dd>
+    <dd><p>Any exception thrown by the initialization of the state entities of <code>g</code>.</p></dd>
 
   </dl>
 </blockquote>
@@ -702,15 +703,15 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dt>Requires:</dt> 
     <dd><code>FD</code> shall satisfy the requirements of <code>MoveConstructible</code>.
-        <code>is_constructible_v&lt;FD, F&gt;</code> shall be true.
         <code>fd</code> shall be a callable object ([func.def]).
+        If <code>is_constructible_v&lt;FD, F&gt;</code> is false, the program is ill-formed.
     <p></p></dd>
 
     <dt>Effects:</dt>
     <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by initialization of <code>fd</code>.</p></dd>
+    <dd><p>Any exception thrown by the initialization of <code>fd</code>.</p></dd>
 
   </dl>
 </blockquote>
