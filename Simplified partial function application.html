@@ -457,7 +457,7 @@ functor. The author believes that in such case introduction of new functions wou
   
 <p>The definition of the <em>perfect forwarding call wrapper</em> requires the implementation to guarantee that the invocation of the
    wrapper object will be compile time constant expression and/or <code>noexcept</code> depending on the invoked call expression.
-   Due the fact that both proposed functors are defined in the <code>std::invoke</code> function, this only enforce implementation to
+   Due the fact that both proposed functors are defined in terms of the <code>std::invoke</code> function, this only enforce implementation to
    provide conditional <code>noexcept</code> specification for <code>operator()</code> of the wrapper. However if the <code>invoke</code>
    will become <code>constexpr</code> qualified, proposed perfect forwarding call wrappers will also require <code>constexpr</code>
    specification.</p> 
