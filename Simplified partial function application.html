@@ -102,7 +102,7 @@ td { text-align: left; vertical-align: top;
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group
    of call arguments instead of one.</p>
   
-<p>In this paper two new <code>bind_front</code> and <code>bind_back</code>  are proposed that allow user to provide values that will be passed
+<p>In this paper <code>bind_front</code> is proposed as alternative, that allow user to provide values that will be passed
    as first or last arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for the original
    paper, that suggested to introduce only <code>_all</code> placeholder.</p>
 
@@ -454,7 +454,14 @@ functor. The author believes that in such case introduction of new functions wou
    of the proposed <code>bind_front</code> and existing <code>not_fn</code> function. In addition it can be extended to cover <code>overload</code>
    function (proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051: C++ generic <code>overload</code>  function</a>),
    by allowing call wrapper to hold multiple target objects.</p>
-   
+  
+<p>The definition of the <em>perfect forwarding call wrapper</em> requires the implementation to guarantee that the invocation of the
+   wrapper object will be compile time constant expression and/or <code>noexcept</code> depending on the invoked call expression.
+   Due the fact that both proposed functors are defined in the <code>std::invoke</code> function, this only enforce implementation to
+   provide conditional <code>noexcept</code> specification for <code>operator()</code> of the wrapper. However if the <code>invoke</code>
+   will become <code>constexpr</code> qualified, proposed perfect forwarding call wrappers will also require <code>constexpr</code>
+   specification.</p> 
+ 
 <p>In addition to avoid potential confusion, existing <em>forwarding call wrapper</em> is renamed to <em>argument forwarding call wrapper</em>,
    to better reflect is functionality.</p>
 
@@ -507,8 +514,10 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
           to <code>G</code> [ Note: This includes both lvalue and rvalue reference  - end note ] has effects
           equivalent to an expression <code>e</code> determined as follows: every occurrence of the name of the
           argument of the call wrapper or one of its state entities in <code>cp</code> shall be replaced with 
-          an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
-
+          an expression of reference type determined by the corresponding propagation rules.
+          The invocation of the call wrapper shall be compile-time constant expression, if the corresponding
+          call expression <code>e</code> is compile time constant expression and the result of the invocation of
+          <code>noexcept</code> operator on the invocation shall be equal to <code>noexcept(e)</code>.</ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
@@ -578,7 +587,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <p></p></dd>
 
     <dt>Effects:</dt>
-    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code><em>INVOKE</em>(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
+    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>invoke(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by the initialization of the state entities of <code>g</code>.</p></dd>
@@ -708,7 +717,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <p></p></dd>
 
     <dt>Effects:</dt>
-    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>!<em>INVOKE</em>(fd, call_args...)</code> ([func.require]).</p></dd>
+    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>!invoke(fd, call_args...)</code> ([func.require]).</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by the initialization of <code>fd</code>.</p></dd>
@@ -761,21 +770,25 @@ public:
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;
+    noexcept(std::is_nothrow_invocable_v&lt;Func&amp;, BoundArgs&amp;..., CallArgs...&gt;) 
     -&gt; std::invoke_result_t&lt;Func&amp;, BoundArgs&amp;..., CallArgs...&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;
+    noexcept(std::is_nothrow_invocable_v&lt;Func const&amp;, BoundArgs const&amp;..., CallArgs...&gt;) 
     -&gt; std::invoke_result_t&lt;Func const&amp;, BoundArgs const&amp;..., CallArgs...&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;&amp;
+    noexcept(std::is_nothrow_invocable_v&lt;Func, BoundArgs..., CallArgs...&gt;) 
     -&gt; std::invoke_result_t&lt;Func, BoundArgs..., CallArgs...&gt;
   { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;&amp;
+    noexcept(std::is_nothrow_invocable_v&lt;Func const, BoundArgs const..., CallArgs...&gt;) 
     -&gt; std::invoke_result_t&lt;Func const, BoundArgs const..., CallArgs...&gt;
   { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
 
