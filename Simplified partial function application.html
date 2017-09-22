@@ -121,6 +121,7 @@ td { text-align: left; vertical-align: top;
 
 <ul>
   <li>Updated wording to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf">N4687</a> (C++ Working Draft, 2017-07-30).</li>
+  <li>Call wrappers now require propagation of the <code>noexcept</code>/<code>constexpr</code> specification.</li>
   <li>Replaced uses of deprecated <code>result_of</code> with <code>invoke_result</code>.</li>
   <li>Reworked wording to reffer to "initialization" instead of "construction" of objects.</li>
   <li>Replaced reference to "objects" to "entities" to cover binding references.</li>
@@ -447,7 +448,28 @@ functor. The author believes that in such case introduction of new functions wou
 
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf">N4687</a> (C++ Working Draft, 2017-07-30).</p>
 
-<h3><a name="wording.pfcw">6.1 Definition of <em>perfect forwarding call wrapper</em></a></h3>
+<h3><a name="wording.expression-equivalent">6.1 Definition of <em>expression-equivalent</em></a></h3>
+
+<p>The text of the section is an verbatim copy of the corresponding defintions from clause [intro.defs] Terms and definitions from the 
+   Ranges TS (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4685.pdf">N4685</a>, C++ Extensions for Ranges, 2017-07-31)
+   paper.</p>
+
+<blockquote class="stdins"> 
+<h4><a name="defns.const.subexpr">constant subexpression <span style="float:right">[defns.const.subexpr]</span></a></h4>
+<p>expression whose evaluation as subexpression of a conditional-expression <code>CE</code> ([expr.cond]) would not prevent 
+   <code>CE</code> from being a core constant expression ([expr.const])</p>
+
+<h4><a name="defns.expr.equiv">expression-equivalent <span style="float:right">[defns.expr.equiv]</span></a></h4>
+<p>relationship that exists between two expressions <code>E1</code> and <code>E2</code> such that</p>
+<ul>
+  <li><code>E1</code> and <code>E2</code> have the same effects,</li>
+  <li><code>noexcept(E1) == noexcept(E2)</code>, and</li>
+  <li><code>E1</code> is a constant subexpression if and only if <code>E2</code> is a constant subexpression</li>
+</ul>
+
+</blockquote>
+
+<h3><a name="wording.pfcw">6.2 Definition of <em>perfect forwarding call wrapper</em></a></h3>
 
 <p>This section introduces a <em>perfect forwarding call wrapper</em> concept, that groups a set of common requirements for the call wrapper
    for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
@@ -456,14 +478,12 @@ functor. The author believes that in such case introduction of new functions wou
    by allowing call wrapper to hold multiple target objects.</p>
   
 <p>The definition of the <em>perfect forwarding call wrapper</em> requires the implementation to guarantee that the invocation of the
-   wrapper object will be compile time constant expression and/or <code>noexcept</code> depending on the invoked call expression.
-   Due the fact that both proposed functors are defined in terms of the <code>std::invoke</code> function, this only enforce implementation to
-   provide conditional <code>noexcept</code> specification for <code>operator()</code> of the wrapper. However if the <code>invoke</code>
-   will become <code>constexpr</code> qualified, proposed perfect forwarding call wrappers will also require <code>constexpr</code>
-   specification.</p> 
+   wrapper object will be core constant expression and/or <code>noexcept</code> depending on the invoked call expression.
+   However, due the fact that both proposed functors are defined in terms of the <code>std::invoke</code> function, this only enforce
+   implementation to provide conditional <code>noexcept</code> specification for <code>operator()</code> of the wrapper.</p> 
  
 <p>In addition to avoid potential confusion, existing <em>forwarding call wrapper</em> is renamed to <em>argument forwarding call wrapper</em>,
-   to better reflect is functionality.</p>
+   to better reflect its functionality.</p>
 
 <p>Apply following changes to paragraph [func.def] Definitions:</p>
 <blockquote class="std"> 
@@ -511,13 +531,9 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
  
      <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>
           shall ensure that a postfix call expression performed on an expression of type of potentially const qualified reference 
-          to <code>G</code> [ Note: This includes both lvalue and rvalue reference  - end note ] has effects
-          equivalent to an expression <code>e</code> determined as follows: every occurrence of the name of the
-          argument of the call wrapper or one of its state entities in <code>cp</code> shall be replaced with 
-          an expression of reference type determined by the corresponding propagation rules.
-          The invocation of the call wrapper shall be compile-time constant expression, if the corresponding
-          call expression <code>e</code> is compile time constant expression and the result of the invocation of
-          <code>noexcept</code> operator on the invocation shall be equal to <code>noexcept(e)</code>.</ins><p></p></dd>
+          to <code>G</code> is expression-equivalent to an expression <code>e</code> determined as follows:
+          every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
+          shall be replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
 
      <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
@@ -534,7 +550,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
    <li>[depr.func.adaptor.typedefs] Typedefs to support function binders.</li>
 </ul>
 
-<h3><a name="wording.bind_front">6.2 Wording for <code>bind_front</code></a></h3>
+<h3><a name="wording.bind_front">6.3 Wording for <code>bind_front</code></a></h3>
 
 <p>After the declaration of <code>not_fn</code> in the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
 
@@ -599,7 +615,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper.</p>
 
 
-<h3><a name="wording.dep_bind">6.3 Wording for deprecating <code>bind</code></a></h3>
+<h3><a name="wording.dep_bind">6.4 Wording for deprecating <code>bind</code></a></h3>
 
 <p>Delete following declarations from the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis):</p>
 
@@ -682,7 +698,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <p>Remove rest of the section [func.bind] Function object binders.</p>
 
-<h3><a name="wording.not_fn">6.4 Alternative wording for <code>not_fn</code></a></h3>
+<h3><a name="wording.not_fn">6.5 Alternative wording for <code>not_fn</code></a></h3>
 
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
    as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
@@ -832,6 +848,8 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
 <p>Jonathan Wakely and Stephan T. Lavavej offered many useful suggestions and corrections to the proposal.</p>
 
+<p>Casey Carter has created and suggested use of expression-equivalent term in definition of <em>perfect forwarding call wrapper</em>.</p>
+
 <p>Proposed runtime version of <code>bind_front</code> and <code>bind_back</code> are inspired by their compile time counterparts from Eric Niebler's 
   <a href="http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/">Tiny Metaprogramming Library</a>.</p>
 
@@ -870,6 +888,11 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       "Working Draft, Standard for Programming Language C++"
       (N4687, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf">
               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf</a>)</li>
+
+  <li>Eric Niebler, Casey Carter
+      "Working Draft, C++ Extensions for Ranges"
+      (N4685, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4685.pdf">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4685.pdf</a>)</li>
 
   <li>Geoffrey Romer,
       "Working Draft, C++ Extensions for Library Fundamentals, Version 2"
