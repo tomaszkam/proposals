@@ -340,6 +340,22 @@ private:
   <li><code>bw(10)</code> will copy stored vector (pass as lvalue reference)</li>
 </ul>
 
+<h3><a name="motivation.noexcept">3.6. Preserving exception specification</a></h3>
+
+<p>In contrast to existing callable wrappers, proposed <code>bind_front</code> function is required to preserve 
+   exception specification of the underlining call operator. This change follows recent changes in the language,
+   that make the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
+   exception specification part of type system</a> and allows to preserve no-throwing specification of a function
+   in situation when it is invoked via function pointer.</p>
+
+<p>Furthermore, with proposed change, the user can still use <code>static_assert(noexcept(f(*it)))</code> to check
+   at compile time, if given callable <code>f</code> can be safely passed to parallel algorithm without
+   risking program termination, even if <code>f</code> was created as result of <code>bind_front</code> invocation.</p>
+
+<p>Finally, this guarantee is extended also for <code>not_fn</code> function via <a href="#wording.not_fn">alternative
+   wording included in the paper.</a></p>
+ 
+
 <h2><a name="design">4. Design Decisions</a></h2>
 
 <p>The section provides rationale for deprecating existing <code>std::bind</code> even in the situation
@@ -448,7 +464,7 @@ functor. The author believes that in such case introduction of new functions wou
 
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf">N4687</a> (C++ Working Draft, 2017-07-30).</p>
 
-<h3><a name="wording.expression-equivalent">6.1 Definition of <em>expression-equivalent</em></a></h3>
+<h3><a name="wording.expression-equivalent">6.1. Definition of <em>expression-equivalent</em></a></h3>
 
 <p>The text of the section is an verbatim copy of the corresponding defintions from clause [intro.defs] Terms and definitions from the 
    Ranges TS (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4685.pdf">N4685</a>, C++ Extensions for Ranges, 2017-07-31)
@@ -469,7 +485,7 @@ functor. The author believes that in such case introduction of new functions wou
 
 </blockquote>
 
-<h3><a name="wording.pfcw">6.2 Definition of <em>perfect forwarding call wrapper</em></a></h3>
+<h3><a name="wording.pfcw">6.2. Definition of <em>perfect forwarding call wrapper</em></a></h3>
 
 <p>This section introduces a <em>perfect forwarding call wrapper</em> concept, that groups a set of common requirements for the call wrapper
    for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
@@ -550,7 +566,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
    <li>[depr.func.adaptor.typedefs] Typedefs to support function binders.</li>
 </ul>
 
-<h3><a name="wording.bind_front">6.3 Wording for <code>bind_front</code></a></h3>
+<h3><a name="wording.bind_front">6.3. Wording for <code>bind_front</code></a></h3>
 
 <p>After the declaration of <code>not_fn</code> in the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis), add:</p>
 
@@ -615,7 +631,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper.</p>
 
 
-<h3><a name="wording.dep_bind">6.4 Wording for deprecating <code>bind</code></a></h3>
+<h3><a name="wording.dep_bind">6.4. Wording for deprecating <code>bind</code></a></h3>
 
 <p>Delete following declarations from the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis):</p>
 
@@ -698,7 +714,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <p>Remove rest of the section [func.bind] Function object binders.</p>
 
-<h3><a name="wording.not_fn">6.5 Alternative wording for <code>not_fn</code></a></h3>
+<h3><a name="wording.not_fn">6.5. Alternative wording for <code>not_fn</code></a></h3>
 
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
    as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
@@ -873,6 +889,11 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       "Parameter group placeholders for bind"
       (N4171, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">
               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html</a>)</li>
+
+  <li>Jens Maurer,
+      "P0012R1: Make exception specifications be part of the type system, version 5" 
+      (P0012R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
+                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html</a>)</li>
 
   <li>Vicente J. Botet Escribá, 
       "C++ generic <code>overload</code> function (Revision 1)" 
