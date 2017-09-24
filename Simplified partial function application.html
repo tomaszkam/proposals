@@ -352,6 +352,28 @@ private:
    at compile time, if given callable <code>f</code> can be safely passed to parallel algorithm without
    risking program termination, even if <code>f</code> was created as result of <code>bind_front</code> invocation.</p>
 
+<p>To illustrate if we have following version of "checked" parallel algorithm and predicate:</p>
+<pre>template&lt;typename T, typename F&gt;
+void safe_all_of(std::vector&lt;T&gt; const&amp; seq, F f)
+{
+  static_assert(noexcept(f(seq.front())));
+}
+
+struct Checker {
+  bool operator()(std::string const&amp; pattern, std::string const&amp; value) const noexcept;
+};
+std::string const        pattern;
+std::vector&lt;std::string&gt; values;</pre>
+
+<p>From the following invocations:</p>
+<pre>safe_all_of(values, std::bind(Checker{}, pattern, _1))
+safe_all_of(values. [c = Checker{}, p = pattern] (std::string const&amp; s) { return c(p, s); })
+safe_all_of(values, bind_front(Checker{}, pattern))
+safe_all_of(values. [c = Checker{}, p = pattern] noexcept (std::string const&amp; s) { return c(p, s); })</pre>
+<p>Only last two invocations (3, 4) will compile, as the call operator of the used functors are <code>noexcept</code>
+   qualified, however in case of the last invocation the <code>noexcept</code> specification is unconditional still
+   leading the program termination if exception is thrown.</p>
+
 <p>Finally, this guarantee is extended also for <code>not_fn</code> function via <a href="#wording.not_fn">alternative
    wording included in the paper.</a></p>
  
