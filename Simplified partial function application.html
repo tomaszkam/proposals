@@ -357,6 +357,7 @@ private:
 void safe_all_of(std::vector&lt;T&gt; const&amp; seq, F f)
 {
   static_assert(noexcept(f(seq.front())));
+  return std::all_of(std::experimental::par, seq.begin(), seq.end(), f);
 }
 
 struct Checker {
@@ -367,10 +368,10 @@ std::vector&lt;std::string&gt; values;</pre>
 
 <p>From the following invocations:</p>
 <pre>safe_all_of(values, std::bind(Checker{}, pattern, _1))
-safe_all_of(values. [c = Checker{}, p = pattern] (std::string const&amp; s) { return c(p, s); })
+safe_all_of(values. [c = Checker{}, p = pattern](std::string const&amp; s) { return c(p, s); })
 safe_all_of(values, bind_front(Checker{}, pattern))
-safe_all_of(values. [c = Checker{}, p = pattern] noexcept (std::string const&amp; s) { return c(p, s); })</pre>
-<p>Only last two invocations (3, 4) will compile, as the call operator of the used functors are <code>noexcept</code>
+safe_all_of(values. [c = Checker{}, p = pattern](std::string const&amp; s) noexcept { return c(p, s); })</pre>
+<p>Only last two invocations will compile, as the call operator of the used functors are <code>noexcept</code>
    qualified, however in case of the last invocation the <code>noexcept</code> specification is unconditional still
    leading the program termination if exception is thrown.</p>
 
