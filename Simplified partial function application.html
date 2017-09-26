@@ -349,36 +349,19 @@ private:
    <code>std::invoke</code> conditionally <code>noexcept</code></a>,  which allows preserving no-throwing
    specification of a function in situation when it is invoked via function pointer.</p>
 
-<p>Furthermore, with proposed change, the user can still use <code>static_assert(noexcept(f(*it)))</code> to check
-   at compile time, if given callable <code>f</code> can be safely passed to parallel algorithm without
-   risking program termination, even if <code>f</code> was created as result of <code>bind_front</code> invocation.</p>
-
-<p>To illustrate if we have following version of "checked" parallel algorithm and predicate:</p>
-<pre>template&lt;typename T, typename F&gt;
-void safe_all_of(std::vector&lt;T&gt; const&amp; seq, F f)
-{
-  static_assert(noexcept(f(seq.front())));
-  return std::all_of(std::execution::par, seq.begin(), seq.end(), f);
-}
-
-struct Checker {
-  bool operator()(std::string const&amp; pattern, std::string const&amp; value) const noexcept;
-};
-std::string const        pattern;
-std::vector&lt;std::string&gt; values;</pre>
-
-<p>From the following invocations:</p>
-<pre>safe_all_of(values, std::bind(Checker{}, pattern, _1))
-safe_all_of(values. [c = Checker{}, p = pattern](std::string const&amp; s) { return c(p, s); })
-safe_all_of(values, bind_front(Checker{}, pattern))
-safe_all_of(values. [c = Checker{}, p = pattern](std::string const&amp; s) noexcept { return c(p, s); })</pre>
-<p>Only last two invocations will compile, as the call operator of the used functors are <code>noexcept</code>
-   qualified, however in case of the last invocation the <code>noexcept</code> specification is unconditional still
-   leading the program termination if exception is thrown.</p>
-
 <p>Finally, this guarantee is extended also for <code>not_fn</code> function via <a href="#wording.not_fn">alternative
    wording included in the paper.</a></p>
  
+<h3><a name="motivation.constexpr">3.7. No compile time evalutation support</a></h3>
+
+<p>Wording included in the paper, requires that the invocation of the functor created via <code>bind_front</code> and
+   <code>not_fn</code> will support compile time evaluation, when underlining expression is compile time constant.
+   However this requirement is latent, as the underlining <code>std::invoke</code> function is not <code>constexpr</code>
+   qualified.</p>
+
+<p>Secondly, the author believes that introduction of the <code>constexpr</code> support for the <code>std::invoke</code>
+   is outside of the scope of this paper, as under current direction of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1581">CWG issue 1581</a>
+   such change would be breaking (<a href="https://bugs.llvm.org/show_bug.cgi?id=23135">example clang bug report</a>).</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
@@ -924,6 +907,15 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       (P0625R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
                          http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807</a>)</li>
 
+  <li>William M. Miller,
+      "C++ Standard Core Language Active Issues, Revision 97" 
+      (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1581">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1581</a>)</li>
+
+  <li>Gonzalo BG,
+      "[C++11/14] Body of constexpr function templates instantiated too eagerly in unevaluated operands" 
+      (Bug 23135, <a href="https://bugs.llvm.org/show_bug.cgi?id=23135">
+                           https://bugs.llvm.org/show_bug.cgi?id=23135</a>)</li>
 
   <li>Vicente J. Botet Escribá, 
       "C++ generic <code>overload</code> function (Revision 1)" 
