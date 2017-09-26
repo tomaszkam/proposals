@@ -345,8 +345,9 @@ private:
 <p>In contrast to existing callable wrappers, proposed <code>bind_front</code> function is required to preserve 
    exception specification of the underlining call operator. This change follows recent changes in the language,
    that make the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
-   exception specification part of type system</a> and allows to preserve no-throwing specification of a function
-   in situation when it is invoked via function pointer.</p>
+   exception specification part of type system</a> and make <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
+   <code>std::invoke</code> conditionally <code>noexcept</code></a>,  which allows preserving no-throwing
+   specification of a function in situation when it is invoked via function pointer.</p>
 
 <p>Furthermore, with proposed change, the user can still use <code>static_assert(noexcept(f(*it)))</code> to check
    at compile time, if given callable <code>f</code> can be safely passed to parallel algorithm without
@@ -357,7 +358,7 @@ private:
 void safe_all_of(std::vector&lt;T&gt; const&amp; seq, F f)
 {
   static_assert(noexcept(f(seq.front())));
-  return std::all_of(std::experimental::par, seq.begin(), seq.end(), f);
+  return std::all_of(std::execution::par, seq.begin(), seq.end(), f);
 }
 
 struct Checker {
@@ -917,6 +918,12 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       "P0012R1: Make exception specifications be part of the type system, version 5" 
       (P0012R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
                          http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html</a>)</li>
+
+  <li>Marshall Clow,
+      "C++ Standard Library Issues Resolved Directly In Kona" 
+      (P0625R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
+                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807</a>)</li>
+
 
   <li>Vicente J. Botet Escribá, 
       "C++ generic <code>overload</code> function (Revision 1)" 
