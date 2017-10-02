@@ -545,7 +545,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates its state entities to the underlying <code><em>INVOKE</em></code> expression.
+         that propagates its state entities to the underlying call expression.
          This propagation step shall ensure that the state entity of type <code>T</code> is delivered 
          as <code>T <em>cv</em>&amp;</code> when the call is performed on an lvalue of the call wrapper
          type and as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
