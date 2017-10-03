@@ -343,11 +343,11 @@ private:
 <h3><a name="motivation.noexcept">3.6. Preserving exception specification</a></h3>
 
 <p>In contrast to existing callable wrappers, proposed <code>bind_front</code> function is required to preserve 
-   exception specification of the underlining call operator. This change follows recent changes in the language,
+   exception specification of the underlining call operator. This follows recent additions to the language,
    that make the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
-   exception specification part of type system</a> and make <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
-   <code>std::invoke</code> conditionally <code>noexcept</code></a>,  which allows preserving no-throwing
-   specification of a function in situation when it is invoked via function pointer.</p>
+   exception specification part of type system</a> and <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
+   <code>std::invoke</code> conditionally <code>noexcept</code></a> - combination of this changes
+   allowed <code>noexcept</code> specification to be preserved for invocation of function pointers.</p>
 
 <p>Finally, this guarantee is extended also for <code>not_fn</code> function via <a href="#wording.not_fn">alternative
    wording included in the paper.</a></p>

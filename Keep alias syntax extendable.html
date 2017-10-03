@@ -87,12 +87,12 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This document propose to reduce the scope of the changes proposed in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0634r0.pdf">P0634: Down with <code>typename</code>!</a>,
+<p>This document propose to reduce the scope of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0634r0.pdf">P0634: Down with <code>typename</code>!</a> paper,
    to exclude alias declaration.</p>
 
-<p>Following current direction of the above paper, will limit the syntax:</p>
+<p>Following current direction of the above paper, will restrict syntax:</p>
 <pre>using <em>id</em> = <em>some-other-id</em>;</pre>
-<p>to type alias declaration, and by doing so, will limit its further extension, to alias other type of entities (functions, variables).</p>
+<p>to type alias declaration, and by doing so, will prohibit its further extension, to alias other type of entities (functions, variables).</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -102,7 +102,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">2. Motivation and Scope</a></h2>
 
 <p>Features presented in this paper, are used to illustrate the possible extension of the <code>alias declaration</code> syntax, that would
-   be limited by acceptance of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0634r0.pdf">P0634R0</a> paper in current form.
+   be blocked by acceptance of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0634r0.pdf">P0634R0</a> paper in current form.
    They are <b>not proposed</b> as part of this paper.</p>
 
 <h3><a name="motivation.function-aliasing">2.1. Importing function from other namespace</a></h3>
@@ -111,24 +111,24 @@ td { text-align: left; vertical-align: top;
    namespace <code>Y</code>, we can use using-declaration syntax:</p>
 <pre>using Y::foo;</pre>
 
-<p>However, there is no corresponding syntax that would allow import above function, under the different name.
+<p>However, there is no corresponding syntax that would allow import an function, under the different name.
    As alternative, we may define new <code>bar</code> function in namespace <code>X</code> that would forward
    to our target function.</p>
 
-<p>Let our start will the following first attempt:</p>
+<p>Let our start will the following definition:</p>
 <pre>namespace X {
   template&lt;typename... Args&gt;
   decltype(auto) bar(Args&amp;&amp;... args)
   { return Y::foo(std::forward&lt;Args&gt;(args)...); }
 }</pre>
 
-<p>Will above declaration, there are two major differences between the behaviour of the <code>X::bar</code> and <code>Y::foo</code> invocation:</p>
+<p>For above declaration, there are two major differences between the behaviour of the <code>X::bar</code> and <code>Y::foo</code> invocations:</p>
 <ul>
   <li><code>X::bar</code> is never <code>noexcept</code>, even if corresponding invocation of <code>Y::foo</code> would be,</li>
   <li><code>X::bar</code> will lead to hard error, in situation when is invocation <code>Y:foo</code>, leads to SFINAE'able error.</li>
 </ul>
 
-<p>To fix both above problem we need to introduce conditional <code>noexcept</code> specification and use change the return type specification:</p>
+<p>To fix both above problem we need to introduce conditional <code>noexcept</code> specification and change the return type specification:</p>
 <pre>namespace X {
   template&lt;typename... Args&gt;
   auto bar(Args&amp;&amp;... args)
@@ -137,12 +137,12 @@ td { text-align: left; vertical-align: top;
   { return Y::foo(std::forward&lt;Args&gt;(args)...); }
 }</pre>
 
-<p>Still will the introduction of the <code>Concepts</code>, the above declaration may not be equivalent, as the <code>X::bar</code> function
-   is unconstrained, while the corresponding <code>Y::foo</code> function may be, which would lead to different overload resolution. As consequence
-   to preserve such behaviour, the user is required to repeat all signatures of the <code>Y::foo</code> overloads.</p>
+<p>Still will the introduction of the Concepts, the above declaration may not be equivalent, as the <code>X::bar</code> function
+   is unconstrained, while the corresponding <code>Y::foo</code> function may be, which would lead to selecting different overload
+   during overload resolution. As consequence  to preserve such behaviour, the user is required to repeat signatures of all of the <code>Y::foo</code> overloads.</p>
 
-<p>Finally, even if the user will carefully repeat the signature of the original function, they still may not be equivalent due forwarding requirement,
-   that would cause object to be materialized. To illustrate if we have non-moveable <code>NonMovable</code> type and following declarations:</p>
+<p>Finally, even if the user will carefully repeat the signature of the original function, invocation may still may not be equivalent due use of forwarding,
+   that may lead to materialization of temporary and invocation of move constructor. To illustrate if we have non-moveable <code>NonMovable</code> type and following declarations:</p>
 <pre>namespace Y {
   void foo(NonMovable);
 }
@@ -152,7 +152,7 @@ namespace X {
 }</pre>
 
 <p>the invocation <code>X::bar(NonMovable{})</code> will be ill-formed, while <code>Y::foo(NonMovable[})</code> is. This scenario may be considered
-   an edge case, but the introduction of additional move-construction (that may degenerate to copy) may have measurable impact on performance.</p>
+   an edge case, but additional move-construction (that may degenerate to copy) may have measurable impact on performance.</p>
 
 <p>The author believes that above problems with achieving the simple goal of importing function with different name, shows that the function
    aliasing feature would be compelling and needed addition to the language - it is worth to remind at this point that none of above issues
@@ -166,12 +166,12 @@ namespace X {
   using bar = Y::foo;
 }</pre> 
 
-<p>The major concern with above solution, is that is introduces more ambiguity to the language, and it is no clear from the
-   syntax what kind of entity is imported (function, type, template, variable). To address above, a set of separate syntax
-   may be introduced instead for each kind of declaration, following design of the current namespace aliases.</p>
+<p>The major concern with such feature, is that its introduces more ambiguity to the language - it is no clear from the
+   syntax what kind of entity is imported (function, type, template, variable). To address it, we may follow namespace
+   alias design, and provide separate syntax for each type of entity.</p>
 
 <p>From the other side, if the intent of the user is make call to <code>X::bar</code> equivalent to the <code>Y::foo</code>,
-   the syntax should not differ and depend on the fact if the <code>Y::foo</code> is implemented as:<p>
+   we may argue, that the syntax should not differ and depend on the fact if the <code>Y::foo</code> is implemented as:<p>
 <ul>
   <li>function,</li>
   <li>set of overloaded functions,</li>
