@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-10</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-13</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -107,7 +107,7 @@ td { text-align: left; vertical-align: top;
 
 <h3><a name="motivation.function-aliasing">2.1. Importing function from other namespace</a></h3>
 
-<p>Currently if we want to provide an (set of) function <code>foo</code> defined in namespace <code>X</code> into
+<p>Currently if we want to import an (set of) function <code>foo</code> defined in namespace <code>X</code> into
    namespace <code>Y</code>, we can use using-declaration syntax:</p>
 <pre>using Y::foo;</pre>
 
@@ -148,7 +148,7 @@ td { text-align: left; vertical-align: top;
 }
 
 namespace X {
-  void bar(NonMovable nm) { return Y::foo(std::move(nm)); }
+  void bar(NonMovablei&amp;&amp; nm) { return Y::foo(std::move(nm)); }
 }</pre>
 
 <p>the invocation <code>X::bar(NonMovable{})</code> will be ill-formed, while <code>Y::foo(NonMovable[})</code> is fine. This scenario may be considered
@@ -187,6 +187,8 @@ namespace X {
     would be an mistake, and might impede the future evolution of the language.</p>
 
 <h2><a name="acknowledgements">3. Acknowledgements</a></h2>
+
+<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal.</p>
 
