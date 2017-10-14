@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R2</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-10</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-14</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -809,25 +809,25 @@ public:
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;
-    noexcept(std::is_nothrow_invocable_v&lt;Func&amp;, BoundArgs&amp;..., CallArgs...&gt;) 
+    noexcept(std::is_nothrow_invocable_v&lt;Func&amp;, BoundArgs&amp;..., CallArgs...&gt;)
     -&gt; std::invoke_result_t&lt;Func&amp;, BoundArgs&amp;..., CallArgs...&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;
-    noexcept(std::is_nothrow_invocable_v&lt;Func const&amp;, BoundArgs const&amp;..., CallArgs...&gt;) 
+    noexcept(std::is_nothrow_invocable_v&lt;Func const&amp;, BoundArgs const&amp;..., CallArgs...&gt;)
     -&gt; std::invoke_result_t&lt;Func const&amp;, BoundArgs const&amp;..., CallArgs...&gt;
   { return bind_front_caller(func, boundArgs, std::forward&lt;CallArgs&gt;(callArgs)...); }
 
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) &amp;&amp;
-    noexcept(std::is_nothrow_invocable_v&lt;Func, BoundArgs..., CallArgs...&gt;) 
+    noexcept(std::is_nothrow_invocable_v&lt;Func, BoundArgs..., CallArgs...&gt;)
     -&gt; std::invoke_result_t&lt;Func, BoundArgs..., CallArgs...&gt;
   { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }
     
   template&lt;typename... CallArgs&gt;
   auto operator()(CallArgs&amp;&amp;... callArgs) const &amp;&amp;
-    noexcept(std::is_nothrow_invocable_v&lt;Func const, BoundArgs const..., CallArgs...&gt;) 
+    noexcept(std::is_nothrow_invocable_v&lt;Func const, BoundArgs const..., CallArgs...&gt;)
     -&gt; std::invoke_result_t&lt;Func const, BoundArgs const..., CallArgs...&gt;
   { return bind_front_caller(std::move(func), std::move(boundArgs), std::forward&lt;CallArgs&gt;(callArgs)...); }    
 
