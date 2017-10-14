@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-13</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-14</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -148,7 +148,7 @@ td { text-align: left; vertical-align: top;
 }
 
 namespace X {
-  void bar(NonMovablei&amp;&amp; nm) { return Y::foo(std::move(nm)); }
+  void bar(NonMovable&amp;&amp; nm) { return Y::foo(std::move(nm)); }
 }</pre>
 
 <p>the invocation <code>X::bar(NonMovable{})</code> will be ill-formed, while <code>Y::foo(NonMovable[})</code> is fine. This scenario may be considered
