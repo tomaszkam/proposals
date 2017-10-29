@@ -1,0 +1,291 @@
+\documentclass{beamer}
+
+%\documentclass[handout]{beamer}
+%\usepackage{pgfpages}
+%\pgfpagesuselayout{2 on 1}[a4paper,border shrink=5mm]
+
+%\usepackage{beamerthemewarsav}
+%\usetheme{Warsaw}
+\usecolortheme{beaver}
+\usepackage[MeX]{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{ulem}
+
+
+\newenvironment<>{titleblock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{\centerline{#1}}%
+      \par%
+      \mode<presentation>{%
+       \setbeamercolor{block title}{use=frametitle,fg=frametitle.fg,bg=frametitle.bg}
+       \setbeamerfont{block title}{size=\Large}
+      }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+
+\newenvironment<>{codeblock}[1]{%
+  \begin{actionenv}#2%
+      \def\insertblocktitle{#1}%
+      \par%
+      \mode<presentation>{%
+       \setbeamercolor{block title}{fg=white,bg=orange!20!black}
+       \setbeamercolor{block body}{fg=black,bg=olive!10}
+       \setbeamercolor{itemize item}{fg=orange!20!black}
+       \setbeamertemplate{itemize item}[triangle]
+     }%
+      \usebeamertemplate{block begin}}
+    {\par\usebeamertemplate{block end}\end{actionenv}}
+
+
+\begin{document}
+
+\title{Keep alias syntax extendable}  
+\author{Tomasz Kamiński}
+\institute[sabre]{Pricinpal Software Developer, Sabre}
+\date{\today} 
+
+\lstset{
+  basicstyle=\small,
+  breakatwhitespace=true,
+  language=C++,
+  keepspaces=true,
+  breaklines=true,
+  tabsize=2, 
+  showstringspaces=false,
+  extendedchars=true
+}
+
+\frame{
+  \titlepage
+} 
+
+
+\begin{frame}[fragile]
+  \frametitle{Problem statement}
+  
+  \begin{block}{Result of the P06340}
+Alias declaration syntax is restricted to type aliases only: \\
+\lstinline!using !\textit{id}\lstinline! = !\textit{other-id}\lstinline!;!
+  \end{block}
+
+  \begin{block}{Proposal}
+Revert P06340 changes to alias-declaration syntax, and thus
+unblock further extensions.
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use case 1: Importing a function}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::foo!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Solution}
+    \begin{lstlisting}
+namespace Y
+{
+  using X::foo;
+}\end{lstlisting}
+  \end{codeblock}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Use case 2: Importing a function}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::bar!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Solution 1}
+    \begin{lstlisting}
+namespace Y
+{
+  template<typename... Args>
+  decltype(auto) bar(Args&&... args)
+  { return X::foo(std::forward<Args>(args)...); }
+}\end{lstlisting}
+  \end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use case: Importing a function}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::bar!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Solution 2}
+    \begin{lstlisting}
+namespace Y
+{
+  template<typename... Args>
+  auto bar(Args&&... args)
+    noexcept(X::foo(std::forward<Args>(args)...))
+  -> decltype(X::foo(std::forward<Args>(args)...))
+  { return X::foo(std::forward<Args>(args)...);  }
+}\end{lstlisting}
+  \end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use case: Importing a function}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::bar!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Solution 2: Using P0573R2}
+    \begin{lstlisting}
+namespace Y
+{
+  template<typename... Args>
+  auto bar(Args&&... args)
+  => decltype(X::foo(std::forward<Args>(args)...))
+}\end{lstlisting}
+  \end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use case: Importing a constrained function}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::bar!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Declaration}
+    \begin{lstlisting}
+namespace X
+{
+  template<C1 T1, C2 T1>
+  void foo(T1 t1, T2 t2);
+}\end{lstlisting}
+  \end{codeblock}
+
+  \begin{codeblock}{Solution 3}
+    \begin{lstlisting}
+namespace Y
+{
+  template<C1 T1, C2 T1>
+  void bar(T1 t1, T2 t2)
+  { return X::foo(std::move(t1), std::move(t2)); }
+}\end{lstlisting}
+ \end{codeblock}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use case: Non-movable argument}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::bar!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Declaration}
+    \begin{lstlisting}
+namespace X
+{
+  void foo(NonMovable nv);
+}\end{lstlisting}
+  \end{codeblock}
+
+  \begin{codeblock}{Solution 4}
+    \begin{lstlisting}
+namespace Y
+{
+  void bar(NonMovable nv)
+  { return X::foo(std::move(nv)); }
+  //compilation error
+}\end{lstlisting}
+ \end{codeblock}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Use case: Example extension}
+
+  \begin{block}{Goal}
+    Make invocation of the function \lstinline!Y::bar!
+    equivalent to \lstinline!X::foo!.
+  \end{block}
+
+  \begin{codeblock}{Extension}
+    \begin{lstlisting}
+namespace Y
+{
+  using bar = X::foo;
+}\end{lstlisting}
+ \end{codeblock}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Discussion}
+
+  \begin{block}{Statement}
+    Programmer should be able to differentiate what kind
+    of entity is imported - syntax should be different
+    for templates, functions, variables and types.
+  \end{block}
+
+  \begin{block}{Counterargument}
+    Syntax of importing should not differ if \lstinline!X::foo! is:
+    \begin{itemize}
+      \item normal function
+      \item function template
+      \item set of overloaded functions
+      \item set of overloaded function templates
+      \item set of overloaded functions and function templates
+      \item global functor variable
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Discussion}
+
+  \begin{block}{Statement}
+    Programmer should be able to differentiate what kind
+    of entity is imported - syntax should be different
+    for templates, functions, variables and types.
+  \end{block}
+
+  \begin{block}{Counterargument}
+    \lstinline!typename! keyword already makes intent clear:\\
+    \lstinline!using !\textit{type}\lstinline! = typename !\textit{other-type}\lstinline!;!
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Discussion}
+
+  \begin{block}{Statement}
+    Programmer should be able to differentiate what kind
+    of entity is imported - syntax should be different
+    for templates, functions, variables and types.
+  \end{block}
+
+  \begin{codeblock}{Proposal: Expression alias}
+    \begin{lstlisting}
+namespace Y
+{
+  using bar = (X::foo);
+}\end{lstlisting}
+  \end{codeblock}
+
+  \begin{block}{Counterargument}
+    Does not disambiguate between function, templates and variables.
+    Parens required to alias anything other than type.
+  \end{block}
+\end{frame}
+
+
+\end{document}
