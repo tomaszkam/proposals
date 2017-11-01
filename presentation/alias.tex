@@ -259,10 +259,11 @@ namespace Y
   \end{block}
 
   \begin{block}{Counterargument}
-    \lstinline!typename! keyword already makes intent clear:\\
-    \lstinline!using !\textit{type}\lstinline! = typename !\textit{other-type}\lstinline!;!
+    The other usages of \lstinline!using! keyword in the language does
+    not differentiate between type of entities.
   \end{block}
 \end{frame}
+
 
 \begin{frame}[fragile]
   \frametitle{Discussion}
@@ -273,19 +274,12 @@ namespace Y
     for templates, functions, variables and types.
   \end{block}
 
-  \begin{codeblock}{Proposal: Expression alias}
-    \begin{lstlisting}
-namespace Y
-{
-  using bar = (X::foo);
-}\end{lstlisting}
-  \end{codeblock}
-
   \begin{block}{Counterargument}
-    Does not disambiguate between function, templates and variables.
-    Parens required to alias anything other than type.
+    \lstinline!typename! keyword already makes intent clear:\\
+    \lstinline!using !\textit{type}\lstinline! = typename !\textit{other-type}\lstinline!;!
   \end{block}
 \end{frame}
+
 
 
 \end{document}
