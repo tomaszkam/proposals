@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html><head>
+<html class="gr__open-std_org"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <style type="text/css">
@@ -66,11 +66,11 @@ td { text-align: left; vertical-align: top;
 <title>Keep alias syntax extendable</title>
 </head>
 
-<body>
+<body data-gr-c-s-loaded="true">
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td></td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0831R0</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-14</td>
@@ -92,7 +92,9 @@ td { text-align: left; vertical-align: top;
 
 <p>Following the current direction of the above paper, the following syntax:</p>
 <pre>using <em>id</em> = <em>some-other-id</em>;</pre>
-<p>will be restricted to type alias declarations, and by doing so, it will prevent its possible further extension: to alias other kind of entities (functions, variables).</p>
+<p>will be restricted to type alias declarations, and by doing so, it 
+will prevent its possible further extension: to alias other kind of 
+entities (functions, variables).</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -138,11 +140,16 @@ td { text-align: left; vertical-align: top;
 }</pre>
 
 <p>Still, with the introduction of Concepts Lite, the above declaration may not be equivalent, as function <code>X::bar</code> 
-   is unconstrained, while the corresponding <code>Y::foo</code> function may be, which would lead to selecting a different overload
-   during overload resolution. As consequence, to preserve such behaviour, the user is required to repeat signatures of all of the <code>Y::foo</code> overloads.</p>
+   is unconstrained, while the corresponding <code>Y::foo</code> 
+function may be, which would lead to selecting a different overload
+   during overload resolution. As consequence, to preserve such 
+behaviour, the user is required to repeat signatures of all of the <code>Y::foo</code> overloads.</p>
 
-<p>Finally, even if the user will carefully repeat the signature of the original function, invocation may still may not be equivalent due use of forwarding,
-   that may lead to materialization of temporary and invocation of move constructor. To illustrate, if we have a non-moveable type <code>NonMovable</code>  and the following declarations:</p>
+<p>Finally, even if the user will carefully repeat the signature of the 
+original function, invocation may still may not be equivalent due use of
+ forwarding,
+   that may lead to materialization of temporary and invocation of move 
+constructor. To illustrate, if we have a non-moveable type <code>NonMovable</code>  and the following declarations:</p>
 <pre>namespace Y {
   void foo(NonMovable);
 }
@@ -154,25 +161,31 @@ namespace X {
 <p>the invocation <code>X::bar(NonMovable{})</code> will be ill-formed, while <code>Y::foo(NonMovable[})</code> is fine. This scenario may be considered
    an edge case, but additional move-construction (that may degenerate to copy) may have a measurable impact on performance.</p>
 
-<p>The author believes that above problems with achieving the simple goal of importing function with different name, shows that the function
-   aliasing feature would be compelling and needed addition to the language &mdash; it is worth to remind at this point that none of above issues
+<p>The author believes that above problems with achieving the simple 
+goal of importing function with different name, shows that the function
+   aliasing feature would be compelling and needed addition to the 
+language — it is worth to remind at this point that none of above issues
    would occur if we decide to reuse same name and use <code>using Y::foo;</code> instead.</p> 
 
 <h3><a name="motivation.syntax">2.2. Reusing type alias syntax</a></h3>
 
-<p>As the using-declaration can be used to import any kind of entity from the other namespace, we may expect that the similar
-   type alias syntax could be extended to allow function aliases, leading to the following solution to the problem described in 2.1:</p>
+<p>As the using-declaration can be used to import any kind of entity 
+from the other namespace, we may expect that the similar
+   type alias syntax could be extended to allow function aliases, 
+leading to the following solution to the problem described in 2.1:</p>
 <pre>namespace X {
   using bar = Y::foo;
 }</pre> 
 
-<p>The major concern with this solution, is that its introduces more ambiguity to the language - it is not clear from the
-   syntax what kind of entity is being imported (function, type, template, variable?). To address this, we may follow the namespace
+<p>The major concern with this solution, is that its introduces more 
+ambiguity to the language - it is not clear from the
+   syntax what kind of entity is being imported (function, type, 
+template, variable?). To address this, we may follow the namespace
    alias design, and provide separate syntax for each kind of entity.</p>
 
 <p>On the other hand, if the intent of the user is to make call to <code>X::bar</code> equivalent to the <code>Y::foo</code>,
-   we may argue, that the syntax should not differ and depend on the fact if the <code>Y::foo</code> is implemented as:<p>
-<ul>
+   we may argue, that the syntax should not differ and depend on the fact if the <code>Y::foo</code> is implemented as:</p><p>
+</p><ul>
   <li>function,</li>
   <li>set of overloaded functions,</li>
   <li>function template,</li>
@@ -183,8 +196,10 @@ namespace X {
   
 <p>Otherwise, the selection of appropriate alias syntax and updating it accordingly puts a lot of burden on the user.</p>
 
-<p>The author believes that both above approaches have their own drawbacks and benefits, and blocking one of the solutions at this point
-    would be an mistake, and might impede the future evolution of the language.</p>
+<p>The author believes that both above approaches have their own 
+drawbacks and benefits, and blocking one of the solutions at this point
+    would be an mistake, and might impede the future evolution of the 
+language.</p>
 
 <h2><a name="acknowledgements">3. Acknowledgements</a></h2>
 
@@ -206,5 +221,6 @@ namespace X {
                        http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4381.html</a>)</li>
 
 </ol>
+
 
 </body></html>

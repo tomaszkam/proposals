@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html><head>
+<html class="gr__open-std_org"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <style type="text/css">
@@ -66,11 +66,11 @@ td { text-align: left; vertical-align: top;
 <title>Simplified partial function application</title>
 </head>
 
-<body>
+<body data-gr-c-s-loaded="true">
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R2</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0356R2</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-14</td>
@@ -102,8 +102,10 @@ td { text-align: left; vertical-align: top;
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group
    of call arguments instead of one.</p>
   
-<p>In this paper <code>bind_front</code> is proposed as alternative, that allow user to provide values that will be passed
-   as first or last arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for the original
+<p>In this paper <code>bind_front</code> is proposed as alternative, 
+that allow user to provide values that will be passed
+   as first or last arguments to stored callable. The author believes 
+that this solution is in-line with LEWG recommendation for the original
    paper, that suggested to introduce only <code>_all</code> placeholder.</p>
 
 <h3><a name="history.r1">2.2. Revision 1</a></h3>
@@ -456,9 +458,12 @@ is invalid.</p>
 <h3><a name="design.fixing_bind">4.3. Fixing <code>std::bind</code></a></h3>
 
 <p>Additional motivation for introduction of then new function, is that fixing the problems mentioned above in <code>std::bind</code>
-would require introduction of breaking changes to the existing codebase. Furthermore such changes would not only take verbose form, when
-previously valid code will no longer compile, but may also silently change its meaning, by selecting different overload of underlining
-functor. The author believes that in such case introduction of new functions would be required anyway.</p>
+would require introduction of breaking changes to the existing codebase.
+ Furthermore such changes would not only take verbose form, when
+previously valid code will no longer compile, but may also silently 
+change its meaning, by selecting different overload of underlining
+functor. The author believes that in such case introduction of new 
+functions would be required anyway.</p>
 
 <h2><a name="standard">5. Impact On The Standard</a></h2>
 
@@ -473,7 +478,8 @@ functor. The author believes that in such case introduction of new functions wou
 
 <h3><a name="wording.expression-equivalent">6.1. Definition of <em>expression-equivalent</em></a></h3>
 
-<p>The text of the section is an verbatim copy of the corresponding defintions from clause [intro.defs] Terms and definitions from the 
+<p>The text of the section is an verbatim copy of the corresponding 
+defintions from clause [intro.defs] Terms and definitions from the 
    Ranges TS (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4685.pdf">N4685</a>, C++ Extensions for Ranges, 2017-07-31)
    paper.</p>
 
@@ -517,7 +523,9 @@ functor. The author believes that in such case introduction of new functions wou
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a set of objects, references to functions and references to objects, that may be passed as arguments to the target object.
+    <dd><ins>A call wrapper type may additionally hold a set of objects,
+ references to functions and references to objects, that may be passed 
+as arguments to the target object.
              These entities are collectively referred to as <em>bound argument entities</em>.</ins><p></p></dd>
 
     <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred to as <em>state entities</em>.</ins><p></p></dd>
@@ -553,7 +561,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
  
      <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>
-          shall ensure that a postfix call expression performed on an expression of type of potentially const qualified reference 
+          shall ensure that a postfix call expression performed on an 
+expression of type of potentially const qualified reference 
           to <code>G</code> is expression-equivalent to an expression <code>e</code> determined as follows:
           every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
           shall be replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
@@ -567,8 +576,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
   </dl>
 </blockquote>
 
-<p>Replace all references to forwarding call wrapper with argument forwarding call wrapper in following sections:<p>
-<ul>
+<p>Replace all references to forwarding call wrapper with argument forwarding call wrapper in following sections:</p><p>
+</p><ul>
    <li>[func.bind.bind] Function template <code>bind</code>,</li>
    <li>[depr.func.adaptor.typedefs] Typedefs to support function binders.</li>
 </ul>
@@ -587,7 +596,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
 <p>After section [func.not_fn] Function template <code>not_fn</code>, insert a new section.
 
-<blockquote class="stdins"> 
+</p><blockquote class="stdins"> 
 <h4><a name="func.bind_front">Function template <code>bind_front</code> <span style="float:right">[func.bind_front]</span></a></h4>
 
 <pre>  template &lt;class F, class... Args&gt;
@@ -770,8 +779,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 <code>&lt;functional&gt;</code> header.</p>
 
 <p>Usage example:</p>
-<pre>
-struct Strategy { double process(std:string, std::string, double, double); };
+<pre>struct Strategy { double process(std:string, std::string, double, double); };
 
 auto bind_to_process(std::unique_ptr&lt;Strategy&gt; ptr)
 {
@@ -942,5 +950,6 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       (N4600, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html">
               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html</a>)</li>
 </ol>
+
 
 </body></html>
