@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html class="gr__open-std_org"><head>
+<html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <style type="text/css">
@@ -66,14 +66,14 @@ td { text-align: left; vertical-align: top;
 <title>Simplified partial function application</title>
 </head>
 
-<body data-gr-c-s-loaded="true">
+<body>
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0356R2</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R3</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-10-14</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-11-09</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
@@ -119,7 +119,7 @@ that this solution is in-line with LEWG recommendation for the original
   <li>Corrected uses of <code>std::result_of</code> in implementation.</li>
 </ul>
 
-<h3><a name="history.r3">2.3. Revision 2</a></h3>
+<h3><a name="history.r2">2.3. Revision 2</a></h3>
 
 <ul>
   <li>Updated wording to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf">N4687</a> (C++ Working Draft, 2017-07-30).</li>
@@ -129,6 +129,14 @@ that this solution is in-line with LEWG recommendation for the original
   <li>Replaced reference to "objects" to "entities" to cover binding references.</li>
 </ul>
 
+<h3><a name="history.r3">2.4. Revision 3</a></h3>
+
+<ul>
+  <li>Corrected uses of shall in [func.require] paragraph.</li>
+  <li>Clarified that call wrappers produced by same specialization are same
+      (addressing <a href="https://cplusplus.github.io/LWG/issue3023">LWG issue 3023</a>).</li>
+  <li>Reverted deprecation wording for <code>bind</code> per LEWG guidance.</li>
+</ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
@@ -367,7 +375,7 @@ private:
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
-<p>The section provides rationale for deprecating existing <code>std::bind</code> even in the situation
+<p>The section provides rationale for avoiding usage existing <code>std::bind</code> even in the situation
    when proposed new functions does not strictly supersede its functionality.</p>
 
 <h3><a name="design.placeholders">4.1. No arbitrary argument rearrangements</a></h3>
@@ -484,9 +492,6 @@ defintions from clause [intro.defs] Terms and definitions from the
    paper.</p>
 
 <blockquote class="stdins"> 
-<h4><a name="defns.const.subexpr">constant subexpression <span style="float:right">[defns.const.subexpr]</span></a></h4>
-<p>expression whose evaluation as subexpression of a conditional-expression <code>CE</code> ([expr.cond]) would not prevent 
-   <code>CE</code> from being a core constant expression ([expr.const])</p>
 
 <h4><a name="defns.expr.equiv">expression-equivalent <span style="float:right">[defns.expr.equiv]</span></a></h4>
 <p>relationship that exists between two expressions <code>E1</code> and <code>E2</code> such that</p>
@@ -523,9 +528,8 @@ defintions from clause [intro.defs] Terms and definitions from the
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a set of objects,
- references to functions and references to objects, that may be passed 
-as arguments to the target object.
+    <dd><ins>A call wrapper type may additionally hold a sequence of objects, references to functions and references
+             to objects, that may be passed as arguments to the target object.
              These entities are collectively referred to as <em>bound argument entities</em>.</ins><p></p></dd>
 
     <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred to as <em>state entities</em>.</ins><p></p></dd>
@@ -535,11 +539,11 @@ as arguments to the target object.
 <p>Apply following changes to paragraph [func.require] Requirement:</p>
 <blockquote class="std"> 
   <dl class="attribute">
-    <dd>Every call wrapper ([func.def]) shall be <code>MoveConstructible</code>.
+    <dd>Every call wrapper ([func.def]) <del>shall</del><ins>is</ins> be <code>MoveConstructible</code>.
 
         A<ins>n</ins> <em><ins>argument</ins> forwarding call wrapper</em> is a call wrapper that
         can be called with an arbitrary argument list and delivers the arguments to the wrapped 
-        callable object as references. This forwarding step shall ensure that rvalue arguments
+        callable object as references. This forwarding step <del>shall </del>ensure<ins>s</ins> that rvalue arguments
         are delivered as rvalue references and lvalue arguments are delivered as lvalue references.
 
         A <em>simple call wrapper</em> is a<ins>n argument</ins> forwarding call wrapper that is <code>CopyConstructible</code>
@@ -554,25 +558,27 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
          that propagates its state entities to the underlying call expression.
-         This propagation step shall ensure that the state entity of type <code>T</code> is delivered 
+         This propagation step ensures that the state entity of type <code>T</code> is delivered 
          as <code>T <em>cv</em>&amp;</code> when the call is performed on an lvalue of the call wrapper
          type and as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
          <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
          <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
- 
+		 
      <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>
-          shall ensure that a postfix call expression performed on an 
-expression of type of potentially const qualified reference 
+          ensures that a postfix call expression performed on an expression of type of potentially const qualified reference 
           to <code>G</code> is expression-equivalent to an expression <code>e</code> determined as follows:
           every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
-          shall be replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
+          is replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
 
-     <dd><ins>The copy and move constructors of the perfect forwarding call wrapper shall have the same apparent
+     <dd><ins>The copy and move constructors of the perfect forwarding call wrapper have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
          [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
            implicit definition and they are declared as <code>constexpr</code> if corresponding implicit definition
            would be considered to be <code>constexpr</code> - end note. ]
-        </ins><p></p></dd>    
+        </ins><p></p></dd>
+
+     <dd><ins>Perfect forwarding call wrappers have the same type, if their call patterns and types of their corresponding
+     	 state entities are the same.<p></p></dd>
   </dl>
 </blockquote>
 
@@ -646,91 +652,7 @@ expression of type of potentially const qualified reference
 <p>Note: This wording can be further simplified by use of <code>decay_unwrap_t</code> from
 <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper.</p>
 
-
-<h3><a name="wording.dep_bind">6.4. Wording for deprecating <code>bind</code></a></h3>
-
-<p>Delete following declarations from the section [functional.syn] (Header <code>&lt;functional&gt;</code> synopsis):</p>
-
-<blockquote class="stddel"> 
-
-<pre>  // [func.bind], bind:
-  template&lt;class T&gt; struct is_bind_expression;
-  template&lt;class T&gt; struct is_placeholder;
-
-  template&lt;class F, class... BoundArgs&gt;
-    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
-  template&lt;class R, class F, class... BoundArgs&gt;
-    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
-
-  namespace placeholders {
-   // M is the implementation-defined number of placeholders
-   see below _1;
-   see below _2;
-   .
-   .
-   .
-   see below _M;
-  }
-</pre>
-
-</blockquote>
-
-<blockquote class="stddel"> 
-
-<pre>  // [func.bind], function object binders:
-  template &lt;class T&gt; constexpr bool is_bind_expression_v
-   = is_bind_expression&lt;T&gt;::value;
-  template &lt;class T&gt; constexpr int is_placeholder_v
-    = is_placeholder&lt;T&gt;::value;
-</pre>
-
-</blockquote>
-
-<p>Insert a new clause into Annex D:</p>
-<blockquote class="stdins"> 
-<h4><a name="depr.func.bind">Function object binders <span style="float:right">[depr.func.bind]</span></a></h4>
-
-  <dl class="attribute">
-    <dd>The header &lt;functional&gt; has the following additional declarations:</dd>
-  </dl>
-
-<pre>  template&lt;class T&gt; struct is_bind_expression;
-  template&lt;class T&gt; struct is_placeholder;
-
-  template &lt;class T&gt; constexpr bool is_bind_expression_v
-   = is_bind_expression&lt;T&gt;::value;
-  template &lt;class T&gt; constexpr int is_placeholder_v
-    = is_placeholder&lt;T&gt;::value;
-
-  template&lt;class F, class... BoundArgs&gt;
-    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
-  template&lt;class R, class F, class... BoundArgs&gt;
-    unspecified bind(F&amp;&amp;, BoundArgs&amp;&amp;...);
-
-  namespace placeholders {
-   // M is the implementation-defined number of placeholders
-   see below _1;
-   see below _2;
-   .
-   .
-   .
-   see below _M;
-  }
-</pre>
-
-</blockquote>
-
-<p>Move following subsections into newly created [depr.func.bind] Function template <code>bind</code> clause:</p>
-<ul>
-  <li>[func.bind.isbind] Class template <code>is_bind_expression</code></li>
-  <li>[func.bind.isplace] Class template <code>is_placeholder</code></li>
-  <li>[func.bind.bind] Function template <code>bind</code></li>
-  <li>[func.bind.place] Placeholders</li>
-</ul>
-
-<p>Remove rest of the section [func.bind] Function object binders.</p>
-
-<h3><a name="wording.not_fn">6.5. Alternative wording for <code>not_fn</code></a></h3>
+<h3><a name="wording.not_fn">6.4. Alternative wording for <code>not_fn</code></a></h3>
 
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
    as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
@@ -876,6 +798,8 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
 <p>Daniel Krügler offered tremendous amount of improvements for presented wording.</p>
+
+<p>Marshall Clow for very helpful review of the paper wording.</p> 
 
 <p>Jonathan Wakely and Stephan T. Lavavej offered many useful suggestions and corrections to the proposal.</p>
 
