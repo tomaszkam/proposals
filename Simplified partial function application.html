@@ -564,7 +564,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
          <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
 		 
-     <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with an <em>call pattern</em> <code>cp</code>
+     <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with a <em>call pattern</em> <code>cp</code>
           ensures that a postfix call expression performed on an expression of type of potentially const qualified reference 
           to <code>G</code> is expression-equivalent to an expression <code>e</code> determined as follows:
           every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
