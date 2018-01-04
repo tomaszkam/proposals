@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Symmetry for spaceship</title>
+</head>
+
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-01-04</td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group and Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Symmetry for spaceship</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper proposes to make operator spaceship (<code>&lt;=&gt;</code>) symmetric, by allowing the
+   invocation in the form <code>a &lt;=&gt; b</code> to resolve to operator declaration with reversed
+   order of arguments.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>This paper proposes to extended the set of <code>operator@</code> for which the invocation
+   in form <code>a @ b</code> considers both direct candidates of <code>operator&lt;=&gt;</code>
+   (</code>operator&lt;=&gt;(a, b)</code>) and onces with reversed order of arguments 
+   (</code>operator&lt;=&gt;(b, a)</code>) to also include <code>operator&lt;=&gt;</code>
+   itself.</p>
+
+<p>The lack of the build-in symmetry for specship operator, leads to several suprising behaviour
+   of the user code, leading both to compilation erros in seemingly correct programs, and more importantly
+   to questionable runtime behaviour.</p>
+
+<h3><a name="motivation.example-class">3.1. <code>icase_string</code> class</h3>
+
+<p>To illustrate set the set of above problems we will consider the declaration of the comparisons function
+   for the <code>icase_string</code> class, representing an sequence of characters for which case-sensitivity
+   is ignored (like file paths in certain operating system):</p>
+<pre>
+std::weak_ordering operator&lt;=&gt;(icase_string const&amp;, icase_string const&amp;);
+std::weak_ordering operator&lt;=&gt;(icase_string const&amp;, std::string_view);
+</pre>
+
+<p>With the current specification, above declarations allow two objects:
+<ul>
+  <li><code>is</code> of <code>icase_string</code></li>
+  <li><code>sv</code> of <code>std::string_view</code></li>
+</ul>
+to be compared using old relation operators (<code>&lt;</code>, <code>&gt;</code>, ...) regardless
+of the order of argument. To be specific all of the following expression will be well-formed:</p>
+<pre>
+is == sv, is != sv, is &lt; sv, is &gt; sv, is &lt;= sv, is &gt;= sv
+sv == is, sv != is, sv &lt; is, sv &gt; is, sv &lt;= is, sv &gt;= is
+</pre>
+
+<p>However, in case of ternary comparison operator, only the expression with direct order of arguments
+   will be accepted. Meaning that only first of bellow expression will be well-formed:</p>
+<pre>
+is &lt;=&gt; sv
+sv &lt;=&gt; is // ill-formed
+</pre>
+
+<p>This design decision was motivated by the fact that <code>operator&lt;=&gt;</code> is not expected to be
+   called by the users, as relation operators shall be used instead. </p>
+
+<h3><a name="motivation.pair">3.2. <code>optional</code> example</h3>
+
+<p>For example lets us consider the following implementation of the spaceship operator for <code>std::optional</code>
+   (the following example is base on the code from Barry Rezvin's blog post
+    <a href="https://medium.com/@barryrevzin/implementing-the-spaceship-operator-for-optional-4de89fc6d5ec">Implementing the spaceship operator for optional</a>):</p>
+<pre>
+template&lt;typename T, typename U&gt;
+auto operator&lt;=&gt;(optional&lt;T&gt; const&amp; lhs, optional&lt;U&gt; const&amp; rhs)
+  -&gt; decltype(*lhs &lt;=&gt; *rhs)
+{
+   if (lhs.has_value() &amp;&amp; rhs.has_value()) 
+     return *lhs &lt;=&gt; *rhs;
+   else
+     return lhs.has_value() &lt;=&gt; rhs.has_value();
+}
+
+template&lt;typename T, typename U&gt;
+auto operator&lt;=&gt;(optional&lt;T&gt; const&amp; lhs, U const&amp; rhs)
+  -&gt; decltype(*lhs &lt;=&gt; rhs)
+{
+   if (lhs.has_value()) 
+     return *lhs &lt;=&gt; rhs;
+   else
+     return strong_ordering::less;
+}
+</pre>
+<p>Above operators are aimed to recreate the behaviour of the current <code>optional</code> comparisons, that allow object of the
+   <code>optional&lt;T&gt;</code> type to be compared with any object of the <code>U</code> and <code>optional&lt;U&gt;</code> type,
+   if the object of <code>T</code> can be compared with the object <code>U</code>.</p>
+
+<p>In case of our example, that the user should be able to compare all of following object, regardless of their order in invocation:</p>
+<pre>
+icase_string is;
+std::string_view sv;
+std::optional&lt;icase_string&gt; ois;
+std::optional&lt;std::string_view&gt; osv;
+</pre> 
+
+<p>The above holds in case of the symmetric invocation om two optionals, because for each <code>ois @ osv</code> being:<p>
+<pre>
+ois == osv, ois != osv, ois &lt; osv, ois &gt; osv, ois &lt;= osv, ois &gt;= osv
+</pre>
+<p>the synthesised candidate <code>(ois &lt;=&gt; osv) @ 0</code> is well formed, as it requires <code>*ois &lt;=&gt; *osv</code> (<code>icase_string</code> and <code>std::string</code>)
+to be well formed. In case of the reversed order of arguments i.e. <code>osv @ oie</code> being:<p>
+<pre>
+osv == ois, osv != ois, osv &lt; ois, osv &gt; ois, osv &lt;= ois, osv &gt;= ois
+</pre>
+<p>the reversed candidate <code>0 @ (ois &lt;=&gt; osv)</code> is used for the same reason.</p>
+
+<h3><a name="motivation.pair">3.3. <code>pair</code> example</h3>
+
+<p>Let us consider the following potential extension in form of the heterogeneous ternary comparison
+   operator for <code>std::pair</code> type:</p>
+<pre>
+template&lt;typename T1, typename U1, typename T2, typename U2&gt;
+auto operator&lt;=&gt;(std::pair&lt;T1, U1&gt; const&amp; p1, std::pair&lt;T2, U2&gt; const&amp; p2)
+ -&gt;  common_comparison_category_t&lt;decltype(p1.first &lt;=&gt; p2.first), decltype(p1.second &lt;=&gt; p2.second)&gt;
+{
+  if (auto res = p1.first &lt;=&gt; p2.first; res != 0)
+    return res;
+  return p1.second &lt;=&gt; p2.second;
+}</pre>
+
+<p>The intent of the above operator is to allow pairs containing different types to be compared, if type of their
+   corresponding elements (<code>first</code> and <code>second</code>) can be compared with itself, providing
+   an functionality similar to one already present for <code>optional</code> class template.</p> 
+
+<p>However, if we consider following declarations of the pairs:<p>
+<pre>
+std::pair&lt;icase_string, std::string_view&gt; p1;
+std::pair&lt;std::string_view, icase_string&gt; p2;
+</pre>
+<p>As the objects of type <code>icase_string</code> and <code>std::string</code> can be compared witch each other, we
+   can expect that with the above declaration the following expression will be well-formed:</p>
+<pre>
+p1 == p2, p1 != p2, p1 &lt; p2, p1 &gt; p2, p1 &lt;= p2, p1 &gt;= p2
+p2 == p1, p2 != p1, p2 &lt; p1, p2 &gt; p1, p2 &lt;= p1, p2 &gt;= p1
+</pre>
+
+<p>According to current rules for the operators rewrite <b>none</b> of them is well-formed: the expression in the
+   form of <code>p1 == p2</code> may be interpreted either as:
+<ul>
+   <li><code>(p1 &lt;=&gt; p2) == 0</code></li> 
+   <li><code>0 == (p2 &lt;=&gt; p1)</code></li> 
+</ul>
+In case of the first candidate the expression <code>p1.first &lt;=&gt; p2.first</code> (<code>icase_string</code> and <code>std::string_view</code>)
+is well-formed, however the comparison of the second elements <code>p1.second &lt;=&gt; p2.second</code> (<code>std::string_view</code> and <code>icase_string</code>)
+is ill-formed (as invocation of spaceship are not symmetric). For the second candidate the <code>p2.first &lt;=&gt; p1.first</code> (<code>std::string_view</code> and <code>icase_string</code>)
+is ill-formed again.
+<p>
+
+
+<h3><a name="motivation.compare_3way">3.4. Incorrect result of the <code>compare_3way</code></h3>
+
+<p>In contrast to previous example, when lack of the symmetry for the invocation of the spaceship operator lead to the ill-formed code,
+   in this case, the code is compiled correctly however incorrect result are produced.</p>
+
+<p>Given the following specification of the <code>compare_3way</code> function from 8.7.11 Three-way comparison algorithms ([alg.3way]):<p>
+<blockquote class="std"> 
+
+<em>Effects</em>: Compares two values and produces a result of the strongest applicable comparison category
+type:
+<ul>
+ <li>(1.1) Returns <code>a &lt;=&gt; b</code> if that expression is well-formed.</li>
+ <li>(1.2) Otherwise, if the expressions <code>a == b</code> and <code>a &lt; b</code> are each well-formed and convertible to <code>bool</code>,
+     returns <code>strong_ordering::equal</code> when <code>a == b</code> is <code>true</code>,
+     otherwise returns <code>strong_ordering::less</code> when <code>a &lt; b</code> is </code>true</code>,
+     and otherwise returns <code>strong_ordering::greater</code>.</li>
+ <li>(1.3) Otherwise, if the expression <code>a == b</code> is well-formed and convertible to <code>bool</code>, 
+     returns <code>strong_equality::equal</code> when <code>a == b</code> is <code>true</code>,
+     and otherwise returns <code>strong_equality::nonequal</code>.</li>
+ <li>(1.4) Otherwise, the function is defined as deleted.</li>
+</ul>
+</blockquote>
+
+<p>The invocation in form <code>compare_3way(is, sv)</code> returns the object of the <code>std::weak_ordering</code> with value equal to <code>is &lt;=&gt; sv</code>.
+   However in case of the reversed order of argument <code>compare_3way(sv, is)</code>, the expression <code>sv &lt;=&gt; is</code> is ill-formed, so we move 
+   to the second point (1.2). In this case the expressions <code>sv == is</code> and <code>sv &lt; is</code> are well-formed, as they are rewritten as <code>0 == (is &lt;=&gt; sv)</code>
+   and <code>0 &lt; (is &lt;=&gt; sv)</code> respectively. As consequence we return an object of <code>std::strong_ordering</code> with the value matching the value
+   of <code>is &lt;=&gt; sv</code>.</p>
+
+<p>Furthermore, in case of the some object <code>o1</code> and <code>o2</code> of types <code>O1</code> and <code>O2</code>, for which the <code>o1 &lt;=&gt; o2</code> will return
+   <code>std::partial_order::unordered</code> value and the reverse invocation <code>o2 &lt;=&gt; o1</code> will be ill-formed (only <code>operator&lt;=&gt;(O1, O2)</code> exists).
+   The invocation of the function <code>compare_3way(o1, o2)</code> will return <code>std::partial_order::unordered</code>, however if the argument of the function are reversed
+   <code>compare_3way(o2, o1)</code> returns <code>strong_ordering::greater</code> (due fallback to point 1.2 described above).</p>
+
+<p>In addition all named comparison algorithms (<code>strong_order</code>, <code>weak_order</code>, <code>partial_order</code>, <code>strong_equal</code>, <code>weak_equal</code>)
+   are prone to same error caused by the lack of symmetry for ternary operator invocation.</p>
+
+<h2><a name="design">4. Design Decisions</a></h2>
+
+
+<h2><a name="wording">5. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf">N4713</a> (C++ Working Draft, 2017-11-27).</p>
+
+<h2><a name="feature-testing">6. Feature-testing recommendation</a></h2>
+
+<p>For the purposes of SG10, we recommend increasing the value of the macro attached to consistent comparisons (if any) to match 
+   date of acceptance of this proposal.</p>
+
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+
+<!--p> offered many useful suggestions and corrections to the proposal.</p-->
+
+
+<h2><a name="literature">8. References</a></h2>
+
+<ol>
+  <li>Herb Sutter, Jens Maurer, Walter E. Brown, 
+      "Consistent comparison" 
+      (P0515R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r3.pdf">
+                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r3.pdf</a>)</li>
+
+  <li>Walter E. Brown, 
+      "Library Support for the Spaceship (Comparison) Operator" 
+      (P0768R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0768r1.pdf">
+                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0768r1.pdf</a>)</li>
+
+  <li>Barry Revzin, 
+      "Implementing the spaceship operator for optional" 
+      (<a href="https://medium.com/@barryrevzin/implementing-the-spaceship-operator-for-optional-4de89fc6d5ec">
+                https://medium.com/@barryrevzin/implementing-the-spaceship-operator-for-optional-4de89fc6d5ec</a>)</li>
+
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4713, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf">
+              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf</a>)</li>
+
+</ol>
+
+
+</body></html>
