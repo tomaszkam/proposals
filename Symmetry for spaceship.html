@@ -192,6 +192,25 @@ osv == ois, osv != ois, osv &lt; ois, osv &gt; ois, osv &lt;= ois, osv &gt;= ois
 </pre>
 <p>the reversed candidate <code>0 @ (ois &lt;=&gt; osv)</code> is used for the same reason.</p>
 
+<p>In the case of the asymmetric invocation on the optional and unwrapped object, the only candidate available
+   (<code>operator&lt;=&gt;(optional&lt;T&gt; const&amp;, U const&amp;)</code>) is always invoking underlining <code>&lt;=&gt;</code>
+   on the left hand side.</p>
+
+<p>As consequence the invocations in form <code>osi @ sv</code> (rewritten to <code>(osi &lt;=&gt; sv) @ 0</code>) and <code>sv @ osi</code>
+   (rewritten to <code>0 @ (osi &lt;=&gt; sv)</code>) i.e:</p>
+<pre>
+osi == sv, osi != sv, osi &lt; sv, osi &gt; sv, osi &lt;= sv, osi &gt;= sv
+sv == osi, sv != osi, sv &lt; osi, sv &gt; osi, sv &lt;= osi, sv &gt;= osi
+</pre>
+<p>are well formed, as they lead to <code>*osi &lt;=&gt; sv</code> (<code>icase_string</code> and <code>std::string_view</code>).</p>
+   
+<p>In contrast the invocation in form <code>osv @ si</code> and <code>si @ osv</code>, i.e:<p>
+<pre>
+osv == si, osv != si, osv &lt; si, osv &gt; si, osv &lt;= si, osv &gt;= si
+si == osv, si != osv, si &lt; osv, si &gt; osv, si &lt;= osv, si &gt;= osv
+</pre>
+<p>all ill-formed, as they are leading to invocation of <code>*osv &lt;=&gt; is</code> (<code>std::string_view</code> and <code>icase_string</code>).</p>
+
 <h3><a name="motivation.pair">3.3. <code>pair</code> example</h3>
 
 <p>Let us consider the following potential extension in form of the heterogeneous ternary comparison
@@ -234,6 +253,17 @@ is ill-formed (as invocation of spaceship are not symmetric). For the second can
 is ill-formed again.
 <p>
 
+<p>In contrast to the <code>optional</code> example, where adding the reversed declaration of the mixed operator would address the problem:</p>
+<pre>
+template&lt;typename T, typename U&gt;
+auto operator&lt;=&gt;(T const&amp; lhs, optional&lt;U&gt; const&amp; rhs)
+  -&gt; decltype(lhs &lt;=&gt; *rhs)
+</pre>
+<p>to fix the heterogeneous <code>pair</code> comparison, we would need to edit original class (<code>icase_string</code>) to include
+   an reversed version of comparision operator:</p>
+<pre>
+std::weak_ordering operator&lt;=&gt;(std::string_view, icase_string const&amp;);
+</pre>
 
 <h3><a name="motivation.compare_3way">3.4. Incorrect result of the <code>compare_3way</code></h3>
 
