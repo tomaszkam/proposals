@@ -464,7 +464,7 @@ friend constexpr weak_ordering operator&lt;=&gt;(unspecified, weak_ordering v) n
 
   <dl class="attribute">
     <dt>Returns:</dt>
-    <dd><code>v.value == 0 ? weak_ordering::equivalent ? weak_ordering::greater : weak_ordering::less</code></dd>
+    <dd><code>v.value == 0 ? weak_ordering::equivalent : v.value &lt; 0 ? weak_ordering::greater : weak_ordering::less</code></dd>
   </dl>
 </blockquote>
 
