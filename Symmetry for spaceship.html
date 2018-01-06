@@ -304,10 +304,193 @@ type:
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
+<p>To address above issues we propose an adjustment of the language rules, that would allow the expression <code>a &lt;=&gt; b</code> to find an candidates with reversed
+   order of arguments (<code>operator&lt;=&gt;(b,a)</code> or <code>b.operator&lt;=&gt;(a)</code>) in addition to the usual set of the functions, then in case when such candidate
+   would be selected, the return type would be inverted. As consequence all of above example will "just work" without any changes to their code.</p>
+
+<p>To achieve above goal, we are proposing the extend current language rules for the relation operators, to cover ternary comparison operator.
+   That means that the expression in the form <code>a @ b</code> for <code>@</code> being relation operator (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>,
+   <code>&lt;=</code>, <code>&gt;=</code>) and <b>ternary comparison operator (<code>&lt;=&gt;</code>)</b>, will consider following candidates:
+<ul>
+  <li><code>a @ b</code></li>
+  <li><code>(a &lt;=&gt; b) @ 0</code></li>
+  <li><code>0 @ (b &lt;=&gt; a)</code></li>
+</ul>
+where after the rewrite the <code>@</code> and <code>&lt;=&gt;</code> are interpreted according to usual operator lookup rules, i.e. no additional rewrites are performed.</p>
+
+<p>Furthermore, we propose to keep current tie-breakers, that in case of equivalent candidates, prefers:
+<ul>
+  <li><code>a @ b</code> over the ternary forms: <code>(a &lt;=&gt; b) @ 0</code> and <code>0 @ (a &lt;=&gt; b)</code>,</li>
+  <li><code>(a &lt;=&gt; b) @ 0</code> over synthesised reversed candidate: <code>0 @ (b &lt;=&gt; a).</code></li> 
+</ul>
+Due above, in case of the <code>&lt;=&gt;</code>, the <code>(a &lt;=&gt; b) &lt;=&gt; 0</code>, will never be used, as in case when the expression <code>a &lt;=&gt; b</code>,
+it will be worse candidate than <code>a &lt;=&gt; b</code>. As consequence the set of candidates for this operator is de-facto reduced to <code>a &lt;=&gt; b</code> and
+<code>0 &lt;=&gt; (b &lt;=&gt; a)</code>.</p>
+      
+<p>To complement above language change, we need to extend to interface of the comparison category type <code>C</code> (like <code>std::strong_ordering</code>) to include following
+   functions:</p>
+<pre>
+C operator&lt;=&gt;(C, std::nullptr_t); //c &lt;=&gt; 0, i.e. identity  
+C operator&lt;=&gt;(std::nullptr_t, C); //0 &lt;=&gt; c, i.e. inversion
+</pre>
+<p>This will basically complete set of comparison operators between these categories and the literal <code>0</code>, which currently only include relational operators.</p>
+
+<p>For the object <code>c</code> of the comparison category type, the <code>c &lt;=&gt; 0</code> is an identity, that return the value of <code>c</code> unchanged, while
+   <code>0 &lt;=&gt; c</code>, represent an inversion, i.e. returns:
+<ul>
+  <li><code>C::lower</code> for <code>c</code> representing greater-than comparison result (<code>c &gt; 0</code>),</code>
+  <li><code>C::greater</code> for <code>c</code> representing lower-than comparison result (<code>c &lt; 0</code>),</code>
+  <li><code>c</code> (unchanged) in case of the other values.</li>
+</ul>
+Note that  for the <code>strong_equality</code> and <code>weak_equality</code> the inversion is an identity operator, as these object cannot represent lower-than or
+greater-than results.</p>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
 <p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf">N4713</a> (C++ Working Draft, 2017-11-27).</p>
+
+
+<h3><a name="motivation.core">5.1. Core wording</h3>
+
+<p>Change in [over.match.oper] Operators in expressions paragraph 6 as follows:</p>
+<blockquote class="std">
+  <dl clas="attribute">
+     <dd>The set of candidate functions for overload resolution for some operator <code>@</code>
+         is the union of the member candidates, the non-member candidates, and the built-in candidates 
+         for that operator <code>@</code>.
+         If that operator is a relational ([exp.rel])<del> or</del><ins>,</ins> equality ([expr.eq])
+         <ins>or three-way comparison ([expr.spaceship])</ins> operator with operands x and y, 
+         then for each member, non-member, or built-in candidate for the operator <code>&lt;=&gt;</code>:
+         <ul>
+           <li>that operator is added to the set of candidate functions for overload resolution if 
+               <ins>@ is not &lt;=&gt;</ins> and <code>x &lt;=&gt; y @ 0</code> is well-formed using that <code>operator&lt;=&gt;</code>; and</li>
+           <li>a synthesized candidate is added to the candidate set where the order of the two parameters is reversed if
+               <code>0 @ <ins>(</ins>y &lt;=&gt; x<ins>)</ins></code> is well-formed using that <code>operator&lt;=&gt;</code>;
+        </ul>
+       where in each case <ins>additional</ins> <code>operator&lt;=&gt;</code> candidates are not considered for the recursive lookup<ins>s</ins> of 
+       operator <code>@</code> <ins>and <code>&lt;=&gt;</code></ins>.</dd>
+  </dl>
+</blockquote>
+
+
+<p>Change in [over.match.oper] Operators in expressions paragraph 6 as follows:</p>
+<blockquote class="std">
+  <dl clas="attribute">
+     <dd>If an <code>operator&lt;=&gt;</code> candidate is selected by overload resolution for an operator <code>@</code>,
+         <del>but <code>@</code> is not <code>&lt;=&gt;</code>,</del>
+         <code>x @ y</code> is interpreted as <code>0 @ <ins>(</ins>y &lt;=&gt; <ins>x</ins>)</code> if
+         the selected candidate is a synthesized candidate with reversed order of parameters,
+         or <code>x &lt;=&gt; y @ 0</code> <del>otherwise</del><ins>if <code>@</code> is not <code>&lt;=&gt;</code></ins>,
+         using the selected code <code>operator&lt;=&gt;</code> candidate.</dd>
+  </dl>
+</blockquote>
+
+
+<h3><a name="motivation.library">5.2. Library wording</h3>
+
+<p>Add following declarations at the end of the definition of the class <code></code> in [cmp.weakeq] Class <code>weak_equality</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr weak_equality operator&lt;=&gt;(weak_equality v, unspecified) noexcept;
+friend constexpr weak_equality operator&lt;=&gt;(unspecified, weak_equality v) noexcept;</pre>
+</blockquote>
+
+<p>Insert following at the end of [cmp.weakeq] Class <code>weak_equality</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr weak_equality operator&lt;=&gt;(weak_equality v, unspecified) noexcept;
+constexpr weak_equality operator&lt;=&gt;(unspecified, weak_equality v) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v</code></dd>
+  </dl>
+</blockquote>
+
+<p>Add following declarations at the end of the definition of the class <code></code> in [cmp.strongeq] Class <code>strong_equality</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr strong_equality operator&lt;=&gt;(strong_equality v, unspecified) noexcept;
+friend constexpr strong_equality operator&lt;=&gt;(unspecified, strong_equality v) noexcept;</pre>
+</blockquote>
+
+<p>Insert following at the end of [cmp.strongeq] Class <code>strong_equality</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr strong_equality operator&lt;=&gt;(strong_equality v, unspecified) noexcept;
+constexpr strong_equality operator&lt;=&gt;(unspecified, strong_equality v) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v</code></dd>
+  </dl>
+</blockquote>
+
+<p>Add following declarations at the end of the definition of the class <code></code> in [cmp.partialord] Class <code>partial_ordering</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr partial_ordering operator&lt;=&gt;(partial_ordering v, unspecified) noexcept;
+friend constexpr partial_ordering operator&lt;=&gt;(unspecified, partial_ordering v) noexcept;</pre>
+</blockquote>
+
+<p>Insert following at the end of [cmp.partialord] Class <code>partial_ordering</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr partial_ordering operator&lt;=&gt;(partial_ordering v, unspecified) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v</code></dd>
+  </dl>
+
+<pre>constexpr partial_ordering operator&lt;=&gt;(unspecified, partial_ordering v) noexcept;</pre>
+
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>!v.is_ordered || v.value == 0 ? v : v.value &lt; 0 ? partial_ordering::greater : partial_ordering::less</code></dd>
+  </dl>
+</blockquote>
+
+<p>Add following declarations at the end of the definition of the class <code></code> in [cmp.weakord] Class <code>weak_ordering</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr weak_ordering operator&lt;=&gt;(weak_ordering v, unspecified) noexcept;
+friend constexpr weak_ordering operator&lt;=&gt;(unspecified, weak_ordering v) noexcept;</pre>
+</blockquote>
+
+<p>Insert following at the end of [cmp.weakord] Class <code>weak_ordering</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr weak_ordering operator&lt;=&gt;(weak_ordering v, unspecified) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v</code></dd>
+  </dl>
+
+<pre>constexpr weak_ordering operator&lt;=&gt;(unspecified, weak_ordering v) noexcept;</pre>
+
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v.value == 0 ? weak_ordering::equivalent ? weak_ordering::greater : weak_ordering::less</code></dd>
+  </dl>
+</blockquote>
+
+<p>Add following declarations at the end of the definition of the class <code></code> in [cmp.strongord] Class <code>strong_ordering</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr strong_ordering operator&lt;=&gt;(strong_ordering v, unspecified) noexcept;
+friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering v) noexcept;</pre>
+</blockquote>
+
+<p>Insert following at the end of [cmp.strongord] Class <code>strong_ordering</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr strong_ordering operator&lt;=&gt;(strong_ordering v, unspecified) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v</code></dd>
+  </dl>
+
+<pre>constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering v) noexcept;</pre>
+
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>v.value == 0 ? strong_ordering::equal : v.value &lt; 0 ? strong_ordering::greater : strong_ordering::less</code></dd>
+  </dl>
+</blockquote>
+
 
 <h2><a name="feature-testing">6. Feature-testing recommendation</a></h2>
 
