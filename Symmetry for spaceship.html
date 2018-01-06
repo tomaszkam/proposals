@@ -378,7 +378,7 @@ greater-than results.</p>
   <dl clas="attribute">
      <dd>If an <code>operator&lt;=&gt;</code> candidate is selected by overload resolution for an operator <code>@</code>,
          <del>but <code>@</code> is not <code>&lt;=&gt;</code>,</del>
-         <code>x @ y</code> is interpreted as <code>0 @ <ins>(</ins>y &lt;=&gt; <ins>x</ins>)</code> if
+         <code>x @ y</code> is interpreted as <code>0 @ <ins>(</ins>y &lt;=&gt; x<ins>)</ins></code> if
          the selected candidate is a synthesized candidate with reversed order of parameters,
          or <code>x &lt;=&gt; y @ 0</code> <del>otherwise</del><ins>if <code>@</code> is not <code>&lt;=&gt;</code></ins>,
          using the selected code <code>operator&lt;=&gt;</code> candidate.</dd>
