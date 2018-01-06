@@ -338,11 +338,11 @@ C operator&lt;=&gt;(std::nullptr_t, C); //0 &lt;=&gt; c, i.e. inversion
 <p>For the object <code>c</code> of the comparison category type, the <code>c &lt;=&gt; 0</code> is an identity, that return the value of <code>c</code> unchanged, while
    <code>0 &lt;=&gt; c</code>, represent an inversion, i.e. returns:
 <ul>
-  <li><code>C::lower</code> for <code>c</code> representing greater-than comparison result (<code>c &gt; 0</code>),</code>
+  <li><code>C::less</code> for <code>c</code> representing greater-than comparison result (<code>c &gt; 0</code>),</code>
   <li><code>C::greater</code> for <code>c</code> representing lower-than comparison result (<code>c &lt; 0</code>),</code>
   <li><code>c</code> (unchanged) in case of the other values.</li>
 </ul>
-Note that  for the <code>strong_equality</code> and <code>weak_equality</code> the inversion is an identity operator, as these object cannot represent lower-than or
+Note that  for the <code>strong_equality</code> and <code>weak_equality</code> the inversion is an identity operatoration, as these object cannot represent lower-than or
 greater-than results.</p>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
@@ -363,7 +363,7 @@ greater-than results.</p>
          then for each member, non-member, or built-in candidate for the operator <code>&lt;=&gt;</code>:
          <ul>
            <li>that operator is added to the set of candidate functions for overload resolution if 
-               <ins>@ is not &lt;=&gt;</ins> and <code>x &lt;=&gt; y @ 0</code> is well-formed using that <code>operator&lt;=&gt;</code>; and</li>
+               <ins>@ is not &lt;=&gt;</ins> and <code><ins>(</ins>x &lt;=&gt; y<ins>)</ins> @ 0</code> is well-formed using that <code>operator&lt;=&gt;</code>; and</li>
            <li>a synthesized candidate is added to the candidate set where the order of the two parameters is reversed if
                <code>0 @ <ins>(</ins>y &lt;=&gt; x<ins>)</ins></code> is well-formed using that <code>operator&lt;=&gt;</code>;
         </ul>
@@ -380,7 +380,7 @@ greater-than results.</p>
          <del>but <code>@</code> is not <code>&lt;=&gt;</code>,</del>
          <code>x @ y</code> is interpreted as <code>0 @ <ins>(</ins>y &lt;=&gt; x<ins>)</ins></code> if
          the selected candidate is a synthesized candidate with reversed order of parameters,
-         or <code>x &lt;=&gt; y @ 0</code> <del>otherwise</del><ins>if <code>@</code> is not <code>&lt;=&gt;</code></ins>,
+         or <code><ins>(</ins>x &lt;=&gt; y<ins>)</ins> @ 0</code> <del>otherwise</del><ins>if <code>@</code> is not <code>&lt;=&gt;</code></ins>,
          using the selected code <code>operator&lt;=&gt;</code> candidate.</dd>
   </dl>
 </blockquote>
