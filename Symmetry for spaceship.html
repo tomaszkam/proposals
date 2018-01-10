@@ -92,7 +92,7 @@ td { text-align: left; vertical-align: top;
 
 <p>This paper proposes to make operator spaceship (<code>&lt;=&gt;</code>) symmetric, by allowing the
    invocation in the form <code>a &lt;=&gt; b</code> to resolve to operator declaration with reversed
-   order of arguments both for usability and to make it consistent with the handling of the two-way
+   order of arguments, both for usability and to make it consistent with the handling of the two-way
    operators.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
@@ -107,12 +107,12 @@ td { text-align: left; vertical-align: top;
 
 <p>This paper proposes to extended the set of <code>operator@</code> for which the invocation
    in form <code>a @ b</code> considers both direct candidates of <code>operator&lt;=&gt;</code>
-   (</code>operator&lt;=&gt;(a, b)</code>) and onces with reversed order of arguments 
+   (</code>operator&lt;=&gt;(a, b)</code>) and ones with reversed order of arguments 
    (</code>operator&lt;=&gt;(b, a)</code>) to also include <code>operator&lt;=&gt;</code>
    itself.</p>
 
-<p>The lack of the build-in symmetry for specship operator, leads to several suprising behaviour
-   of the user code, leading both to compilation erros in seemingly correct programs, and more importantly
+<p>The lack of the build-in symmetry for spaceship operator, leads to several surprising behaviour
+   of the user code, leading both to compilation errors in seemingly correct programs, and more importantly
    to questionable runtime behaviour.</p>
 
 <h3><a name="motivation.example-class">3.1. <code>icase_string</code> class</h3>
@@ -131,26 +131,26 @@ std::weak_ordering operator&lt;=&gt;(icase_string const&amp;, std::string_view);
   <li><code>sv</code> of <code>std::string_view</code></li>
 </ul>
 to be compared using old relation operators (<code>&lt;</code>, <code>&gt;</code>, ...) regardless
-of the order of argument. To be specific all of the following expression will be well-formed:</p>
+of the order of argument. To be specific all of the following expression is well-formed:</p>
 <pre>
 is == sv, is != sv, is &lt; sv, is &gt; sv, is &lt;= sv, is &gt;= sv
 sv == is, sv != is, sv &lt; is, sv &gt; is, sv &lt;= is, sv &gt;= is
 </pre>
 
 <p>However, in case of three-way comparison operator, only the expression with direct order of arguments
-   will be accepted. Meaning that only first of bellow expression will be well-formed:</p>
+   will be accepted. Meaning that only first of bellow expression is well-formed:</p>
 <pre>
 is &lt;=&gt; sv
 sv &lt;=&gt; is // ill-formed
 </pre>
 
 <p>This design decision was motivated by the fact that <code>operator&lt;=&gt;</code> is not expected to be
-   called by the users, as relation operators shall be used instead. </p>
+   called by the users, as relation operators are recommended to be used instead. </p>
 
 <h3><a name="motivation.pair">3.2. <code>optional</code> example</h3>
 
 <p>For example lets us consider the following implementation of the spaceship operator for <code>std::optional</code>
-   (the following example is base on the code from Barry Rezvin's blog post
+   (the following example is based on the code from Barry Rezvin's blog post
     <a href="https://medium.com/@barryrevzin/implementing-the-spaceship-operator-for-optional-4de89fc6d5ec">Implementing the spaceship operator for optional</a>):</p>
 <pre>
 template&lt;typename T, typename U&gt;
@@ -175,9 +175,9 @@ auto operator&lt;=&gt;(optional&lt;T&gt; const&amp; lhs, U const&amp; rhs)
 </pre>
 <p>Above operators are aimed to recreate the behaviour of the current <code>optional</code> comparisons, that allow object of the
    <code>optional&lt;T&gt;</code> type to be compared with any object of the <code>U</code> and <code>optional&lt;U&gt;</code> type,
-   if the object of <code>T</code> can be compared with the object <code>U</code>.</p>
+   if the object of <code>T</code> can be compared with the object of type <code>U</code>.</p>
 
-<p>In case of our example, that the user should be able to compare all of following object, regardless of their order in invocation:</p>
+<p>In case of our example, the user should be able to compare all of following object, regardless of their order in invocation:</p>
 <pre>
 icase_string is;
 std::string_view sv;
@@ -198,7 +198,7 @@ osv == ois, osv != ois, osv &lt; ois, osv &gt; ois, osv &lt;= ois, osv &gt;= ois
 
 <p>In the case of the asymmetric invocation on the optional and unwrapped object, the only candidate available
    (<code>operator&lt;=&gt;(optional&lt;T&gt; const&amp;, U const&amp;)</code>) is always invoking underlining <code>&lt;=&gt;</code>
-   on the left hand side.</p>
+   with the wrapped object on the left hand side.</p>
 
 <p>As consequence the invocations in form <code>osi @ sv</code> (rewritten to <code>(osi &lt;=&gt; sv) @ 0</code>) and <code>sv @ osi</code>
    (rewritten to <code>0 @ (osi &lt;=&gt; sv)</code>) i.e:</p>
@@ -239,7 +239,7 @@ std::pair&lt;icase_string, std::string_view&gt; p1;
 std::pair&lt;std::string_view, icase_string&gt; p2;
 </pre>
 <p>As the objects of type <code>icase_string</code> and <code>std::string</code> can be compared witch each other, we
-   can expect that with the above declaration the following expression will be well-formed:</p>
+   can expect that, with the above declaration presence, the following expression will be well-formed:</p>
 <pre>
 p1 == p2, p1 != p2, p1 &lt; p2, p1 &gt; p2, p1 &lt;= p2, p1 &gt;= p2
 p2 == p1, p2 != p1, p2 &lt; p1, p2 &gt; p1, p2 &lt;= p1, p2 &gt;= p1
@@ -252,7 +252,7 @@ p2 == p1, p2 != p1, p2 &lt; p1, p2 &gt; p1, p2 &lt;= p1, p2 &gt;= p1
    <li><code>0 == (p2 &lt;=&gt; p1)</code></li> 
 </ul>
 In case of the first candidate the expression <code>p1.first &lt;=&gt; p2.first</code> (<code>icase_string</code> and <code>std::string_view</code>)
-is well-formed, however the comparison of the second elements <code>p1.second &lt;=&gt; p2.second</code> (<code>std::string_view</code> and <code>icase_string</code>)
+is well-formed, however the tree-way comparison of the second elements <code>p1.second &lt;=&gt; p2.second</code> (<code>std::string_view</code> and <code>icase_string</code>)
 is ill-formed (as invocation of spaceship are not symmetric). For the second candidate the <code>p2.first &lt;=&gt; p1.first</code> (<code>std::string_view</code> and <code>icase_string</code>)
 is ill-formed again.
 <p>
@@ -264,7 +264,7 @@ auto operator&lt;=&gt;(T const&amp; lhs, optional&lt;U&gt; const&amp; rhs)
   -&gt; decltype(lhs &lt;=&gt; *rhs)
 </pre>
 <p>to fix the heterogeneous <code>pair</code> comparison, we would need to edit original class (<code>icase_string</code>) to include
-   an reversed version of comparision operator:</p>
+   an reversed version of comparison operator:</p>
 <pre>
 std::weak_ordering operator&lt;=&gt;(std::string_view, icase_string const&amp;);
 </pre>
@@ -294,9 +294,9 @@ type:
 
 <p>The invocation in form <code>compare_3way(is, sv)</code> returns the object of the <code>std::weak_ordering</code> with value equal to <code>is &lt;=&gt; sv</code>.
    However in case of the reversed order of argument <code>compare_3way(sv, is)</code>, the expression <code>sv &lt;=&gt; is</code> is ill-formed, so we move 
-   to the second point (1.2). In this case the expressions <code>sv == is</code> and <code>sv &lt; is</code> are well-formed, as they are rewritten as <code>0 == (is &lt;=&gt; sv)</code>
-   and <code>0 &lt; (is &lt;=&gt; sv)</code> respectively. As consequence we return an object of <code>std::strong_ordering</code> with the value matching the value
-   of <code>is &lt;=&gt; sv</code>.</p>
+   to the second point (1.2). In this case the expressions <code>sv == is</code> and <code>sv &lt; is</code> are well-formed, as they are rewritten to <code>0 == (is &lt;=&gt; sv)</code>
+   and <code>0 &lt; (is &lt;=&gt; sv)</code> respectively. As consequence we return an object of <code>std::strong_ordering</code> with the value matching the inverted
+   value of <code>is &lt;=&gt; sv</code>.</p>
 
 <p>Furthermore, in case of the some object <code>o1</code> and <code>o2</code> of types <code>O1</code> and <code>O2</code>, for which the <code>o1 &lt;=&gt; o2</code> will return
    <code>std::partial_order::unordered</code> value and the reverse invocation <code>o2 &lt;=&gt; o1</code> will be ill-formed (only <code>operator&lt;=&gt;(O1, O2)</code> exists).
@@ -320,16 +320,16 @@ type:
   <li><code>(a &lt;=&gt; b) @ 0</code></li>
   <li><code>0 @ (b &lt;=&gt; a)</code></li>
 </ul>
-where after the rewrite the <code>@</code> and <code>&lt;=&gt;</code> are interpreted according to usual operator lookup rules, i.e. no additional rewrites are performed.</p>
+where after the rewrite the <code>@</code> and <code>&lt;=&gt;</code> are interpreted according to usual operator lookup rules, i.e. no recursive rewrites are performed.</p>
 
 <p>Furthermore, we propose to keep current tie-breakers, that in case of equivalent candidates, prefers:
 <ul>
   <li><code>a @ b</code> over the three-way forms: <code>(a &lt;=&gt; b) @ 0</code> and <code>0 @ (a &lt;=&gt; b)</code>,</li>
   <li><code>(a &lt;=&gt; b) @ 0</code> over synthesised reversed candidate: <code>0 @ (b &lt;=&gt; a).</code></li> 
 </ul>
-Due above, in case of the <code>&lt;=&gt;</code>, the <code>(a &lt;=&gt; b) &lt;=&gt; 0</code>, will never be used, as in case when the expression <code>a &lt;=&gt; b</code>,
-it will be worse candidate than <code>a &lt;=&gt; b</code>. As consequence the set of candidates for this operator is de-facto reduced to <code>a &lt;=&gt; b</code> and
-<code>0 &lt;=&gt; (b &lt;=&gt; a)</code>.</p>
+Due above, in case of the <code>&lt;=&gt;</code>, the <code>(a &lt;=&gt; b) &lt;=&gt; 0</code>, will never be used, as in case when the expression <code>a &lt;=&gt; b</code>
+is well-formed, it will be worse candidate than <code>a &lt;=&gt; b</code>. As consequence the set of candidates for this operator is de-facto reduced to <code>a &lt;=&gt; b</code>
+and <code>0 &lt;=&gt; (b &lt;=&gt; a)</code>.</p>
       
 <p>To complement above language change, we need to extend to interface of the comparison category type <code>C</code> (like <code>std::strong_ordering</code>) to include following
    functions:</p>
@@ -346,7 +346,7 @@ C operator&lt;=&gt;(<em>unspecified</em>, C); //0 &lt;=&gt; c, i.e. inversion
   <li><code>C::greater</code> for <code>c</code> representing lower-than comparison result (<code>c &lt; 0</code>),</code>
   <li><code>c</code> (unchanged) in case of the other values.</li>
 </ul>
-Note that  for the <code>strong_equality</code> and <code>weak_equality</code> the inversion is an identity operatoration, as these object cannot represent lower-than or
+Note that  for the <code>strong_equality</code> and <code>weak_equality</code> the inversion is an identity operator ration, as these object cannot represent lower-than or
 greater-than results.</p>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
