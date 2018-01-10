@@ -81,6 +81,9 @@ td { text-align: left; vertical-align: top;
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
+  <tr>
+    <th>                     </th><th> </th><td><address>Herb Sutter &lt;hsutter at microsoft.com&gt;</address></td>
+  </tr>
 </tbody></table>
 
 <h1><a name="title">Symmetry for spaceship</a></h1>
@@ -89,7 +92,8 @@ td { text-align: left; vertical-align: top;
 
 <p>This paper proposes to make operator spaceship (<code>&lt;=&gt;</code>) symmetric, by allowing the
    invocation in the form <code>a &lt;=&gt; b</code> to resolve to operator declaration with reversed
-   order of arguments.</p>
+   order of arguments both for usability and to make it consistent with the handling of the two-way
+   operators.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -133,7 +137,7 @@ is == sv, is != sv, is &lt; sv, is &gt; sv, is &lt;= sv, is &gt;= sv
 sv == is, sv != is, sv &lt; is, sv &gt; is, sv &lt;= is, sv &gt;= is
 </pre>
 
-<p>However, in case of ternary comparison operator, only the expression with direct order of arguments
+<p>However, in case of three-way comparison operator, only the expression with direct order of arguments
    will be accepted. Meaning that only first of bellow expression will be well-formed:</p>
 <pre>
 is &lt;=&gt; sv
@@ -213,7 +217,7 @@ si == osv, si != osv, si &lt; osv, si &gt; osv, si &lt;= osv, si &gt;= osv
 
 <h3><a name="motivation.pair">3.3. <code>pair</code> example</h3>
 
-<p>Let us consider the following potential extension in form of the heterogeneous ternary comparison
+<p>Let us consider the following potential extension in form of the heterogeneous three-way comparison
    operator for <code>std::pair</code> type:</p>
 <pre>
 template&lt;typename T1, typename U1, typename T2, typename U2&gt;
@@ -300,7 +304,7 @@ type:
    <code>compare_3way(o2, o1)</code> returns <code>strong_ordering::greater</code> (due fallback to point 1.2 described above).</p>
 
 <p>In addition all named comparison algorithms (<code>strong_order</code>, <code>weak_order</code>, <code>partial_order</code>, <code>strong_equal</code>, <code>weak_equal</code>)
-   are prone to same error caused by the lack of symmetry for ternary operator invocation.</p>
+   are prone to same error caused by the lack of symmetry for three-way operator invocation.</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
@@ -308,9 +312,9 @@ type:
    order of arguments (<code>operator&lt;=&gt;(b,a)</code> or <code>b.operator&lt;=&gt;(a)</code>) in addition to the usual set of the functions, then in case when such candidate
    would be selected, the return type would be inverted. As consequence all of above example will "just work" without any changes to their code.</p>
 
-<p>To achieve above goal, we are proposing the extend current language rules for the relation operators, to cover ternary comparison operator.
+<p>To achieve above goal, we are proposing the extend current language rules for the relation operators, to cover three-way comparison operator.
    That means that the expression in the form <code>a @ b</code> for <code>@</code> being relation operator (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>,
-   <code>&lt;=</code>, <code>&gt;=</code>) and <b>ternary comparison operator (<code>&lt;=&gt;</code>)</b>, will consider following candidates:
+   <code>&lt;=</code>, <code>&gt;=</code>) and <b>three-way comparison operator (<code>&lt;=&gt;</code>)</b>, will consider following candidates:
 <ul>
   <li><code>a @ b</code></li>
   <li><code>(a &lt;=&gt; b) @ 0</code></li>
@@ -320,7 +324,7 @@ where after the rewrite the <code>@</code> and <code>&lt;=&gt;</code> are interp
 
 <p>Furthermore, we propose to keep current tie-breakers, that in case of equivalent candidates, prefers:
 <ul>
-  <li><code>a @ b</code> over the ternary forms: <code>(a &lt;=&gt; b) @ 0</code> and <code>0 @ (a &lt;=&gt; b)</code>,</li>
+  <li><code>a @ b</code> over the three-way forms: <code>(a &lt;=&gt; b) @ 0</code> and <code>0 @ (a &lt;=&gt; b)</code>,</li>
   <li><code>(a &lt;=&gt; b) @ 0</code> over synthesised reversed candidate: <code>0 @ (b &lt;=&gt; a).</code></li> 
 </ul>
 Due above, in case of the <code>&lt;=&gt;</code>, the <code>(a &lt;=&gt; b) &lt;=&gt; 0</code>, will never be used, as in case when the expression <code>a &lt;=&gt; b</code>,
@@ -330,8 +334,8 @@ it will be worse candidate than <code>a &lt;=&gt; b</code>. As consequence the s
 <p>To complement above language change, we need to extend to interface of the comparison category type <code>C</code> (like <code>std::strong_ordering</code>) to include following
    functions:</p>
 <pre>
-C operator&lt;=&gt;(C, std::nullptr_t); //c &lt;=&gt; 0, i.e. identity  
-C operator&lt;=&gt;(std::nullptr_t, C); //0 &lt;=&gt; c, i.e. inversion
+C operator&lt;=&gt;(C, <em>unspecified</em>); //c &lt;=&gt; 0, i.e. identity  
+C operator&lt;=&gt;(<em>unspecified</em>, C); //0 &lt;=&gt; c, i.e. inversion
 </pre>
 <p>This will basically complete set of comparison operators between these categories and the literal <code>0</code>, which currently only include relational operators.</p>
 
