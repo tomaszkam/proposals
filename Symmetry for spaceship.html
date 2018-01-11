@@ -505,11 +505,32 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
 <p>For the purposes of SG10, we recommend increasing the value of the macro attached to consistent comparisons (if any) to match 
    date of acceptance of this proposal.</p>
 
-<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+<h2><a name="implementability">7. Implementability</a></h2>
+
+<p>Despite the fact that the inversion operation for the comparison category types is specified using
+   the conditional implementation, it can be implemented under 
+
+<p>At the <a href="https://raw.githubusercontent.com/tomaszkam/proposals/master/implentation/space.cpp"/>following link</a>,
+   an example implementation of the comparision category types may be found - it's goal is to reduce amount of branches:
+   <ul>
+     <li>conversion between type categories are implemented by passing unomdified integer values,</li>
+     <li>inversion for ordering types are implemented as negation of underlining integer value,</li>
+     <li>with the single exception of <code>&lt;=</code> and <code>&gt;=</code> for <code>partial_ordering</code>,
+         comparision between comparision category and <code>0</code> are implemented using single integer
+         comparision,</li>
+     <li><code>&lt;=</code> and <code>&gt;=</code> for <code>partial_ordering</code> are implemented
+         as disjunction of <code>&lt;</code> and <code>==</code>.
+   </ul>
+   This code can be tested online <a href="https://wandbox.org/permlink/OiTBleYXZfMVXyeJ">here</a> &mdash; 
+   due lack of the language support, the declarations and uses of <code>operator&lt;=&gt;</code> are replaced
+   with <code>operator_cmp</code> function.</p> 
+
+
+<h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
 <p>Jens Maurer offered many useful suggestions and corrections to the proposal.</p>
 
-<h2><a name="literature">8. References</a></h2>
+<h2><a name="literature">9. References</a></h2>
 
 <ol>
   <li>Herb Sutter, Jens Maurer, Walter E. Brown, 
@@ -530,9 +551,12 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
       (N4713, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf">
-              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf</a>)</li>
+                       http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf</a>)</li>
+
+  <li>Tomasz Kaminski,
+      "Example implementation of comparision category types",
+      (<a href="https://raw.githubusercontent.com/tomaszkam/proposals/master/implentation/space.cpp">https://raw.githubusercontent.com/tomaszkam/proposals/master/implentation/space.cpp</a>)</li>
 
 </ol>
-
 
 </body></html>
