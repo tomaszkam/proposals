@@ -105,7 +105,7 @@ td { text-align: left; vertical-align: top;
 
 <p>The most common use case for tuple unpacking are situations when user wants to pass the elements
    of the tuple <code>t</code> as the arguments to callable object <code>f</code>. To accomplish
-   such task, we may use <code>apply<code> function that is included in Library Fundamentals TS
+   such task, we may use <code>apply</code> function that is included in Library Fundamentals TS
    and was recently accepted into C++ standard:</p>
 <pre>std::apply(f, t)
 f(<em>unpack</em>(t)...)</pre>
@@ -231,7 +231,7 @@ std::apply([](auto&amp;&amp;... args) -&gt; decltype(auto) { return args + ...; 
 <h2><a name="literature">9. References</a></h2>
 
 <ol>
-  <li>Vicente J. Botet Escribá, 
+  <li>Richard Smith, Tony Van Eerd, David Sankel, 
       "'std::direct_init' for plugging the metaprogramming constructor hole" 
       (P0271R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0271r0.html">
                 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0271r0.html</a>)</li>
