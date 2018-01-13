@@ -105,15 +105,16 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>P0515R3 [1] proposes that when expression <code>b &lt; a</code> is encountered,
-   <code>a</code> and <code>b</code> being potentially of different types, three functions are mtched in this order:</p>
-  
-<ol><li><code>operator&lt;(b, a)</code>,</li>
+<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r3.pdf">P0515R3: Consistent comparison</a>
+   proposes that when expression <code>b &lt; a</code> is encountered, <code>a</code> and <code>b</code> being
+   potentially of different types, three functions are matched:</p>
+   <ol>
+    <li><code>operator&lt;(b, a)</code>,</li>
     <li><code>operator&lt;=&gt;(b, a) &lt; 0</code>,</li>
     <li><code>0 &lt; operator&lt;=&gt;(a, b)</code>,</li>
-    </ol>
+   </ol>
     
-<p>This guarantees, that the library author needs to provide only one definition of
+<p>This guarantees, that the class author needs to provide only one definition of
    <code>operator&lt;=&gt;</code> for heterogenous types, and overload resolution itself
    will try to match it in different configurations to build the desired expression.</p>
   
@@ -537,7 +538,7 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
-<p>Jens Maurer offered many useful suggestions and corrections to the proposal.</p>
+<p>Jens Maurer and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">9. References</a></h2>
 
