@@ -107,11 +107,11 @@ td { text-align: left; vertical-align: top;
 
 <p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r3.pdf">P0515R3: Consistent comparison</a>
    proposes that when expression <code>b &lt; a</code> is encountered, <code>a</code> and <code>b</code> being
-   potentially of different types, three functions are matched:</p>
+   potentially of different types, following functions are matched:</p>
    <ol>
-    <li><code>operator&lt;(b, a)</code>,</li>
-    <li><code>operator&lt;=&gt;(b, a) &lt; 0</code>,</li>
-    <li><code>0 &lt; operator&lt;=&gt;(a, b)</code>,</li>
+    <li><code>operator&lt;(b, a)</code> and <code>b.operator&lt;(a)</code>,</li>
+    <li><code>operator&lt;=&gt;(b, a) &lt; 0</code> and <code>b.operator&lt;=&gt;(a) &lt; 0</code>,</li>
+    <li><code>0 &lt; operator&lt;=&gt;(a, b)</code> and <code>0 &lt; a.operator&lt;=&gt;(b)</code>.</li>
    </ol>
     
 <p>This guarantees, that the class author needs to provide only one definition of
