@@ -464,7 +464,7 @@ friend constexpr partial_ordering operator&lt;=&gt;(unspecified, partial_orderin
 
   <dl class="attribute">
     <dt>Returns:</dt>
-    <dd><code>!v.is_ordered || v.value == 0 ? v : v.value &lt; 0 ? partial_ordering::greater : partial_ordering::less</code></dd>
+    <dd><code>v &lt; 0 ? partial_ordering::greater : v &gt; 0 ? partial_ordering::less : v</code></dd>
   </dl>
 </blockquote>
 
@@ -487,7 +487,7 @@ friend constexpr weak_ordering operator&lt;=&gt;(unspecified, weak_ordering v) n
 
   <dl class="attribute">
     <dt>Returns:</dt>
-    <dd><code>v.value == 0 ? weak_ordering::equivalent : v.value &lt; 0 ? weak_ordering::greater : weak_ordering::less</code></dd>
+    <dd><code>v &lt; 0 ? weak_ordering::greater : v &gt; 0 ? weak_ordering::less : v</code></dd>
   </dl>
 </blockquote>
 
@@ -510,7 +510,7 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
 
   <dl class="attribute">
     <dt>Returns:</dt>
-    <dd><code>v.value == 0 ? strong_ordering::equal : v.value &lt; 0 ? strong_ordering::greater : strong_ordering::less</code></dd>
+    <dd><code>v &lt; 0 ? strong_ordering::greater : v &gt; 0 ? strong_ordering::less : v</code></dd>
   </dl>
 </blockquote>
 
