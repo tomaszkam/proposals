@@ -148,12 +148,12 @@ td { text-align: left; vertical-align: top;
 <p>every use of <code>p.first</code> leads to undefined behaviour caused by
    reading a dangling reference. Despite all of the above advantages, programmers
    are still forced to use <code>pair&lt;T&amp;, U&amp;&gt;</code>, when at least
-   one of types the <code>T</code> or <code>U</code> is incomplete.</p>
+   one of the types <code>T</code> or <code>U</code> is incomplete.</p>
 
 <p>Furthermore this problem is not addressed by inclusion of the
    <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a>,
    as implicit deduction guides synthesized from <code>pair</code> and <code>tuple</code>
-   constructors does not deduce reference types.</p>
+   constructors do not deduce reference types.</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
@@ -164,7 +164,7 @@ td { text-align: left; vertical-align: top;
 
 <h3><a name="design.removal">4.1. Forced removal of nested typedefs</a></h3>
 
-<p>The feature proposed with the paper conflicts with support for the old
+<p>The feature proposed in the paper conflicts with support for the old
    function binding protocol and vendors will no longer be allowed to provide required
    typedefs in their <code>std::reference_wrapper</code> implementations.</p>
 
