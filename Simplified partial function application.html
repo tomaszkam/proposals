@@ -143,6 +143,7 @@ td { text-align: left; vertical-align: top;
   <li>Updated reference to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0318r1.pdf">P0318: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a>.</li>
   <li>Applied wording fixes from Walter E. Brown.</li>
   <li>Removed defintion of <em>expression-equivalent</em> (accepted as part of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf">P0898R3: Standard Library Concepts</a>).</li>
+  <li>Spllited "Requires" elements into "Mandates" and "Expects", per <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf">P0788R3: Standard Library Specification in a Concepts and Contracts World</a></li>.
 </ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
@@ -615,13 +616,20 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     Then <code><em>DECAY_UNWRAP</em>(T)</code> is <code>X&amp;</code> if <code>U</code> equals <code>reference_wrapper&lt;X&gt;</code>,
     otherwise <code><em>DECAY_UNWRAP</em>(T)</code> is <code>U</code>.<p></p></dd>
 
-    <dt>Requires:</dt> 
-    <dd><code>FD</code> shall satisfy the requirements of <code>Cpp17MoveConstructible</code>.
+    <dt>Mandates:</dt> 
+    <dd><code>conjunction_v&lt;is_constructible&lt;FD, F&gt;,
+                               is_move_constructible&lt;FD&gt;,
+                               is_constructible&lt;BoundArgs, Args&gt;...,
+                               is_move_constructible&lt;BoundArgs&gt;...&gt;</code>
+         shall be true.
+    <p></p></dd>
+
+
+    <dt>Expects:</dt> 
+    <dd><code>FD</code> shall satisfy the requirements of <em>Cpp17MoveConstructible</em>.
         For each <code>Ti</code> in <code>BoundArgs</code>, if <code>Ti</code> is an object type, 
         <code>Ti</code> shall satisfy the requirements of <em>Cpp17MoveConstructible</em>.
         <code>fd</code> shall be a callable object ([func.def]).
-        If <code>is_constructible_v&lt;FD, F&gt; &amp;&amp; conjunction_v&lt;is_constructible&lt;BoundArgs, Args&gt;...&gt;</code> is false,
-        the program is ill-formed.
     <p></p></dd>
 
     <dt>Returns:</dt>
@@ -664,10 +672,13 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
       <li><code>call_args</code> is an argument pack used in a function call expression of <code>g</code>.</li>
     </ul><p></p></dd>
 
-    <dt>Requires:</dt> 
+    <dt>Mandates:</dt> 
+    <dd><code>is_constructible_v&lt;FD, F&gt; &amp;&amp; is_move_constructible_v&lt;FD&gt;</code> shall be true.
+    <p></p></dd>
+
+    <dt>Expects:</dt> 
     <dd><code>FD</code> shall satisfy the requirements of <em>Cpp17MoveConstructible</em>.
         <code>fd</code> shall be a callable object ([func.def]).
-        If <code>is_constructible_v&lt;FD, F&gt;</code> is false, the program is ill-formed.
     <p></p></dd>
 
     <dt>Returns:</dt>
@@ -852,6 +863,11 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
       "Standard Library Concepts"
       (P0898R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf">
                 http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf</a>)</li>
+
+  <li>Walter E. Brown,
+      "Standard Library Specification in a Concepts and Contracts World"
+      (P0788R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf</a>)</li>
 </ol>
 
 </body></html>
