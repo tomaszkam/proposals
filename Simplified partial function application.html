@@ -70,13 +70,13 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R3</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R4</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2017-11-09</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-07-04</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -102,11 +102,9 @@ td { text-align: left; vertical-align: top;
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group
    of call arguments instead of one.</p>
   
-<p>In this paper <code>bind_front</code> is proposed as alternative, 
-that allow user to provide values that will be passed
-   as first or last arguments to stored callable. The author believes 
-that this solution is in-line with LEWG recommendation for the original
-   paper, that suggested to introduce only <code>_all</code> placeholder.</p>
+<p>In this paper <code>bind_front</code> is proposed as alternative, that allow user to provide values that will be passed
+   as first  arguments to stored callable. The author believes that this solution is in-line with LEWG recommendation for
+   the original paper, that suggested to introduce only <code>_all</code> placeholder.</p>
 
 <h3><a name="history.r1">2.2. Revision 1</a></h3>
 
@@ -136,6 +134,12 @@ that this solution is in-line with LEWG recommendation for the original
   <li>Clarified that call wrappers produced by same specialization are same
       (addressing <a href="https://cplusplus.github.io/LWG/issue3023">LWG issue 3023</a>).</li>
   <li>Reverted deprecation wording for <code>bind</code> per LEWG guidance.</li>
+</ul>
+
+<h3><a name="history.r4">2.5. Revision 4</a></h3>
+
+<ul>
+  <li>Applied wording fixes from Walter E. Brown.</li>
 </ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
@@ -616,15 +620,15 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
       <li><code>g</code> is a value of the result of a <code>bind_front</code> invocation,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
-      <li><code>fd</code> is a target object of <code>g</code> 
+      <li><code>fd</code> is a target object of <code>g</code> ([func.def])
            of type <code>FD</code>
            initialized with initializer <code>(std::forward&lt;F&gt;(f))</code>,</li>
       <li><code>BoundArgs</code> is a pack of types equivalent to <code><em>DECAY_UNWRAP</em>(Args)...</code>,</li>
-      <li><code>bound_args</code> is a pack of bound argument entities of <code>g</code>
+      <li><code>bound_args</code> is a pack of bound argument entities of <code>g</code> ([func.def])
            of types <code>BoundArgs...</code> 
            initialized with initializers <code>(std::forward&lt;Args&gt;(args))...</code> respectively,</li>
 
-      <li><code>call_args</code> is a argument pack used in a function call expression of <code>g</code>,</li>
+      <li><code>call_args</code> is an argument pack used in a function call expression of <code>g</code>,</li>
     </ul>
     where <code><em>DECAY_UNWRAP</em>(T)</code> is determined as follows: 
     Let <code>U</code> be <code>decay_t&lt;T&gt;</code>.
@@ -640,11 +644,11 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         the program is ill-formed.
     <p></p></dd>
 
-    <dt>Effects:</dt>
-    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>invoke(fd, bound_args..., call_args...)</code> ([func.require]).</p></dd>
+    <dt>Returns:</dt>
+    <dd><p>A perfect forwarding call wrapper <code>g</code> with call pattern <code>invoke(fd, bound_args..., call_args...)</code>.</p></dd>
 
     <dt>Throws:</dt>
-    <dd><p>Any exception thrown by the initialization of the state entities of <code>g</code>.</p></dd>
+    <dd><p>Any exception thrown by the initialization of the state entities of <code>g</code> ([func.def]).</p></dd>
 
   </dl>
 </blockquote>
@@ -673,11 +677,11 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
       <li><code>g</code> is a value of the result of a <code>not_fn</code> invocation,</li>
 
       <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
-      <li><code>fd</code> is a target object of <code>g</code> 
+      <li><code>fd</code> is a target object of <code>g</code> ([func.def])
            of type <code>FD</code> 
            initialized with initializer <code>(std::forward&lt;F&gt;(f))</code>,</li>
       
-      <li><code>call_args</code> is a argument pack used in a function call expression of <code>g</code>.</li>
+      <li><code>call_args</code> is an argument pack used in a function call expression of <code>g</code>.</li>
     </ul><p></p></dd>
 
     <dt>Requires:</dt> 
@@ -686,8 +690,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         If <code>is_constructible_v&lt;FD, F&gt;</code> is false, the program is ill-formed.
     <p></p></dd>
 
-    <dt>Effects:</dt>
-    <dd><p>Creates a perfect forwarding call wrapper <code>g</code> with call pattern <code>!invoke(fd, call_args...)</code> ([func.require]).</p></dd>
+    <dt>Returns:</dt>
+    <dd><p>A perfect forwarding call wrapper <code>g</code> with call pattern <code>!invoke(fd, call_args...)</code>.</p></dd>
 
     <dt>Throws:</dt>
     <dd><p>Any exception thrown by the initialization of <code>fd</code>.</p></dd>
@@ -801,7 +805,7 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
 <p>Marshall Clow for very helpful review of the paper wording.</p> 
 
-<p>Jonathan Wakely, Stephan T. Lavavej and Johel E. G. Peña offered many useful suggestions and corrections to the proposal.</p>
+<p>Jonathan Wakely, Stephan T. Lavavej, Walter E. Brown, and Johel E. G. Peña offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Casey Carter has created and suggested use of expression-equivalent term in definition of <em>perfect forwarding call wrapper</em>.</p>
 
