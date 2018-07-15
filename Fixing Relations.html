@@ -63,7 +63,7 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>No 'CommonReference' for 'Relation'</title>
+<title>Fixing 'Relation's</title>
 </head>
 
 <body>
@@ -83,13 +83,13 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">No <code>CommonReference</code> for <code>Relation</code></a></h1>
+<h1><a name="title">Fixing <code>Relation</code>s</a></h1>
 
 <h2><a name="intro">1. Introduction</a></h2>
 
 <p>This paper proposes to remove an <code>CommonRefernce&lt;T, U&gt;</code> syntactic requirement for the <code>Relation&lt;T, U&gt;</code>
    concepts - existence of this requirement is forcing the user to express cross-type comparision in terms of projection, which
-   lead to reduced code performance.</code> 
+   lead to reduced code performance.</p> 
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -101,11 +101,11 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>Faimly of the standard algorithms related to sorting and operations on sorted sequence (<code>sort</code>, <code>lower_bound</code>, <code>set_intersection</code>, ...)
-   are acceoting an functor, that is representing a <em>weak ordering</em>. Examples of such ordering, includes relation resulting frin a composition of the <em>key function</em>
+<p>Family of the standard algorithms related to sorting and operations on sorted sequence (<code>sort</code>, <code>lower_bound</code>, <code>set_intersection</code>, ...)
+   are accepting an functor, that is representing a <em>weak ordering</em>. Examples of such ordering, includes relation resulting from a composition of the <em>key function</em>
    that extracts certain part of the object, and the <em>strong ordering</em> relation over extract part.</p>
    
-<p>To ilustrate lets us consider following <code>NameLess</em> functor, that is comparing object of <code>Employee</code> by
+<p>To illustrate lets us consider following <code>NameLess</code> functor, that is comparing object of <code>Employee</code> by
    comparing only <code>name</code> member:</p>
 <pre>struct NameLess
 {
@@ -124,70 +124,154 @@ td { text-align: left; vertical-align: top;
 <p>Now that code can be upgrade to use Ranges:</p>
 <pre>std::ranges::sort(ve.begin(), ve.end(), NameLess{});
 std::ranges::sort(ve, NameLess{});</pre>
-<p>Finally we have an option to provide our <em>key function</em> and <em>strong ordering</em> separatelly:</p>
+<p>Finally we have an option to provide our <em>key function</em> and <em>strong ordering</em> separately:</p>
 <pre>std::ranges::sort(ve, std::less&lt;&gt;{}, &amp;Employee::name);</pre>
 
-<p>Once the vector is sorted, we can use one of the other algorithms to find all employeers with given name
+<p>Once the vector is sorted, we can use one of the other algorithms to find all employee's with given name
    (i.e. find <em>equivalence class</em> for given value):</p>
-<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski", NameLess{});</pre>
+<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"s, NameLess{});</pre>
 <p>However, if I want to migrate the above code to Ranges, by stating:</p>
-<pre>std::ranges::equal_range(ve.begin(), ve.end(),  "Kowalski",NameLess{});
-std::ranges::equal_range(ve, NameLess{});</pre>
+<pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"s, NameLess{});
+std::ranges::equal_range(ve, "Kowalski"s, NameLess{});</pre>
 <p>The above invocations will not compile, and I will be forced to rewrite my functor into separate
    projection and comparision:</p>
-<pre>std::ranges::equal_range(ve, "Kowalski", std::less&lt;&gt;{}, &amp;Employee::name);</pre>
+<pre>std::ranges::equal_range(ve, "Kowalski"s, std::less&lt;&gt;{}, &amp;Employee::name);</pre>
 
 <p>The above compilation problem is caused by the fact that for the relation to satisfy <code>StrictWeakOrdering&lt;NameLess, Employee, std::string&gt;</code>,
-   such functor needs to satisfy <code>Relation&t;NameLess, Employee, std::string&gt;</code>, which requires that the types <code>Employee</code> and 
+   such functor needs to satisfy <code>Relation&lt;NameLess, Employee, std::string&gt;</code>, which requires that the types <code>Employee</code> and 
    <code>std::string</code> has a common reference (<code>CommonReference&lt;Employee, std::string&gt;</code>).</p>
 
 <p>In situation when <em>weak ordering</em> is defined in terms of the composition of the <em>key function</em> and <em>strong ordering</em>, the type
-   returned by <em>key function</em> may be unrellated to the actual object type, as we are usually returning an member of that obkect. This means
+   returned by <em>key function</em> may be unrelated to the actual object type, as we are usually returning an member of that object. This means
    that the user is forced to rewrite they comparators into separate projection and homogeneous functor.</p>
 
-<p>Note that we are placing this limitation inconstiently - in case of the sorting of the <code>Employee</code> object, the user may decide
-   to merge the projection into the functor (<code>NameLess</code>), or provide it separatelly (combination of the <code>std::less&lt;&gt;{}, &amp;Employee::name</code>).
+<p>Note that we are placing this limitation inconstantly - in case of the sorting of the <code>Employee</code> object, the user may decide
+   to merge the projection into the functor (<code>NameLess</code>), or provide it separately (combination of the <code>std::less&lt;&gt;{}, &amp;Employee::name</code>).
    While in case of the function searching for given key value, we are forced to separate projection on ordering into separate objects. 
-   This puts an arbitrally limitaiton on the implementation freedom, and have negative consequences both on runtime performance of the code
+   This puts an arbitrary limitation on the implementation freedom, and have negative consequences both on runtime performance of the code
    and its readability.</p>
 
-<h3><a name="motivation.cost">3.1. (Non-zero) Overhead abstractions</h3>
+<h3><a name="motivation.cost">3.1. Inefficient abstractions</a></h3>
 
-<p>
-<p>In contrast to the previous example, where lack of the symmetry for the invocation of the spaceship operator led to ill-formed code,
-   in this case, the code will compile but produce an incorrect result.</p>
+<p>To illustrate the effect of above implementation, lets us consider the following problem: We have a <code>vector&lt;Itinerary&gt;</code>
+   representing round-trip flights (to specific destination and back), and we want to extract find ones that are having departures
+   on specific dates.</p>
 
-<p>Given the following specification of the <code>compare_3way</code> function from 8.7.11 Three-way comparison algorithms ([alg.3way]):<p>
-<blockquote class="std"> 
+<p>Firstly we defined the required comparators, <code>LegDepartureDateLess</code> compares departure date on leg, while <code>ItneraryDepartureDatesLess</code>
+   compares departures of all legs:</p>
+<pre>struct LegDepartureDateLess
+{
+   bool operator()(Leg const&amp; lhs, Leg const&amp; rhs) const
+   { return lhs.departureDate &lt; rhs.departureDate; }
 
-<em>Effects</em>: Compares two values and produces a result of the strongest applicable comparison category
-type:
-<ul>
- <li>(1.1) Returns <code>a &lt;=&gt; b</code> if that expression is well-formed.</li>
- <li>(1.2) Otherwise, if the expressions <code>a == b</code> and <code>a &lt; b</code> are each well-formed and convertible to <code>bool</code>,
-     returns <code>strong_ordering::equal</code> when <code>a == b</code> is <code>true</code>,
-     otherwise returns <code>strong_ordering::less</code> when <code>a &lt; b</code> is </code>true</code>,
-     and otherwise returns <code>strong_ordering::greater</code>.</li>
- <li>(1.3) Otherwise, if the expression <code>a == b</code> is well-formed and convertible to <code>bool</code>, 
-     returns <code>strong_equality::equal</code> when <code>a == b</code> is <code>true</code>,
-     and otherwise returns <code>strong_equality::nonequal</code>.</li>
- <li>(1.4) Otherwise, the function is defined as deleted.</li>
-</ul>
-</blockquote>
+   bool operator()(Leg const&amp; lhs, std::chrono::local_days const&amp; rhs) const
+   { return lhs.departureDate &lt; rhs; }
 
-<p>The invocation in form <code>compare_3way(is, sv)</code> returns an object of type <code>std::weak_ordering</code> with value equal to <code>is &lt;=&gt; sv</code>.
-   However in case of the reversed order of argument <code>compare_3way(sv, is)</code>, the expression <code>sv &lt;=&gt; is</code> is ill-formed, so we move 
-   to the second point (1.2). In this case the expressions <code>sv == is</code> and <code>sv &lt; is</code> are well-formed, as they are rewritten to <code>0 == (is &lt;=&gt; sv)</code>
-   and <code>0 &lt; (is &lt;=&gt; sv)</code> respectively. As a result, we return an object of <code>std::strong_ordering</code> with the value matching the inverted
-   value of <code>is &lt;=&gt; sv</code>.</p>
+   bool operator()(std::chrono::local_days const&amp; lhs, Leg const&amp; rhs) const
+   { return lhs &lt; rhs.departureDate; }
+};
 
-<p>Furthermore, consider the case of objects <code>o1</code> and <code>o2</code> of types <code>O1</code> and <code>O2</code>, for which the expression <code>o1 &lt;=&gt; o2</code> will return
-   <code>std::partial_order::unordered</code> and the reverse invocation <code>o2 &lt;=&gt; o1</code> will be ill-formed (only <code>operator&lt;=&gt;(O1, O2)</code> exists).
-   The invocation of the function <code>compare_3way(o1, o2)</code> will return <code>std::partial_order::unordered</code>, however if the arguments are reversed
-   <code>compare_3way(o2, o1)</code> returns <code>strong_ordering::greater</code> (due to the fallback to point 1.2 described above).</p>
+struct ItineraryDepartureDatesLess
+{
+  bool operator()(Itinerary const&amp; lhs, Itinerary const&amp; rhs) const
+  { return less_impl(lhs.legs, rhs.legs); }
 
-<p>In addition all named comparison algorithms (<code>strong_order</code>, <code>weak_order</code>, <code>partial_order</code>, <code>strong_equal</code>, <code>weak_equal</code>)
-   are prone to the same error caused by the lack of symmetry for three-way operator invocation.</p>
+  bool operator()(std::vector&lt;std::chrono::local_days&gt; const&amp; lhs, Itinerary const&amp; rhs) const
+  { return less_impl(lhs, rhs.legs); }
+
+  bool operator()(Itinerary const&amp; rhs, std::vector&lt;std::chrono::local_days&gt; const&amp; lhs) const
+  { return less_impl(lhs, rhs.legs); }
+   
+private:
+  template&lt;typename Sequence1, typename Sequence2&gt;
+  bool less_impl(Sequence1 const&amp; lhs, Sequence2 const&amp; rhs) const
+  {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(),
+                                        rhs.begin(), rhs.end(),
+                                        LegDepartureDateLess{});
+  }
+};</pre>
+
+<p>Given above comparison functions, we can sort the vector <code>vi</code> of <code>Itinerary</code>:</p>
+<pre>std::sort(vi.begin(), vi.end(), ItineraryDepartureDatesLess{});</pre>
+<p>After that we can search for specific set of departure dates (given as vector <code>vd</code>) in the logarithmic time:</p>
+<pre>std::equal_range(vi.begin(), vi.end(), vd, ItineraryDepartureDatesLess{});</pre>
+
+<p>If we want to implement the same functionality using the ranges, we can mechanically transform the code sorting elements:</p>
+<pre>std::ranges::sort(vi, ItineraryDepartureDatesLess{});</pre>
+<p>However such manual transformation will not work for searching of element:</p>
+<pre>std::equal_range(vi, ItineraryDepartureDatesLess{});</pre>
+<p>will not compile, as (unsuprisingly) there is no common reference between the <code>Itinerary</code> and <code>std::vector&lt;std::chrono::local_days&gt;</code>.</p>
+
+<p>To fix above code, we need to represent split our comparator into separate projection and relation. In the first attempt we may define projection as follows:</p>
+<pre>auto const toDepartureDates = [](Itinerary const&amp; i) -&gt; std::vector&lt;std::chrono::local_days&gt;
+{ 
+   std::vector&lt;std::chrono::local_days&gt; result(i.legs.size());
+   std::ranges::transform(i.legs, result.begin(), &amp;Leg::departureDate);
+   return result;
+}</pre>
+
+<p>For the comparator, we just need to invoke <code>lexicographical_compare</code> giving our following code:</p>
+<pre>std::equal_range(vi, vd,
+                 [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
+                 toDepartureDates);</pre>
+<p>The above code has a major drawback - for each comparison of elements (that is limited by O(n log n)) a temporary vector is created, leading
+   to degradation of the code performance comparing to STL1 example.</p>
+
+<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function, to reduce
+   the cost of temporary production. However such view are not currently part of the Ranges, so it is not certain that
+   they could be used to mitigate the problem. Furthermore, this still does not guarantee that the code will have same performance
+   as corresponding STL1 version - to achieve that heroic implementation on the compiler side are required. 
+   This is acknowledged  by range library author in <a href="http://ericniebler.com/2014/04/27/range-comprehensions/">"Performance" section of following post</a>.</p>
+
+<p>As presented in above requirements, the implementation options limitation imposed by requiring an <code>CommonReference</code>
+   for orderings, is negatively impacting the performance in the resulting code. This is true even for potential future extension
+   to introduce view - user would be require to really on optimization to achieve same performance.
+   In authors opinion, this means that current design of Ranges are breaking zero-overhead principle, that is backbone of
+   C++ language - the user is able the implement same functionality in more efficient manner, by simply using older version
+   of algorithms, that was not imposing such limitation.</p>
+
+<h3><a name="motivation.sound">3.2. Mathematically (un)sound</a></h3>
+
+<p>One of the arguments for the introduction of the  <code>CommonReference</code> requirement, is that it makes heterogeneous
+   ordering mathematically sound. The definition of soundness is a bit subjective, but to counteract the argument, the author
+   proposes following approach: The concept is considered to be sound, if it:
+   <ul>
+     <li>semantic requirements matches semantic requirements of the underlying mathematical definition,</li>
+     <li>syntactic requirements allow above semantic requirement to be verified in code (if necessary at runtime).</li>
+   </ul>
+</p>
+
+<p>In our case we are interested in the definition of the <em>weak ordering</em> over some domain <em>X</em>. The mathematical
+   definition of <em>weak ordering</em> requires following axioms to be true:
+   <ul>
+     <li><em>irreflexivity</em>: for all <code>t</code> in <em>X</em>: <code>!r(t, t)</code></li>
+     <li><em>asymmetry</em>: for all <code>t</code>, <code>u</code> in <em>X</em>: <code>r(t, u)</code> =&gt; <code>!r(u, t)</code></li>
+     <li><em>transitivity</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>r(t, u) &amp;&amp; r(u, z)</code> =&gt; <code>r(t, z)</code></li>
+     <li><em>transitivity of incomparability</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>(!r(t, u) &amp;&amp; !r(u,t)) &amp;&amp; (!r(u, z) &amp;&amp; !r(z, u))</code> =&gt; <code>(!r(t, z) &amp;&amp; !r(z, t))</code></li>
+   </ul>
+</p>
+
+<p>The last requirement is necessary to show that the function <code>eq(x, y)</code> equivalent to <code>!r(x, y) &amp;&amp; !r(x, y)</code> is an equivalence relation,
+    i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and transitive (imposed 
+   directly by <em>transitivity of incomparability</em> for <code>r</code>). 
+   This guarantee that for any <code>t</code>, <code>u</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,i
+    where <code>eq</code> is equality relation. 
+   That means that <code>r</code> also satisfies definition of <em>weak ordering</em> presented in section "4.2 Total and Weak Orderings" of "Elements of Programming" by Alexander Stepanov and Paul McJones.</p>
+
+<p>To verify if given functor <code>f</code> is strict weak ordering over an domain consisting of object of type <code>T</code> (<code>Employee</code>) and
+   of type <code>U</code> (note that domain is just set of elements, which may be on different type), we will require following invocation to be well-formed:
+   <code>f(t, u)</code>, <code>f(u, t)</code>, <code>f(t, t)</code>, <code>f(u, u)</code>, where <code>t</code> is object of type <code>T</code> and <code>u</code>
+   of type <code>U</code>.</p>
+
+<p>In summary, neither the semantic requirement of the <em>weak ordering</em> nor the syntactic requirement imposed by them, do not include existence 
+   of the common reference (common type) for the objects in the domain.
+   Furthermore introduction of this requirement is limiting the generating of the underlying algorithms (as can work with any <em>weak ordering</em>) which
+   is step against ideas of generic programming.</p> 
+
+
+<h3><a name="motivation.sound">3.2. Mathematically (un)sound</a></h3>
+is transparent and set
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
@@ -410,35 +494,20 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
-<p>Jens Maurer and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+<!--p>Jens Maurer and Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">9. References</a></h2>
 
 <ol>
-  <li>Herb Sutter, Jens Maurer, Walter E. Brown, 
-      "Consistent comparison" 
-      (P0515R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r3.pdf">
-                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r3.pdf</a>)</li>
+  <li>Eric Niebler,
+      "Range Comprehensions" 
+      (<a href="http://ericniebler.com/2014/04/27/range-comprehensions/">http://ericniebler.com/2014/04/27/range-comprehensions/</a>)</li>
 
-  <li>Walter E. Brown, 
-      "Library Support for the Spaceship (Comparison) Operator" 
-      (P0768R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0768r1.pdf">
-                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0768r1.pdf</a>)</li>
-
-  <li>Barry Revzin, 
-      "Implementing the spaceship operator for optional" 
-      (<a href="https://medium.com/@barryrevzin/implementing-the-spaceship-operator-for-optional-4de89fc6d5ec">
-                https://medium.com/@barryrevzin/implementing-the-spaceship-operator-for-optional-4de89fc6d5ec</a>)</li>
-
-  <li>Richard Smith,
-      "Working Draft, Standard for Programming Language C++"
-      (N4713, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf">
-                       http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4713.pdf</a>)</li>
-
-  <li>Tomasz Kaminski,
-      "Example implementation of comparision category types",
-      (<a href="https://raw.githubusercontent.com/tomaszkam/proposals/master/implentation/space.cpp">https://raw.githubusercontent.com/tomaszkam/proposals/master/implentation/space.cpp</a>)</li>
-
+  <li>Alexander Stepanov, Paul McJones,
+      "Elements of Programming",
+       Addison-Wesley Professional; 1 edition (2009)<li>
+ 
 </ol>
+
 
 </body></html>
