@@ -87,9 +87,20 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper proposes to remove an <code>CommonRefernce&lt;T, U&gt;</code> syntactic requirement for the <code>Relation&lt;T, U&gt;</code>
-   concepts - existence of this requirement is forcing the user to express cross-type comparision in terms of projection, which
-   lead to reduced code performance.</p> 
+<p>This paper proposes changing the <code>Relation</code> and related concepts, to achieve following goals:</p>
+<ul>
+  <li><em>zero overhead</em>: uses of range version of standard algorithm shall not be less effective than hand written code,
+                              especially it cannot be less effective than STL1 counterparts,</li>
+  <li><em>generality</em>: concepts should be usable both in case of algorithms and containers, they should map to the underlying 
+                           mathematically concept and avoid imposing additional requirement,</li>
+  <li><em>soundness</em>: the syntactic requirements of the algorithm should allow (runtime) check if supplied object satisfies
+                           associated semantic requirement.</li>
+</ul>
+<p>The secondary goal is to simplify migration to the rangified version of algorithms, however reaching of this goal should 
+   not undermine above properties.</p>
+
+<p>This paper argues that the currently specified concept does not achieve above goal, due the additional requirement of <code>CommonReference</code>
+   for types of parameters. As consequence we propose to relax this concept (and all derived concepts) by removing above requirement.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -253,7 +264,7 @@ private:
 </p>
 
 <p>The last requirement is necessary to show that the function <code>eq(x, y)</code> equivalent to <code>!r(x, y) &amp;&amp; !r(x, y)</code> is an equivalence relation,
-    i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and transitive (imposed 
+    i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and <em>transitive</em> (imposed 
    directly by <em>transitivity of incomparability</em> for <code>r</code>). 
    This guarantee that for any <code>t</code>, <code>u</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,i
     where <code>eq</code> is equality relation. 
@@ -264,59 +275,38 @@ private:
    <code>f(t, u)</code>, <code>f(u, t)</code>, <code>f(t, t)</code>, <code>f(u, u)</code>, where <code>t</code> is object of type <code>T</code> and <code>u</code>
    of type <code>U</code>.</p>
 
-<p>In summary, neither the semantic requirement of the <em>weak ordering</em> nor the syntactic requirement imposed by them, do not include existence 
+<p>In summary, neither the semantic requirement of the <em>weak ordering</em> nor the syntactic requirement imposed by them require existence 
    of the common reference (common type) for the objects in the domain.
    Furthermore introduction of this requirement is limiting the generating of the underlying algorithms (as can work with any <em>weak ordering</em>) which
    is step against ideas of generic programming.</p> 
 
+<h3><a name="motivation.set">3.3. Tailored for algorithms</a></h3>
 
-<h3><a name="motivation.sound">3.2. Mathematically (un)sound</a></h3>
-is transparent and set
+<p>The current definition of the <code>StrictWeakOrdering</code>, was coined in the context of its usage with newly proposed
+   range version of standard algorithms, that accept separate relation and projection arguments. 
+   This reasoning, misses other standard library components, that also accepts the comparators. This is especially important
+   in case of ordered containers (<code>set</code>, <code>map</code>) that are accepting an <em>weak ordering</em> as comparator,
+   and was recently expanded with heterogeneous lookup (<code>is_transparent</code> nested typename).</p>
+
+<p>To illustrate, lets us consider following example, we want to have mapping from the employee's name to the full object, the easiest
+   approach would be to use following map:</p>
+<pre>std::map&lt;std::string, Employee&gt; nameMap;</pre>
+<p>The drawback of above solution is that the name of the employee is held twice in the structure, once as the key, and once inside the
+   object. To mitigate the problem, we could construct an <code>set</code> of <code>Employee</code> that compares only its name, i.e.</p>
+<pre>std::set&lt;Employee, NameLess&gt; nameSet;</pre> 
+<p>In addition we can allow queering <code>nameSet</code> by the actual names, by adding <code>is_transparent</code> nested typedef
+   to the <code>NameLess</code> comparator. This solution esentially removes the value duplication.</p>
+
+<p>Note that if the set definition would be changed, so the provided comparator is required to satisfy <code>StrictWeakOrdering</code>
+   the code will no longer compile due the <code>CommonReference</code> requirement - this is same situation as in case of
+   <code>equal_range</code> example presented in first paragraph.
+   As consequence, constraining the ordered containers with current <code>StrictWeakOrdering</code> concept, will de-facto
+   remove functionality of heterogeneous lookup from ordered associative containers.</p> 
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
-<p>To address these issues, we propose allowing the expression <code>a &lt;=&gt; b</code> to find candidates with a reversed
-   order of arguments (<code>operator&lt;=&gt;(b,a)</code> or <code>b.operator&lt;=&gt;(a)</code>) in addition to the usual set of functions,
-   and if that candidate is selected its returned value is inverted.
-   As a consequence all of the above examples will "just work" without any changes to their code.</p>
-
-<p>To achieve the above goal, we are proposing extending the current language rules for the comparison operators to cover the three-way comparison operator.
-   That means that an expression of the form <code>a @ b</code>, with <code>@</code> being a relational operator (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>,
-   <code>&lt;=</code>, <code>&gt;=</code>) or <b>three-way comparison operator (<code>&lt;=&gt;</code>)</b>, will consider following candidates:
-<ul>
-  <li><code>a @ b</code></li>
-  <li><code>(a &lt;=&gt; b) @ 0</code></li>
-  <li><code>0 @ (b &lt;=&gt; a)</code></li>
-</ul>
-where after the rewrite the <code>@</code> and <code>&lt;=&gt;</code> are interpreted according to usual operator lookup rules, i.e. no recursive rewrites are performed.</p>
-
-<p>Furthermore, we propose to keep the current tie-breakers, that in case of equivalent candidates, prefer:
-<ul>
-  <li><code>a @ b</code> over the three-way forms: <code>(a &lt;=&gt; b) @ 0</code> and <code>0 @ (a &lt;=&gt; b)</code>,</li>
-  <li><code>(a &lt;=&gt; b) @ 0</code> over synthesised reversed candidate: <code>0 @ (b &lt;=&gt; a).</code></li> 
-</ul>
-Note that in the case of the <code>&lt;=&gt;</code>, the <code>(a &lt;=&gt; b) &lt;=&gt; 0</code> rewrite will never be used,
-as in the case when the expression <code>a &lt;=&gt; b</code> is well-formed, it will be a worse candidate than <code>a &lt;=&gt; b</code>.
-As a consequence the set of candidates for this operator is de-facto reduced to <code>a &lt;=&gt; b</code> and <code>0 &lt;=&gt; (b &lt;=&gt; a)</code>.</p>
-      
-<p>To complement the above language change, we need to extend to interface of each comparison category type <code>C</code> (like <code>std::strong_ordering</code>)
-to include the following functions:</p>
-<pre>
-C operator&lt;=&gt;(C, <em>unspecified</em>); //c &lt;=&gt; 0, i.e. identity  
-C operator&lt;=&gt;(<em>unspecified</em>, C); //0 &lt;=&gt; c, i.e. inversion
-</pre>
-<p>This will basically complete the set of comparison operators between these categories and the literal <code>0</code>, 
-which currently only include relational operators.</p>
-
-<p>For an object <code>c</code> of a comparison category type, the expression <code>c &lt;=&gt; 0</code> is an identity, 
-that returns the value of <code>c</code> unchanged, while <code>0 &lt;=&gt; c</code> represents an inversion, i.e. returns:
-<ul>
-  <li><code>C::less</code> for <code>c</code> representing greater-than comparison result (<code>c &gt; 0</code>),</code>
-  <li><code>C::greater</code> for <code>c</code> representing lower-than comparison result (<code>c &lt; 0</code>),</code>
-  <li><code>c</code> (unchanged) in case of the other values.</li>
-</ul>
-Note that for the <code>strong_equality</code> and <code>weak_equality</code> the inversion is an identity operation, 
-as these objects cannot represent less-than or greater-than results.</p>
+<p>why require f(t,t)</p>
+<p>no changes to totally ordered - outside of scope of paper</p>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
