@@ -267,9 +267,9 @@ private:
 
 <h3><a name="motivation.sound">3.2. Mathematically (un)sound</a></h3>
 
-<p>One of the arguments for the introduction of the  <code>CommonReference</code> requirement, is that it makes heterogeneous
-   ordering mathematically sound. The definition of soundness is a bit subjective, but to counteract the argument, the author
-   proposes following approach: The concept is considered to be sound, if it:
+<p>One of the arguments for the introduction of the <code>CommonReference</code> requirement, is that it is <b>required</b>
+   to make  heterogeneous ordering mathematically sound. The definition of soundness is a bit subjective, but to counteract the argument,
+   the author proposes following approach: The concept is considered to be sound, if it:
    <ul>
      <li>semantic requirements matches semantic requirements of the underlying mathematical definition,</li>
      <li>syntactic requirements allow above semantic requirement to be verified in code (if necessary at runtime).</li>
@@ -299,9 +299,11 @@ private:
    of type <code>U</code>.</p>
 
 <p>In summary, neither the semantic requirement of the <em>weak ordering</em> nor the syntactic requirement imposed by them require existence 
-   of the common reference (common type) for the objects in the domain.
-   Furthermore introduction of this requirement is limiting the generating of the underlying algorithms (as can work with any <em>weak ordering</em>) which
-   is step against ideas of generic programming.</p> 
+   of the common reference (common type) for the objects in the domain. As consequence the defition of <code>StrictWeakOrdering</code> that
+   does not impose <code>CommonReference</code> is equally sound as current defintion.</p>
+
+</p>Furthermore introduction of such additional requirement is limiting the generating of the underlying algorithms (as can work with any <em>weak ordering</em>)
+     which is step against ideas of generic programming.</p>
 
 <h3><a name="motivation.set">3.3. Tailored for algorithms</a></h3>
 
@@ -325,6 +327,10 @@ private:
    <code>equal_range</code> example presented in first paragraph.
    As consequence, constraining the ordered containers with current <code>StrictWeakOrdering</code> concept, will de-facto
    remove functionality of heterogeneous lookup from ordered associative containers.</p> 
+
+<p>Of course, it would be possible to introduce an second concept that would be used for ordered containers, however creating
+   multiple concepts representing the same mathematicall concept (<em>weak ordering</em>) is against Design Ideas (section 1.3) 
+   of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto</a> report.</p>
 
 <h3><a name="motivation.common_reference">3.4. Providing <code>common_reference</code></a></h3>
 
@@ -576,13 +582,20 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
 <h2><a name="literature">9. References</a></h2>
 
 <ol>
-  <li>Eric Niebler,
-      "Range Comprehensions" 
-      (<a href="http://ericniebler.com/2014/04/27/range-comprehensions/">http://ericniebler.com/2014/04/27/range-comprehensions/</a>)</li>
-
   <li>Alexander Stepanov, Paul McJones,
       "Elements of Programming",
-       Addison-Wesley Professional; 1 edition (2009)<li>
+       Addison-Wesley Professional; 1 edition (2009)</li>
+  
+  <li>Bjarne Stroustrup, Andrew Sutton,
+      "A Concept Design for the STL",
+      (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">
+                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf</a>)</li>
+
+  <li>Eric Niebler,
+      "Range Comprehensions" 
+      (<a href="http://ericniebler.com/2014/04/27/range-comprehensions/">
+                http://ericniebler.com/2014/04/27/range-comprehensions/</a>)</li>
+
  
 </ol>
 
