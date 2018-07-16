@@ -257,8 +257,8 @@ private:
    by user.</p>
 
 <p>As presented in above requirements, the implementation options limitation imposed by requiring an <code>CommonReference</code>
-   for orderings, is negatively impacting the performance in the resulting code. This is true even for potential future extension
-   to introduce view - user would be require to really on optimization to achieve same performance.
+   for orderings, is negatively impacting the performance in the resulting code. This is true even in situation when view are used 
+   - user would be require to really on optimization to achieve same performance.
    In authors opinion, this means that current design of Ranges are breaking zero-overhead principle, that is backbone of
    C++ language - the user is able the implement same functionality in more efficient manner, by simply using older version
    of algorithms, that was not imposing such limitation.</p>
@@ -593,13 +593,11 @@ friend constexpr strong_ordering operator&lt;=&gt;(unspecified, strong_ordering 
   
   <li>Bjarne Stroustrup, Andrew Sutton,
       "A Concept Design for the STL",
-      (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">
-                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf</a>)</li>
+      (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf</a>)</li>
 
   <li>Eric Niebler,
       "Range Comprehensions" 
-      (<a href="http://ericniebler.com/2014/04/27/range-comprehensions/">
-                http://ericniebler.com/2014/04/27/range-comprehensions/</a>)</li>
+      (<a href="http://ericniebler.com/2014/04/27/range-comprehensions/">http://ericniebler.com/2014/04/27/range-comprehensions/</a>)</li>
 
  
 </ol>
