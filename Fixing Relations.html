@@ -92,9 +92,9 @@ td { text-align: left; vertical-align: top;
   <li><em>zero overhead</em>: uses of range version of standard algorithm shall not be less effective than hand written code,
                               especially it cannot be less effective than STL1 counterparts,</li>
   <li><em>generality</em>: concepts should be usable both in case of algorithms and containers, they should map to the underlying 
-                           mathematically concept and avoid imposing additional requirement,</li>
+                           mathematical concepts and avoid imposing additional requirement,</li>
   <li><em>soundness</em>: the syntactic requirements of the algorithm should allow (runtime) check if supplied object satisfies
-                           associated semantic requirement.</li>
+                          associated semantic requirement.</li>
 </ul>
 <p>The secondary goal is to simplify migration to the rangified version of algorithms, however reaching of this goal should 
    not undermine above properties.</p>
@@ -135,7 +135,7 @@ td { text-align: left; vertical-align: top;
 
 <p>Having above functor, we may sort a vector <code>ve</code> of the <code>Employee</code> object by name:</p>
 <pre>std::sort(ve.begin(), ve.end(), NameLess{});</pre>
-<p>Now that code can be upgrade to use Ranges:</p>
+<p>Now that code can be upgraded to use Ranges:</p>
 <pre>std::ranges::sort(ve.begin(), ve.end(), NameLess{});
 std::ranges::sort(ve, NameLess{});</pre>
 <p>Finally we have an option to provide our <em>key function</em> and <em>strong ordering</em> separately:</p>
@@ -148,7 +148,7 @@ std::ranges::sort(ve, NameLess{});</pre>
 <pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});
 std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 <p>The above invocations will not compile, and I will be forced to rewrite my functor into separate
-   projection and comparision:</p>
+   projection and comparison:</p>
 <pre>std::ranges::equal_range(ve, "Kowalski"sv, std::less&lt;&gt;{}, &amp;Employee::name);</pre>
 
 <p>The above compilation problem is caused by the fact that for the relation to satisfy <code>StrictWeakOrdering&lt;NameLess, Employee, std::string_view&gt;</code>,
@@ -157,18 +157,14 @@ std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 
 <p>In situation when <em>weak ordering</em> is defined in terms of the composition of the <em>key function</em> and <em>strong ordering</em>, the type
    returned by <em>key function</em> may be unrelated to the actual object type, as we are usually returning an member of that object. This means
-   that the user is forced to rewrite they comparators into separate projection and homogeneous functor.</p>
-
-<p>Note that we are placing this limitation inconstantly - in case of the sorting of the <code>Employee</code> object, the user may decide
-   to merge the projection into the functor (<code>NameLess</code>), or provide it separately (combination of the <code>std::less&lt;&gt;{}, &amp;Employee::name</code>).
-   While in case of the function searching for given key value, we are forced to separate projection on ordering into separate objects. 
+   that the user is forced to rewrite they comparators into separate projection and homogeneous functor. 
    This puts an arbitrary limitation on the implementation freedom, and have negative consequences both on runtime performance of the code
    and its readability.</p>
 
 <h3><a name="motivation.cost">3.1. Inefficient abstraction</a></h3>
 
-<p>To illustrate the effect of above implementation, lets us consider the following problem: We have a <code>vector&lt;Itinerary&gt;</code>
-   representing round-trip flights (to specific destination and back), and we want to extract find ones that are having departures
+<p>To illustrate the effect of above limitation, lets us consider the following problem: We have a <code>vector&lt;Itinerary&gt;</code>
+   representing round-trip flights (to specific destination and back), and we want to find ones that are having departures
    on specific dates.</p>
 
 <p>Firstly we defined the required comparators, <code>LegDepartureDateLess</code> compares departure date on leg, while <code>ItneraryDepartureDatesLess</code>
@@ -219,11 +215,13 @@ private:
 
 <p>If we want to implement the same functionality using the ranges, we can mechanically transform the code sorting elements:</p>
 <pre>std::ranges::sort(vi, ItineraryDepartureDatesLess{});</pre>
-<p>However such manual transformation will not work for searching of element:</p>
-<pre>std::equal_range(vi, ItineraryDepartureDatesLess{});</pre>
-<p>will not compile, as (unsuprisingly) there is no common reference between the <code>Itinerary</code> and <code>std::vector&lt;std::chrono::local_days&gt;</code>.</p>
+<p>However such manual transformation will not work in case of if we want the search itineraries departing on specific dates (<code>std::vector&lt;std::chrono::local_days&gt;</code> <code>vd</code>):</p>
+<pre>std::equal_range(vi, vd, ItineraryDepartureDatesLess{});</pre>
+<p>will not compile, as (unsuprisingly) there is no common reference between the <code>Itinerary</code> and <code>std::vector&lt;std::chrono::local_days&gt;</code> &mdash;
+   it will be ambiguous if <code>std::vector&lt;std::chrono::local_days&gt;</code> meant to represented departure or arrival dates of either
+   all legs or all flights constituting given itinerary.</p>
 
-<p>To fix above code, we need to represent split our comparator into separate projection and relation. In the first attempt we may define projection as follows:</p>
+<p>To fix above code, we need to split our comparator into separate projection and relation. In the first attempt we may define projection as follows:</p>
 <pre>auto const toDepartureDates = [](Itinerary const&amp; i) -&gt; std::vector&lt;std::chrono::local_days&gt;
 { 
    std::vector&lt;std::chrono::local_days&gt; result(i.legs.size());
@@ -241,9 +239,9 @@ private:
 <p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function, to reduce
    the cost of temporary production:</p>
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); });</pre>
-<p>Firstly, there is still not guarantee taht the code will have same performance as corresponding STL1 version - to achieve
-   that the compiler will be required to completly eleminate creation of the view, and replace iteration oview it with raw loop
-   - in other words we are reaing on heroic optimization efforts on compiler side. 
+<p>Firstly, there is still not guarantee that the code will have same performance as corresponding STL1 version - to achieve
+   that the compiler will be required to completely eliminate creation of the view, and replace iteration view it with raw loop
+   - in other words we are requiring on heroic optimization efforts on compiler side. 
    This is acknowledged  by range library author in <a href="http://ericniebler.com/2014/04/27/range-comprehensions/">"Performance" section of following post</a>.</p>
 
 <p>Secondly, this does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
@@ -265,13 +263,13 @@ private:
    C++ language - the user is able the implement same functionality in more efficient manner, by simply using older version
    of algorithms, that was not imposing such limitation.</p>
 
-<h3><a name="motivation.sound">3.2. Mathematical soudness</a></h3>
+<h3><a name="motivation.sound">3.2. Mathematical soundness</a></h3>
 
 <p>One of the arguments for the introduction of the <code>CommonReference</code> requirement, is that it is <b>required</b>
    to make <code>StrictWeakOrdering</code> mathematically sound. The definition of soundness is a bit subjective, but to counteract the argument,
    the author proposes following approach: The concept is considered to be sound, if it:
    <ul>
-     <li>semantic requirements matches semantic requirements of the underlying mathematical definition,</li>
+     <li>semantic requirements are consistent with the semantic requirements of the underlying mathematical definition,</li>
      <li>syntactic requirements allow above semantic requirement to be verified in code (if necessary at runtime).</li>
    </ul>
 </p>
@@ -287,10 +285,10 @@ private:
 </p>
 
 <p>The last requirement is necessary to show that the function <code>eq(x, y)</code> equivalent to <code>!r(x, y) &amp;&amp; !r(x, y)</code> is an equivalence relation,
-    i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and <em>transitive</em> (imposed 
+   i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and <em>transitive</em> (imposed 
    directly by <em>transitivity of incomparability</em> for <code>r</code>). 
-   This guarantee that for any <code>t</code>, <code>u</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,i
-    where <code>eq</code> is equality relation. 
+   This guarantee that for any <code>t</code>, <code>u</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,
+   where <code>eq</code> is equality relation. 
    That means that <code>r</code> also satisfies definition of <em>weak ordering</em> presented in section "4.2 Total and Weak Orderings" of "Elements of Programming" by Alexander Stepanov and Paul McJones.</p>
 
 <p>To verify if given functor <code>f</code> is strict weak ordering over an domain consisting of object of type <code>T</code> (<code>Employee</code>) and
@@ -299,10 +297,10 @@ private:
    of type <code>U</code>.</p>
 
 <p>In summary, neither the semantic requirement of the <em>weak ordering</em> nor the syntactic requirement imposed by them require existence 
-   of the common reference (common type) for the objects in the domain. As consequence the defition of <code>StrictWeakOrdering</code> that
-   does not impose <code>CommonReference</code> is equally sound as current defintion.</p>
+   of the common reference (common type) for the objects in the domain. As consequence the definition of <code>StrictWeakOrdering</code> that
+   does not impose <code>CommonReference</code> is equally sound as current definition.</p>
 
-</p>Furthermore introduction of such additional requirement is limiting the generating of the underlying algorithms (as can work with any <em>weak ordering</em>)
+</p>Furthermore introduction of such additional requirement is limiting the generality of the underlying algorithms (as can work with any <em>weak ordering</em>)
      which is step against ideas of generic programming.</p>
 
 <h3><a name="motivation.set">3.3. Tailored for algorithms</a></h3>
@@ -329,8 +327,9 @@ private:
    remove functionality of heterogeneous lookup from ordered associative containers.</p> 
 
 <p>Of course, it would be possible to introduce an second concept that would be used for ordered containers, however creating
-   multiple concepts representing the same mathematicall concept (<em>weak ordering</em>) is against Design Ideas (section 1.3) 
-   of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto</a> report.</p>
+   multiple concepts representing the same mathematical concept (<em>weak ordering</em>) is against Design Ideas (section 1.3) 
+   of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto</a> report: limiting
+   number of concepts and providing concept representing general idea in the domain.</p>
 
 <h3><a name="motivation.common_reference">3.4. Providing <code>common_reference</code></a></h3>
 
@@ -379,12 +378,13 @@ private:
   { using type = EmployeeNameView; };
 }</pre>
 
-<p>Again this solution fails, if we will also want to introduce the <code>SurnameLess</code> relation. For these relation we need to specialize <code>common_type</code> for <code>Employee</code> and <code>std::string_view</code>
-   to point to <code>EmployeeSurnameView</code> type, that is very similar to the <code>EmployeeNameView</code> with one important difference - the construction of this type from <code>Employee</code> object need to store view to the <code>surname</code> member.
+<p>Again this solution fails, if we will also want to introduce the <code>SurnameLess</code> relation. For these relation we need to specialize <code>common_type</code> for
+   <code>Employee</code> and <code>std::string_view</code> to point to <code>EmployeeSurnameView</code> type, that is very similar to the <code>EmployeeNameView</code> with 
+   one important difference - the construction of this type from <code>Employee</code> object need to store view to the <code>surname</code> member.
    This in the end leads to conflicting declaration of <code>common_type</code>, leading to same problem as in case of solution using conversion operator.</p> 
 
-<p>Finally, not of above solution would be applicable, if the <code>NameLess</code> would accept <code>std::shared_ptr&lt;Employee&gt;</code> (or any other library wrapper specialized for <code>Employee</code>), as we cannot specialize
-   <code>common_type</code> or <code>common_reference</code> for types that are not user defined. Which means we cannot effectively lookup in <code>vector</code> of optionals or smart pointers.</p>
+<p>Finally, none of above solution would be applicable, if the <code>NameLess</code> would accept <code>std::shared_ptr&lt;Employee&gt;</code> (or any other library wrapper specialized for <code>Employee</code>), as we cannot specialize
+   <code>common_type</code> or <code>common_reference</code> for types that are not user defined. Which means we cannot use it to allow lookups into <code>vector</code> of optionals or smart pointers.</p>
 
 <p>The above example shows that specialization of <code>common_reference</code>, does not solve the problem, as it fails to support relations build with different <em>key function</em> returning same type. 
    For example, the program can either define relation that compares <code>name</code> or relation that compares <code>surname</code> of the <code>Employee</code>, not both of them. The same applies for the case of the
@@ -396,12 +396,10 @@ private:
    Furthermore it unnecessary complicates the definition of the relation operators, as they need to able to compare variant object with correct semantic. 
    In authors opinions the necessity of using such workarounds, only shows, that the requirement of <code>CommonReference</code> is superfluous.</p> 
 
-<p>For completness, the another possibility to resolve problem of providing two conflicting defintions of the <code>common_type</code> would be to change the types of the
-   <code>name</code>, <code>surname</code> of <code>Employee</code> class and <code>departureDate</code>, <code>arrivalDate</code> of <code>Leg</code>, so each of them
-   has na unique type (that is an strong typedef over <code>std::string</code> and <code>std::chrono::local_days</code>) respectivelly. 
-   This implies that every time when a two different relation that compare members of same class, that have same time, the programmer will be required to change the definition
-   of at least one of them, to unique typedef. This is abviously unacceptable solution, as even if we ignore the refactoring burden imposed by it on user, the programmer
-   may not be able change the class defintion, as it may be outside of its controll.</p>
+<p>For completeness, the another possibility to resolve problem of providing two conflicting definitions of the <code>common_type</code> would be to change the types of the
+   <code>name</code>, <code>surname</code> of <code>Employee</code> class, so each of them has an unique type (that is an strong typedef over <code>std::string</code>). 
+   This is obviously unacceptable solution, as even if we ignore the refactoring burden imposed by it on user, the programmer may not be able change the class definition, 
+   as it may be outside of its control.</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
