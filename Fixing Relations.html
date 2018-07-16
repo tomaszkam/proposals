@@ -390,11 +390,18 @@ private:
    For example, the program can either define relation that compares <code>name</code> or relation that compares <code>surname</code> of the <code>Employee</code>, not both of them. The same applies for the case of the
    <code>Itinerary</code> and the example of <code>depatureDates</code> - we cannot introduce relation that will compare <code>arrivalDates</code> in the same program.</p>
 
-<p>For completeness, the author should mention that it is possible to workaround the <code>CommonReference</code> requirement, by defining an <code>common_type</code> to be an variant of the <code>std::variant&lt;Employee, std::string_view&gt;</code> 
+<p>The author should mention that it is possible to workaround the <code>CommonReference</code> requirement, by defining an <code>common_type</code> to be an variant of the <code>std::variant&lt;Employee, std::string_view&gt;</code> 
    (or <code>basic_common_type</code>  to return <code>variant</code> of references), such solution however fails to meet the goal of the requirement, i.e. requiring meaningful common type.
    Of course this workaround cannot be applied in case of relation accepting standard-library types specialized for user-defined type. 
    Furthermore it unnecessary complicates the definition of the relation operators, as they need to able to compare variant object with correct semantic. 
    In authors opinions the necessity of using such workarounds, only shows, that the requirement of <code>CommonReference</code> is superfluous.</p> 
+
+<p>For completness, the another possibility to resolve problem of providing two conflicting defintions of the <code>common_type</code> would be to change the types of the
+   <code>name</code>, <code>surname</code> of <code>Employee</code> class and <code>departureDate</code>, <code>arrivalDate</code> of <code>Leg</code>, so each of them
+   has na unique type (that is an strong typedef over <code>std::string</code> and <code>std::chrono::local_days</code>) respectivelly. 
+   This implies that every time when a two different relation that compare members of same class, that have same time, the programmer will be required to change the definition
+   of at least one of them, to unique typedef. This is abviously unacceptable solution, as even if we ignore the refactoring burden imposed by it on user, the programmer
+   may not be able change the class defintion, as it may be outside of its controll.</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
