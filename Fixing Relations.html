@@ -121,13 +121,16 @@ td { text-align: left; vertical-align: top;
 <pre>struct NameLess
 {
    bool operator()(Employee const&amp; lhs, Employee const&amp; rhs) const
-   { return lhs.name &lt; lhs.name; }
+   { return lhs.name &lt; rhs.name; }
 
    bool operator()(Employee const&amp; lhs, std::string_view rhs) const
    { return lhs.name &lt; rhs; }
 
    bool operator()(std::string_view lhs, Employee const&amp; rhs) const
-   { return lhs &lt; lhs.name; }
+   { return lhs &lt; rhs.name; }
+
+   bool operator()(std::string_view lhs, std::string_view rhs) const
+   { return lhs &lt; rhs; }
 };</pre> 
 
 <p>Having above functor, we may sort a vector <code>ve</code> of the <code>Employee</code> object by name:</p>
@@ -180,6 +183,9 @@ std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 
    bool operator()(std::chrono::local_days const&amp; lhs, Leg const&amp; rhs) const
    { return lhs &lt; rhs.departureDate; }
+
+   bool operator()(std::chrono::local_days const&amp; lhs, std::chrono::local_days const&amp; rhs) const
+   { return lhs &lt; rhs; }
 };
 
 struct ItineraryDepartureDatesLess
@@ -191,6 +197,9 @@ struct ItineraryDepartureDatesLess
   { return less_impl(lhs, rhs.legs); }
 
   bool operator()(Itinerary const&amp; rhs, std::vector&lt;std::chrono::local_days&gt; const&amp; lhs) const
+  { return less_impl(lhs, rhs.legs); }
+
+  bool operator()(std::vector&lt;std::chrono::local_days&gt; const&amp; rhs, std::vector&lt;std::chrono::local_days&gt; const&amp; lhs) const
   { return less_impl(lhs, rhs.legs); }
    
 private:
@@ -360,7 +369,7 @@ private:
   { using type = EmployeeNameView; };
 
   template&lt;&gt;
-  struct common_type&lt;std::string_view, Employee,&gt;
+  struct common_type&lt;std::string_view, Employee&gt;
   { using type = EmployeeNameView; };
 }</pre>
 
