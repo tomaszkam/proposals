@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-01-31</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-07-15</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group and Evolution Working Group</td>
@@ -114,7 +114,7 @@ td { text-align: left; vertical-align: top;
 
 <p>Family of the standard algorithms related to sorting and operations on sorted sequence (<code>sort</code>, <code>lower_bound</code>, <code>set_intersection</code>, ...)
    are accepting an functor, that is representing a <em>weak ordering</em>. Examples of such ordering, includes relation resulting from a composition of the <em>key function</em>
-   that extracts certain part of the object, and the <em>strong ordering</em> relation over extract part.</p>
+   that extracts certain part of the object, and the <em>strong ordering</em> relation over extracted part.</p>
    
 <p>To illustrate lets us consider following <code>NameLess</code> functor, that is comparing object of <code>Employee</code> by
    comparing only <code>name</code> member:</p>
@@ -140,17 +140,17 @@ std::ranges::sort(ve, NameLess{});</pre>
 
 <p>Once the vector is sorted, we can use one of the other algorithms to find all employee's with given name
    (i.e. find <em>equivalence class</em> for given value):</p>
-<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"s, NameLess{});</pre>
+<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});</pre>
 <p>However, if I want to migrate the above code to Ranges, by stating:</p>
-<pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"s, NameLess{});
-std::ranges::equal_range(ve, "Kowalski"s, NameLess{});</pre>
+<pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});
+std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 <p>The above invocations will not compile, and I will be forced to rewrite my functor into separate
    projection and comparision:</p>
-<pre>std::ranges::equal_range(ve, "Kowalski"s, std::less&lt;&gt;{}, &amp;Employee::name);</pre>
+<pre>std::ranges::equal_range(ve, "Kowalski"sv, std::less&lt;&gt;{}, &amp;Employee::name);</pre>
 
-<p>The above compilation problem is caused by the fact that for the relation to satisfy <code>StrictWeakOrdering&lt;NameLess, Employee, std::string&gt;</code>,
-   such functor needs to satisfy <code>Relation&lt;NameLess, Employee, std::string&gt;</code>, which requires that the types <code>Employee</code> and 
-   <code>std::string</code> has a common reference (<code>CommonReference&lt;Employee, std::string&gt;</code>).</p>
+<p>The above compilation problem is caused by the fact that for the relation to satisfy <code>StrictWeakOrdering&lt;NameLess, Employee, std::string_view&gt;</code>,
+   such functor needs to satisfy <code>Relation&lt;NameLess, Employee, std::string_view&gt;</code>, which requires that the types <code>Employee</code> and 
+   <code>std::string_view</code> has a common reference (<code>CommonReference&lt;Employee, std::string_view&gt;</code>).</p>
 
 <p>In situation when <em>weak ordering</em> is defined in terms of the composition of the <em>key function</em> and <em>strong ordering</em>, the type
    returned by <em>key function</em> may be unrelated to the actual object type, as we are usually returning an member of that object. This means
@@ -162,7 +162,7 @@ std::ranges::equal_range(ve, "Kowalski"s, NameLess{});</pre>
    This puts an arbitrary limitation on the implementation freedom, and have negative consequences both on runtime performance of the code
    and its readability.</p>
 
-<h3><a name="motivation.cost">3.1. Inefficient abstractions</a></h3>
+<h3><a name="motivation.cost">3.1. Inefficient abstraction</a></h3>
 
 <p>To illustrate the effect of above implementation, lets us consider the following problem: We have a <code>vector&lt;Itinerary&gt;</code>
    representing round-trip flights (to specific destination and back), and we want to extract find ones that are having departures
@@ -230,10 +230,24 @@ private:
    to degradation of the code performance comparing to STL1 example.</p>
 
 <p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function, to reduce
-   the cost of temporary production. However such view are not currently part of the Ranges, so it is not certain that
-   they could be used to mitigate the problem. Furthermore, this still does not guarantee that the code will have same performance
-   as corresponding STL1 version - to achieve that heroic implementation on the compiler side are required. 
+   the cost of temporary production:</p>
+<pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); });</pre>
+<p>Firstly, there is still not guarantee taht the code will have same performance as corresponding STL1 version - to achieve
+   that the compiler will be required to completly eleminate creation of the view, and replace iteration oview it with raw loop
+   - in other words we are reaing on heroic optimization efforts on compiler side. 
    This is acknowledged  by range library author in <a href="http://ericniebler.com/2014/04/27/range-comprehensions/">"Performance" section of following post</a>.</p>
+
+<p>Secondly, this does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
+<pre>std::equal_range(vi, vd,
+                 [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
+                 toDepartureDatesView);</pre>
+<p>In the above code provided lambda needs to satisfy <code>StrictWeakOrdering</code> on <code>std::vector&lt;std::chrono::local_days&gt;</code>
+   and <code>TransformView</code> (result of <code>toDepartureDateView</code>), which means that common reference between these two
+   types needs to exists. This happens to be true for this specific case, as all proposed views are convertible to 
+   containers, however if we modify the example to use <code>std::span&lt;std::chrono::local_days&gt;</code>
+   instead of <code>std::vector&lt;std::chrono::local_days&gt;</code> the code will again fail to compile,
+   as there is no common reference for different views - this specialization also cannot be defined
+   by user.</p>
 
 <p>As presented in above requirements, the implementation options limitation imposed by requiring an <code>CommonReference</code>
    for orderings, is negatively impacting the performance in the resulting code. This is true even for potential future extension
@@ -302,6 +316,70 @@ private:
    <code>equal_range</code> example presented in first paragraph.
    As consequence, constraining the ordered containers with current <code>StrictWeakOrdering</code> concept, will de-facto
    remove functionality of heterogeneous lookup from ordered associative containers.</p> 
+
+<h3><a name="motivation.common_reference">3.4. Providing <code>common_reference</code></a></h3>
+
+<p>It may be pointed out that above problems, may be fixed by providing the <code>common_reference</code> for the compared type,
+   which can be done either by providing implicit conversion, specializing <code>common_type</code> or <code>basic_common_reference</code>.</p>
+
+<p>To illustrate lets as return to our </code>NameLess</code> example, presented at beginning of this section. For the code
+   to compile, we need to make sure that the <code>CommonReference&lt;Employee, std::string_view&gt;</code> - to achieve
+   that we may provide an implicit conversion from <code>Employee</code> to <code>std::string_view</code> that would return
+   <code>name</code> member.</p>
+
+<p>However, this solution is riddled with problems. Not only, it is introducing undesired conversion to the <code>std::string_view</code>
+   that affects existing code, but fails in situation when we want to provide relation comparing other members of class <code>Employee</code>
+   that has string type. For example, if we will want to write an second relation, <code>SurnameLess</code> that would compare the <code>surname</code> member of the
+   <code>Employee</code> class, that also happen to have <code>std::string</code> type, we will also need to introduce the conversion to <code>std::string_view</code>
+   that would return <code>surname</code> member, which directly conflicts with conversion we have provided to support <code>NameLess</code>.</p>
+
+<p>[ Note: The conversion operators needs to return corresponding members of the <code>Employee</code>, to satisfy semantic requirements
+   of the <code>Relation</code> concept, i.e:</p>
+<ul>
+  <li><code>NameLess{}(e, sv)</code> (<code>e.name &lt; sv</code>), needs to be equivalent to <code>NameLess{}(std::string_view(e), sv)</code> (<code>std::string_view(e) &lt; sv</code>),</li>
+  <li><code>SurnameLess{}(e, sv)</code> (<code>e.surname &lt; sv</code>), needs to be equivalent to <code>SurameLess{}(std::string_view(e), sv)</code> (<code>std::string_view(e) &lt; sv</code>).</li>
+</ul>
+<p>Above requirements cannot be both satisfied at the same time, as they require conversion from <code>Employee</code> to <code>std::string_view</code> to have different semantics. ]</p>
+
+<p>We may attempt to mitigate need of implicit conversion, by providing an specialized common type for the <code>Employee</code> to <code>std::string_view</code>, for example:</p>
+<pre>class EmployeeNameView
+{
+  EmployeeNameView(std::string_view s) : value(s) {}
+  EmployeeNameView(Employee const&amp; e) : value(s.name) {}
+
+  std::strong_ordering operator&lt;=&gt;(EmployeeNameView, EmployeeNameView) = default;
+
+private:
+  std::string_view value;
+};</pre>
+<p>End then provide an explicit specialization of <code>common_type</code> (or <code>basic_common_reference</code>) for <code>Employee</code> and <code>std::string_view</code>:</p>
+<pre>namespace std
+{
+  template&lt;&gt;
+  struct common_type&lt;Employee, std::string_view&gt;
+  { using type = EmployeeNameView; };
+
+  template&lt;&gt;
+  struct common_type&lt;std::string_view, Employee,&gt;
+  { using type = EmployeeNameView; };
+}</pre>
+
+<p>Again this solution fails, if we will also want to introduce the <code>SurnameLess</code> relation. For these relation we need to specialize <code>common_type</code> for <code>Employee</code> and <code>std::string_view</code>
+   to point to <code>EmployeeSurnameView</code> type, that is very similar to the <code>EmployeeNameView</code> with one important difference - the construction of this type from <code>Employee</code> object need to store view to the <code>surname</code> member.
+   This in the end leads to conflicting declaration of <code>common_type</code>, leading to same problem as in case of solution using conversion operator.</p> 
+
+<p>Finally, not of above solution would be applicable, if the <code>NameLess</code> would accept <code>std::shared_ptr&lt;Employee&gt;</code> (or any other library wrapper specialized for <code>Employee</code>), as we cannot specialize
+   <code>common_type</code> or <code>common_reference</code> for types that are not user defined. Which means we cannot effectively lookup in <code>vector</code> of optionals or smart pointers.</p>
+
+<p>The above example shows that specialization of <code>common_reference</code>, does not solve the problem, as it fails to support relations build with different <em>key function</em> returning same type. 
+   For example, the program can either define relation that compares <code>name</code> or relation that compares <code>surname</code> of the <code>Employee</code>, not both of them. The same applies for the case of the
+   <code>Itinerary</code> and the example of <code>depatureDates</code> - we cannot introduce relation that will compare <code>arrivalDates</code> in the same program.</p>
+
+<p>For completeness, the author should mention that it is possible to workaround the <code>CommonReference</code> requirement, by defining an <code>common_type</code> to be an variant of the <code>std::variant&lt;Employee, std::string_view&gt;</code> 
+   (or <code>basic_common_type</code>  to return <code>variant</code> of references), such solution however fails to meet the goal of the requirement, i.e. requiring meaningful common type.
+   Of course this workaround cannot be applied in case of relation accepting standard-library types specialized for user-defined type. 
+   Furthermore it unnecessary complicates the definition of the relation operators, as they need to able to compare variant object with correct semantic. 
+   In authors opinions the necessity of using such workarounds, only shows, that the requirement of <code>CommonReference</code> is superfluous.</p> 
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
