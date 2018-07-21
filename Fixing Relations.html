@@ -76,7 +76,7 @@ td { text-align: left; vertical-align: top;
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-07-15</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group and Evolution Working Group</td>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -406,8 +406,72 @@ private:
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
-<p>why require f(t,t)</p>
-<p>no changes to totally ordered - outside of scope of paper</p>
+<h3><a name="design.requiring-same-type">4.1. Requiring homogeneous invocation</a></h3>
+
+<p>Even after removal of the <code>CommonReference</code> requirement for the <code>StrictWeakOrdering</code>, this concept will be more strict 
+   that the minimal STL1 requirements - the <code>StrictWeakOrdering&lt;F, T, U&gt;</code> requires <code>F</code> requires that <code>F</code>
+   is both invocable with combination of types (<code>Predicate&lt;F, T, U&gt;</code> and <code>Predicate&lt;F, U, T&gt;</code>), but also two
+   object of the same type (<code>Predicate&lt;F, T, T&gt;</code> and <code>Predicate&lt;F, U, U&gt;</code>).</p>
+
+<p>To illustrate, if we consider and reduced an version of the <code>NameLess</code> comparator:</p>
+<pre>struct ReducedNameLess
+{
+   bool operator()(Employee const&amp; lhs, std::string_view rhs) const
+   { return lhs.name &lt; rhs; }
+
+   bool operator()(std::string_view lhs, Employee const&amp; rhs) const
+   { return lhs &lt; rhs.name; }
+};</pre>
+<p>The following invocation compiles and gives correct result:</p>
+<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"sv, ReducedNameLess{});</pre>
+<p>as implementation of <code>std::equal_range</code> does not need to invoke supplied comparator on two objects of same collection.
+   However, even with the proposed relaxation of the <code>StrictWeakOrdering</code> concept, the range version of above invocation,
+   will still fail to compile:</p>
+<pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"sv, ReducedNameLess{});</pre>
+
+<p>The above additional requirement are required to fulfill the goal of <code>soudness</code> of the design - we explicitly require
+   that the requirements of the invoked algorithm could be checkable as the runtime. In case of the <code>equal_range(range, value,
+   comp);</code>, we require that the:</p>
+<ol>
+  <li><code>comp</code> model <em>weak ordering</em> over sum of elements in <code>range</code> and <code>value</code>,</li>
+  <li><code>range</code> elements is sorted in other order defined by the <code>comp</code>.</li>
+</ol>
+<p>The second requirement can be checked, by simply checking if <code>is_sorted(range.begin(), range.end(), comp)</code> is true,
+   which impose that <code>comp</code> can be invoked with two elements of supplied range. For the first requirement
+   we need to verify if axioms described in section <a href="motivation.sound">3.2. Mathematical soundness</a> of this paper - 
+   this validation requires <code>comp</code> to be invocable with any combination of types.</code>
+
+
+<h3><a name="design.totally_ordered_with">4.2. No relaxation for <code>StrictTotallyOrderedWith&lt;T, U&gt;</code></a></h3>
+
+<p>The <code>StrictTotallyOrderedWith&lt;T, U&gt;</code> concept may be viewed as the special case of the
+   <code>StrictWeakOrdering&lt;std::less&lt;&gt;, T, U</code>, where the ordering is represented as <code>operator&lt;</code>
+   instead of custom comparator. With such view we may want to apply similar relaxation of requirement for
+   this concept.</p>
+
+<p>However, the underlying semantics of the <code>StrictTotallyOrderedWith&lt;T, U&gt;</code> is different 
+   than the <code>StrictWeakOrdering&lt;std::less&lt;&gt;, T, U</code>, as it is meant to represent an
+   <em>strong order</em> - in contrast to the <em>weak ordering</em> for the <em>strong ordering</em>, 
+   if <code>a</code> and <code>b</code> are not ordered (<code>!(a &lt; b) &amp;&amp; !(b &lt; a)</code>),
+   then they are the same <code>a == b</code> (representing the same value). 
+   To satisfy above requirements, the objects of different types needs to represent the same underlying
+   entities - i.e. there is common type for them in the underlying domain.</p>
+
+<p>However, in some implementing an representation of such common type, may be task that is orders of
+   magnitude harder than the implementing comparator itself. To illustrate lets as consider the 
+   comparison between class representing variable length integer <code>wide_int</code> <code>i</code> and floating
+   point value <code>double</code> <code>d</code>. The implementation of such comparison may work as follow:</p>
+<ul>
+   <li>represent integral part of <code>std::floor(d)</code> as <code>di</code>,</li>
+   <li>if <code>i != di</code>, return <code>i &lt; di</code>,</li>
+   <li>otherwise, return <code>false</code>, if fraction part of <code>d</code> (<code>d - std::floor(d)</code>) is non-zero.</li>
+</ul> 
+<p>In contrast providing an <code>common_type&lt;wide_int, double&gt;</code> would require the user
+   to implement class representing arbitrary precision floating point numbers.</code>
+
+<p>The changes proposed in this paper allow to mitigate the problem, by implementing the above compassion
+   custom comparison function. Note that without proposed relaxation of <code>StrictWeakOrdering</code>
+   requirements, the burden of implementing such common type would be unavoidable.</p> 
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
