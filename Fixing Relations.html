@@ -192,11 +192,11 @@ struct ItineraryDepartureDatesLess
   bool operator()(std::vector&lt;std::chrono::local_days&gt; const&amp; lhs, Itinerary const&amp; rhs) const
   { return less_impl(lhs, rhs.legs); }
 
-  bool operator()(Itinerary const&amp; rhs, std::vector&lt;std::chrono::local_days&gt; const&amp; lhs) const
-  { return less_impl(lhs, rhs.legs); }
+  bool operator()(Itinerary const&amp; lhs, std::vector&lt;std::chrono::local_days&gt; const&amp; rhs) const
+  { return less_impl(lhs.legs, rhs); }
 
-  bool operator()(std::vector&lt;std::chrono::local_days&gt; const&amp; rhs, std::vector&lt;std::chrono::local_days&gt; const&amp; lhs) const
-  { return less_impl(lhs, rhs.legs); }
+  bool operator()(std::vector&lt;std::chrono::local_days&gt; const&amp; lhs, std::vector&lt;std::chrono::local_days&gt; const&amp; rhs) const
+  { return less_impl(lhs, rhs); }
    
 private:
   template&lt;typename Sequence1, typename Sequence2&gt;
@@ -331,10 +331,12 @@ private:
    of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto</a> report: limiting
    number of concepts and providing concept representing general idea in the domain.</p>
 
-<h3><a name="motivation.common_reference">3.4. Providing <code>common_reference</code></a></h3>
+<h3><a name="motivation.common_reference">3.4. Hacking <code>common_reference</code></a></h3>
 
-<p>It may be pointed out that above problems, may be fixed by providing the <code>common_reference</code> for the compared type,
-   which can be done either by providing implicit conversion, specializing <code>common_type</code> or <code>basic_common_reference</code>.</p>
+<p>It may be pointed out that the examples presented above as "not working", may be fixed by provding the <code>common_reference</code>
+   for the compared type. As the compared types may be unrelated (one is subobject is the other), provided specialization,
+   will not have expected semantics of common type - once the <code>Employee</code> will be reduced to only its name,
+   it cannot be reconstructed back.</p>
 
 <p>To illustrate lets as return to our </code>NameLess</code> example, presented at beginning of this section. For the code
    to compile, we need to make sure that the <code>CommonReference&lt;Employee, std::string_view&gt;</code> - to achieve
@@ -381,25 +383,26 @@ private:
 <p>Again this solution fails, if we will also want to introduce the <code>SurnameLess</code> relation. For these relation we need to specialize <code>common_type</code> for
    <code>Employee</code> and <code>std::string_view</code> to point to <code>EmployeeSurnameView</code> type, that is very similar to the <code>EmployeeNameView</code> with 
    one important difference - the construction of this type from <code>Employee</code> object need to store view to the <code>surname</code> member.
-   This in the end leads to conflicting declaration of <code>common_type</code>, leading to same problem as in case of solution using conversion operator.</p> 
+   This in the end leads to conflicting declaration of <code>common_type</code>, leading to same problem as in case of solution using conversion operator.
+   Futhermore above solutions would not applicable, if the <code>NameLess</code> would accept <code>std::shared_ptr&lt;Employee&gt;</code> (or any other library wrapper
+   specialized for <code>Employee</code>), as we cannot specialize <code>common_type</code> or <code>common_reference</code> for types that are not user defined. 
+   Which means we cannot use it to allow lookups into <code>vector</code> of optionals or smart pointers.</p>
 
-<p>Finally, none of above solution would be applicable, if the <code>NameLess</code> would accept <code>std::shared_ptr&lt;Employee&gt;</code> (or any other library wrapper specialized for <code>Employee</code>), as we cannot specialize
-   <code>common_type</code> or <code>common_reference</code> for types that are not user defined. Which means we cannot use it to allow lookups into <code>vector</code> of optionals or smart pointers.</p>
+<p>As we need to provide different <code>common_type</code> specialization for comparison with either <code>name</code> and <code>surname</code>, 
+   the other solution is to use an different type to represent such object, so instead of using <code>std::string_view</code> to represent above values,
+   we will use specialized object (like above <code>EmployeeNameView</code> and <code>EmployeeSurnameView</code>) when search for value, so instead 
+   of:</p>
+<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});</pre>
+<p>we will write</p>
+<pre>std::equal_range(ve.begin(), ve.end(), EmployeeNameView("Kowalski"));</pre>
+<p>Note that we not longer need to provide an comparator object, as <code>Employee</code> are comparable with <code>EmployeeNameView</code>, due
+   the existence of implicit conversion. Essentially this solution replaces custom comparison functor (which can be created using lambda)
+   with custom type.</p>
 
-<p>The above example shows that specialization of <code>common_reference</code>, does not solve the problem, as it fails to support relations build with different <em>key function</em> returning same type. 
-   For example, the program can either define relation that compares <code>name</code> or relation that compares <code>surname</code> of the <code>Employee</code>, not both of them. The same applies for the case of the
-   <code>Itinerary</code> and the example of <code>depatureDates</code> - we cannot introduce relation that will compare <code>arrivalDates</code> in the same program.</p>
-
-<p>The author should mention that it is possible to workaround the <code>CommonReference</code> requirement, by defining an <code>common_type</code> to be an variant of the <code>std::variant&lt;Employee, std::string_view&gt;</code> 
-   (or <code>basic_common_type</code>  to return <code>variant</code> of references), such solution however fails to meet the goal of the requirement, i.e. requiring meaningful common type.
+<p>Finally we could drop any attempts to provide an semantically meaningful type for the <code>CommonReference</code> and define <code>common_type</code> to be
+   an variant of the <code>std::variant&lt;Employee, std::string_view&gt;</code> (or <code>basic_common_type</code>  to return <code>variant</code> of references).
    Of course this workaround cannot be applied in case of relation accepting standard-library types specialized for user-defined type. 
-   Furthermore it unnecessary complicates the definition of the relation operators, as they need to able to compare variant object with correct semantic. 
-   In authors opinions the necessity of using such workarounds, only shows, that the requirement of <code>CommonReference</code> is superfluous.</p> 
-
-<p>For completeness, the another possibility to resolve problem of providing two conflicting definitions of the <code>common_type</code> would be to change the types of the
-   <code>name</code>, <code>surname</code> of <code>Employee</code> class, so each of them has an unique type (that is an strong typedef over <code>std::string</code>). 
-   This is obviously unacceptable solution, as even if we ignore the refactoring burden imposed by it on user, the programmer may not be able change the class definition, 
-   as it may be outside of its control.</p>
+   Furthermore it unnecessary complicates the definition of the relation operators, as they need to able to compare variant object with correct semantic.</p> 
 
 <h2><a name="design">4. Design Decisions</a></h2>
 
