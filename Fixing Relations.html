@@ -407,6 +407,45 @@ private:
    Of course this workaround cannot be applied in case of relation accepting standard-library types specialized for user-defined type. 
    Furthermore it unnecessary complicates the definition of the relation operators, as they need to able to compare variant object with correct semantic.</p> 
 
+
+<h3><a name="motivation.common_reference">3.5. Implementing mathematical comparison</a></h3>
+
+<p>In contrast to previous sections, when we were unable to implement desired ordering (or implement it effectively), in this section
+   we will discuss the example ordering, that cannot be used as comparator, due existing specialization of <code>common_type</code>.</p>
+
+<p>Let us consider implementing an <code>MathematicalLess</code> functor, that will compare class of integral types, according
+   to mathematical meaning of this relation, i.e. <code>MathematicalLess{}(-1, 1u)</code> return <code>true</code>. We may
+   implement it as follows:</p>
+<pre>struct MathematicalLess
+{
+  template&lt;typename T, typename U&gt;
+  bool operator()(T t, U u) const
+  {
+     using UT = std::make_unsigned_t&lt;T&gt;;
+     using UU = std::make_unsigned_t&lt;U&gt;;
+     if constexpr (std::is_signed_v&lt;T&gt; == std::is_signed_v&lt;U&gt;) // types has same signdess
+       return t &lt; u;
+     else if constexpr (std::is_signed_v&lt;T&gt;) // U is unsigned
+       return t &lt; 0 ? true : UT(t) &lt; u;
+     else  // T is unsigned
+       return u &lt; 0 ? false : t &lt; UU(u);
+  }
+};</pre>
+
+<p>Now let us discuss if <code>StrictWeakOrdering&lt;MathematicalLess, unsigned, int&gt;<code>. Firstly, the <code>unsigned</code> and
+   <code>int</code> types has a common type: <code>std::common_type_t&lt;unsigned, int&gt;</code> is <code>unsigned</code>. Secondly
+   <code>MathematicalLess</code> can be invoked with any combination of objects of type either <code>int</code> or </code>unsigned</code>.
+   That means that we are satisfying our syntactic requirements.</code>
+
+<p>However, if we consider following semantic requirement that invocation of relation <code>r(a, b)</code> is always equivalent to
+   invocation <code>r(C(a), C(b))</code>, where <code>C</code> is common reference type.
+   In case of our functor, that requires that <code>MathematicalLess{}(-1, 1u)</code>, is required to return the same value
+   as <code>MathematicalLess{}(unsigned(-1), unsigned(1u))</code>, which is equal to <code>false</code>. However, by the design
+   of <code>MathematicalLess</code> the result shall be true.</code>.</p>
+
+<p>Note that this problem is not-fixable without introducing opaque typedefs, as user is not allowed to change the common type
+   for built-in types.</p> 
+
 <h2><a name="design">4. Design Decisions</a></h2>
 
 <h3><a name="design.requiring-same-type">4.1. Requiring homogeneous invocation</a></h3>
