@@ -102,6 +102,9 @@ td { text-align: left; vertical-align: top;
 <p>This paper argues that the currently specified concept does not achieve above goal, due the additional requirement of <code>CommonReference</code>
    for types of parameters. As consequence we propose to relax this concept (and all derived concepts) by removing above requirement.</p>
 
+<p>The need for appying this change, was recognized with the inception of the current concept design - similiar change is already proposed as alternative
+   design in Appendinx D.2 Cross-type Concepts of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">A Concept Design for the STL</a> (The Palo Alto report) paper.<p> 
+
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="history">2. Revision history</a></h2>
@@ -328,7 +331,7 @@ private:
 
 <p>Of course, it would be possible to introduce an second concept that would be used for ordered containers, however creating
    multiple concepts representing the same mathematical concept (<em>weak ordering</em>) is against Design Ideas (section 1.3) 
-   of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto</a> report: limiting
+   of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto report</a>: limiting
    number of concepts and providing concept representing general idea in the domain.</p>
 
 <h3><a name="motivation.common_reference">3.4. Hacking <code>common_reference</code></a></h3>
@@ -431,10 +434,10 @@ private:
 
 <p>The above additional requirement are required to fulfill the goal of <code>soudness</code> of the design - we explicitly require
    that the requirements of the invoked algorithm could be checkable as the runtime. In case of the <code>equal_range(range, value,
-   comp);</code>, we require that the:</p>
+   comp)</code>, we require that the:</p>
 <ol>
   <li><code>comp</code> model <em>weak ordering</em> over sum of elements in <code>range</code> and <code>value</code>,</li>
-  <li><code>range</code> elements is sorted in other order defined by the <code>comp</code>.</li>
+  <li><code>range</code> elements is sorted in order defined by the <code>comp</code>.</li>
 </ol>
 <p>The second requirement can be checked, by simply checking if <code>is_sorted(range.begin(), range.end(), comp)</code> is true,
    which impose that <code>comp</code> can be invoked with two elements of supplied range. For the first requirement
@@ -533,7 +536,6 @@ concept Relation =
       "Working Draft, Standard for Programming Language C++"
       (N4762, <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">
               https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf</a>)</li>
- 
 </ol>
 
 
