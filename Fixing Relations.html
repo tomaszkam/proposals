@@ -147,10 +147,10 @@ std::ranges::sort(ve, NameLess{});</pre>
 <p>Once the vector is sorted, we can use one of the other algorithms to find all employee's with given name
    (i.e. find <em>equivalence class</em> for given value):</p>
 <pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});</pre>
-<p>However, if I want to migrate the above code to Ranges, by stating:</p>
+<p>However, if we want to migrate the above code to Ranges, by stating:</p>
 <pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});
 std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
-<p>The above invocations will not compile, and I will be forced to rewrite my functor into separate
+<p>The above invocations will not compile, and we will be forced to rewrite my functor into separate
    projection and comparison:</p>
 <pre>std::ranges::equal_range(ve, "Kowalski"sv, std::less&lt;&gt;{}, &amp;Employee::name);</pre>
 
@@ -241,7 +241,7 @@ private:
 
 <p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function, to reduce
    the cost of temporary production:</p>
-<pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); });</pre>
+<pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
 <p>Firstly, there is still not guarantee that the code will have same performance as corresponding STL1 version - to achieve
    that the compiler will be required to completely eliminate creation of the view, and replace iteration view it with raw loop
    - in other words we are requiring on heroic optimization efforts on compiler side. 
@@ -283,19 +283,19 @@ private:
      <li><em>irreflexivity</em>: for all <code>t</code> in <em>X</em>: <code>!r(t, t)</code></li>
      <li><em>asymmetry</em>: for all <code>t</code>, <code>u</code> in <em>X</em>: <code>r(t, u)</code> =&gt; <code>!r(u, t)</code></li>
      <li><em>transitivity</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>r(t, u) &amp;&amp; r(u, z)</code> =&gt; <code>r(t, z)</code></li>
-     <li><em>transitivity of incomparability</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>(!r(t, u) &amp;&amp; !r(u,t)) &amp;&amp; (!r(u, z) &amp;&amp; !r(z, u))</code> =&gt; <code>(!r(t, z) &amp;&amp; !r(z, t))</code></li>
+     <li><em>transitivity of incomparability</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>(!r(t, u) &amp;&amp; !r(u, t)) &amp;&amp; (!r(u, z) &amp;&amp; !r(z, u))</code> =&gt; <code>(!r(t, z) &amp;&amp; !r(z, t))</code></li>
    </ul>
 </p>
 
-<p>The last requirement is necessary to show that the function <code>eq(x, y)</code> equivalent to <code>!r(x, y) &amp;&amp; !r(x, y)</code> is an equivalence relation,
+<p>The last requirement is necessary to show that the function <code>eq(x, y)</code> equivalent to <code>!r(x, y) &amp;&amp; !r(y, x)</code> is an equivalence relation,
    i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and <em>transitive</em> (imposed 
    directly by <em>transitivity of incomparability</em> for <code>r</code>). 
    This guarantee that for any <code>t</code>, <code>u</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,
    where <code>eq</code> is equality relation. 
    That means that <code>r</code> also satisfies definition of <em>weak ordering</em> presented in section "4.2 Total and Weak Orderings" of "Elements of Programming" by Alexander Stepanov and Paul McJones.</p>
 
-<p>To verify if given functor <code>f</code> is strict weak ordering over an domain consisting of object of type <code>T</code> (<code>Employee</code>) and
-   of type <code>U</code> (note that domain is just set of elements, which may be on different type), we will require following invocation to be well-formed:
+<p>To verify if given functor <code>f</code> is strict weak ordering over an domain consisting of object of type <code>T</code> and of type <code>U</code> 
+   (note that domain is just set of elements, which may be on different type), we will require following invocation to be well-formed:
    <code>f(t, u)</code>, <code>f(u, t)</code>, <code>f(t, t)</code>, <code>f(u, u)</code>, where <code>t</code> is object of type <code>T</code> and <code>u</code>
    of type <code>U</code>.</p>
 
@@ -312,7 +312,7 @@ private:
    range version of standard algorithms, that accept separate relation and projection arguments. 
    This reasoning, misses other standard library components, that also accepts the comparators. This is especially important
    in case of ordered containers (<code>set</code>, <code>map</code>) that are accepting an <em>weak ordering</em> as comparator,
-   and was recently expanded with heterogeneous lookup (<code>is_transparent</code> nested typename).</p>
+   and were expanded with heterogeneous lookup (<code>is_transparent</code> nested typename).</p>
 
 <p>To illustrate, lets us consider following example, we want to have mapping from the employee's name to the full object, the easiest
    approach would be to use following map:</p>
@@ -331,7 +331,7 @@ private:
 
 <p>Of course, it would be possible to introduce an second concept that would be used for ordered containers, however creating
    multiple concepts representing the same mathematical concept (<em>weak ordering</em>) is against Design Ideas (section 1.3) 
-   of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto report</a>: limiting
+   presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto report</a>: limiting
    number of concepts and providing concept representing general idea in the domain.</p>
 
 <h3><a name="motivation.common_reference">3.4. Hacking <code>common_reference</code></a></h3>
@@ -341,14 +341,15 @@ private:
    will not have expected semantics of common type - once the <code>Employee</code> will be reduced to only its name,
    it cannot be reconstructed back.</p>
 
-<p>To illustrate lets as return to our </code>NameLess</code> example, presented at beginning of this section. For the code
+<p>To illustrate lets as return to our <code>NameLess</code> example, presented at beginning of this section. For the code
    to compile, we need to make sure that the <code>CommonReference&lt;Employee, std::string_view&gt;</code> - to achieve
    that we may provide an implicit conversion from <code>Employee</code> to <code>std::string_view</code> that would return
    <code>name</code> member.</p>
 
 <p>However, this solution is riddled with problems. Not only, it is introducing undesired conversion to the <code>std::string_view</code>
    that affects existing code, but fails in situation when we want to provide relation comparing other members of class <code>Employee</code>
-   that has string type. For example, if we will want to write an second relation, <code>SurnameLess</code> that would compare the <code>surname</code> member of the
+   that has <code>std::string type</code>.
+   For example, if we will want to write an second relation, <code>SurnameLess</code> that would compare the <code>surname</code> member of the
    <code>Employee</code> class, that also happen to have <code>std::string</code> type, we will also need to introduce the conversion to <code>std::string_view</code>
    that would return <code>surname</code> member, which directly conflicts with conversion we have provided to support <code>NameLess</code>.</p>
 
@@ -432,7 +433,7 @@ private:
   }
 };</pre>
 
-<p>Now let us discuss if <code>StrictWeakOrdering&lt;MathematicalLess, unsigned, int&gt;<code>. Firstly, the <code>unsigned</code> and
+<p>Now let us discuss if <code>StrictWeakOrdering&lt;MathematicalLess, unsigned, int&gt;</code>. Firstly, the <code>unsigned</code> and
    <code>int</code> types has a common type: <code>std::common_type_t&lt;unsigned, int&gt;</code> is <code>unsigned</code>. Secondly
    <code>MathematicalLess</code> can be invoked with any combination of objects of type either <code>int</code> or </code>unsigned</code>.
    That means that we are satisfying our syntactic requirements.</code>
@@ -471,7 +472,7 @@ private:
    will still fail to compile:</p>
 <pre>std::ranges::equal_range(ve.begin(), ve.end(), "Kowalski"sv, ReducedNameLess{});</pre>
 
-<p>The above additional requirement are required to fulfill the goal of <code>soudness</code> of the design - we explicitly require
+<p>The above additional requirement are required to fulfill the goal of <em>soudness</em> of the design - we explicitly require
    that the requirements of the invoked algorithm could be checkable as the runtime. In case of the <code>equal_range(range, value,
    comp)</code>, we require that the:</p>
 <ol>
@@ -487,7 +488,7 @@ private:
 <h3><a name="design.totally_ordered_with">4.2. No relaxation for <code>StrictTotallyOrderedWith&lt;T, U&gt;</code></a></h3>
 
 <p>The <code>StrictTotallyOrderedWith&lt;T, U&gt;</code> concept may be viewed as the special case of the
-   <code>StrictWeakOrdering&lt;std::less&lt;&gt;, T, U</code>, where the ordering is represented as <code>operator&lt;</code>
+   <code>StrictWeakOrdering&lt;std::less&lt;&gt;, T, U&gt;</code>, where the ordering is represented as <code>operator&lt;</code>
    instead of custom comparator. With such view we may want to apply similar relaxation of requirement for
    this concept.</p>
 
@@ -504,7 +505,7 @@ private:
    comparison between class representing variable length integer <code>wide_int</code> <code>i</code> and floating
    point value <code>double</code> <code>d</code>. The implementation of such comparison may work as follow:</p>
 <ul>
-   <li>represent integral part of <code>std::floor(d)</code> as <code>di</code>,</li>
+   <li>represent integral part of <code>std::floor(d)</code> as <code>wide_int</code> <code>di</code>,</li>
    <li>if <code>i != di</code>, return <code>i &lt; di</code>,</li>
    <li>otherwise, return <code>false</code>, if fraction part of <code>d</code> (<code>d - std::floor(d)</code>) is non-zero.</li>
 </ul> 
