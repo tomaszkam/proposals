@@ -142,6 +142,7 @@ td { text-align: left; vertical-align: top;
   <li>Updated wording to <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">N4762</a> (C++ Working Draft, 2018-07-07).</li>
   <li>Updated reference to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0318r1.pdf">P0318: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a>.</li>
   <li>Applied wording fixes from Walter E. Brown.</li>
+  <li>Removed "shall be a callable object" requirement.</li>
   <li>Removed defintion of <em>expression-equivalent</em> (accepted as part of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf">P0898R3: Standard Library Concepts</a>).</li>
   <li>Spllited "Requires" elements into "Mandates" and "Expects", per <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf">P0788R3: Standard Library Specification in a Concepts and Contracts World</a></li>.
 </ul>
@@ -629,7 +630,6 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     <dd><code>FD</code> shall satisfy the requirements of <em>Cpp17MoveConstructible</em>.
         For each <code>Ti</code> in <code>BoundArgs</code>, if <code>Ti</code> is an object type, 
         <code>Ti</code> shall satisfy the requirements of <em>Cpp17MoveConstructible</em>.
-        <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
     <dt>Returns:</dt>
@@ -678,7 +678,6 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
     <dt>Expects:</dt> 
     <dd><code>FD</code> shall satisfy the requirements of <em>Cpp17MoveConstructible</em>.
-        <code>fd</code> shall be a callable object ([func.def]).
     <p></p></dd>
 
     <dt>Returns:</dt>
