@@ -76,7 +76,7 @@ td { text-align: left; vertical-align: top;
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-07-04</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -92,13 +92,15 @@ td { text-align: left; vertical-align: top;
 
 <p>This paper addresses <a href="https://issues.isocpp.org/show_bug.cgi?id=40">LEWG Bug 40: variadic bind</a>.</p>
 
+<p>This paper was positively reviewed by LEWG and forwarded to LWG for inclusion into IS durtion Albuquerque meeting.</p>
+
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="history">2. Revision history</a></h2>
 
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
-<p>This proposal is successor of the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">N4171: Parameter group placeholders for bind</a>,
+<p>This proposal is successor of the <a href="https://wg21.link/n4171">N4171: Parameter group placeholders for bind</a>,
    that was proposing an extension of the existing <code>std::bind</code> to introduce new class of placeholders that would presents group
    of call arguments instead of one.</p>
   
@@ -120,7 +122,7 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r2">2.3. Revision 2</a></h3>
 
 <ul>
-  <li>Updated wording to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4687.pdf">N4687</a> (C++ Working Draft, 2017-07-30).</li>
+  <li>Updated wording to <a href="http://wg21.link/n4687">N4687</a> (C++ Working Draft, 2017-07-30).</li>
   <li>Call wrappers now require propagation of the <code>noexcept</code>/<code>constexpr</code> specification.</li>
   <li>Replaced uses of deprecated <code>result_of</code> with <code>invoke_result</code>.</li>
   <li>Reworked wording to reffer to "initialization" instead of "construction" of objects.</li>
@@ -130,21 +132,23 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r3">2.4. Revision 3</a></h3>
 
 <ul>
+  <li>Paper now targets LWG after sucessfull LEWG review.</li>
   <li>Corrected uses of shall in [func.require] paragraph.</li>
   <li>Clarified that call wrappers produced by same specialization are same
-      (addressing <a href="https://cplusplus.github.io/LWG/issue3023">LWG issue 3023</a>).</li>
+      (addressing <a href="https://wg21.link/lwg3023">LWG issue 3023</a>).</li>
   <li>Reverted deprecation wording for <code>bind</code> per LEWG guidance.</li>
 </ul>
 
 <h3><a name="history.r4">2.5. Revision 4</a></h3>
 
 <ul>
-  <li>Updated wording to <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">N4762</a> (C++ Working Draft, 2018-07-07).</li>
-  <li>Updated reference to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0318r1.pdf">P0318: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a>.</li>
+  <li>Updated wording to <a href="https://wg21.link/n4762">N4762</a> (C++ Working Draft, 2018-07-07).</li>
+  <li>Updated reference to <a href="http://wg21.link/p0318r1">P0318: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a>.</li>
   <li>Applied wording fixes from Walter E. Brown.</li>
   <li>Removed "shall be a callable object" requirement.</li>
-  <li>Removed defintion of <em>expression-equivalent</em> (accepted as part of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf">P0898R3: Standard Library Concepts</a>).</li>
-  <li>Spllited "Requires" elements into "Mandates" and "Expects", per <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf">P0788R3: Standard Library Specification in a Concepts and Contracts World</a></li>.
+  <li>Removed defintion of <em>expression-equivalent</em> (accepted as part of <a href="http://wg21.link/p0898r3">P0898R3: Standard Library Concepts</a>).</li>
+  <li>Split "Requires" elements into "Mandates" and "Expects", per <a href="http://wg21.link/p0788r3">P0788R3: Standard Library Specification in a Concepts and Contracts World</a>.</li>
+  <li>Changed links to use <a href="https://wg21.link">https://wg21.link</a>.</li>
 </ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
@@ -152,13 +156,13 @@ td { text-align: left; vertical-align: top;
 <p>This paper proposes <code>bind_front</code> function for partial function application for first arguments of the function.
    In other worlds <code>bind_front(f, bound_args...)(call_args...)</code> is equivalent to <code>std::invoke(f, bound_args..., call_args....)</code>.</p>
 
-<p>It is worth to notice that proposed function provide both superset and subset of existing <code>std::bind</code> functionality:
+<p>It is worth to notice that proposed function provides both superset and subset of existing <code>std::bind</code> functionality:
    their support passing variable number of arguments, but does not allow arbitrary reordering or removal of the arguments.
    However author believes that proposed simplified functionality covers most of use cases for original <code>std::bind</code>.</p>
 
 <h3><a name="motivation.arguments-passing">3.1. Passing arguments</a></h3>
 
-<p>Let consider an example task of writing the functor that will invoke <code>process</code> method on copy of
+<p>Let us consider an example task of writing the functor that will invoke <code>process</code> method on copy of
    <code>strategy</code> object:</p>
 <pre>struct Strategy { double process(std:string, std::string, double, double); };
 std::unique_ptr&lt;Strategy&gt; createStrategy();</pre>
@@ -322,7 +326,7 @@ auto make_bind_front(int i) { return bind_front(CallableOnce{}, i); }
 <p>Only the invocation <code>make_bind_front(1)()</code> is well formed, as the other two (<code>make_bind(1)()</code> 
    and <code>make_lambda(1)()</code>) leads to unsupported call on the lvalue of <code>CallableOnce</code>.</p>
 
-<p>Using a lambda expression it would be possible to workaround the problem by explicit use of the 
+<p>Using a lambda expression it would be possible to work around the problem by explicit use of the 
    <code>std::move</code>:</p>
 <pre>[f = CallableOnce{}, i] { return std::move(f)(i); }</pre>
 <p>However above code is forcing calls on rvalue of <code>CallableOnce</code>, even if lvalue functor is invoked.
@@ -363,10 +367,9 @@ private:
 
 <p>In contrast to existing callable wrappers, proposed <code>bind_front</code> function is required to preserve 
    exception specification of the underlining call operator. This follows recent additions to the language,
-   that make the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
-   exception specification part of type system</a> and <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
-   <code>std::invoke</code> conditionally <code>noexcept</code></a> - combination of this changes
-   allowed <code>noexcept</code> specification to be preserved for invocation of function pointers.</p>
+   that make the <a href="http://wg21.link/p0012r1">exception specification part of type system</a> and 
+   <a href="http://wg21.link/lwg2807"><code>std::invoke</code> conditionally <code>noexcept</code></a> - 
+   combination of this changes allowed <code>noexcept</code> specification to be preserved for invocation of function pointers.</p>
 
 <p>Finally, this guarantee is extended also for <code>not_fn</code> function via <a href="#wording.not_fn">alternative
    wording included in the paper.</a></p>
@@ -379,7 +382,7 @@ private:
    qualified.</p>
 
 <p>Secondly, the author believes that introduction of the <code>constexpr</code> support for the <code>std::invoke</code>
-   is outside of the scope of this paper, as under current direction of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1581">CWG issue 1581</a>
+   is outside of the scope of this paper, as under current direction of <a href="http://wg21.link/cwg1581">CWG issue 1581</a>
    such change would be breaking (<a href="https://bugs.llvm.org/show_bug.cgi?id=23135">example clang bug report</a>).</p>
 
 <h2><a name="design">4. Design Decisions</a></h2>
@@ -491,14 +494,14 @@ functions would be required anyway.</p>
 
 <h2><a name="wording">6. Proposed Wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">N4762</a> (C++ Working Draft, 2018-07-07).</p>
+<p>The proposed wording changes refer to <a href="https://wg21.link/n4762">N4762</a> (C++ Working Draft, 2018-07-07).</p>
 
 <h3><a name="wording.pfcw">6.1. Definition of <em>perfect forwarding call wrapper</em></a></h3>
 
 <p>This section introduces a <em>perfect forwarding call wrapper</em> concept, that groups a set of common requirements for the call wrapper
    for a stateful callable(s) and collection of bound arguments. This concept is later used to simplify the specification
    of the proposed <code>bind_front</code> and existing <code>not_fn</code> function. In addition it can be extended to cover <code>overload</code>
-   function (proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">P0051: C++ generic <code>overload</code>  function</a>),
+   function (proposed in <a href="http://wg21.link/p0051r1">P0051: C++ generic <code>overload</code>  function</a>),
    by allowing call wrapper to hold multiple target objects.</p>
   
 <p>The definition of the <em>perfect forwarding call wrapper</em> requires the implementation to guarantee that the invocation of the
@@ -642,13 +645,13 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 </blockquote>
 
 <p>Note: This wording can be further simplified by use of <code>unwrap_ref_decay_t</code> from
-<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0318r1.pdf">P0318R1: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a> paper.</p>
+<a href="http://wg21.link/p0318r1">P0318R1: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a> paper.</p>
 
 <h3><a name="wording.not_fn">6.3. Alternative wording for <code>not_fn</code></a></h3>
 
 <p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
    as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
-   The major improvements over <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/n4600.html#func.not_fn">Library Fundamentals TS v2 wording</a>,
+   The major improvements over <a href="http://wg21.link/n4600#func.not_fn">Library Fundamentals TS v2 wording</a>,
    comes from using <em>perfect forwarding call wrapper</em> in definition of <code>not_fn(f)</code> return.</p>
 
 <p>Change the section [func.not_fn] Function template <code>not_fn</code> to:</p>
@@ -763,25 +766,25 @@ private:
 template&lt;typename Func, typename... BoundArgs&gt;
 auto bind_front(Func&amp;&amp; func, BoundArgs&amp;&amp;... boundArgs)
 {
-  return bind_front_t&lt;std::decay_t&lt;Func&gt;, decay_unwrap_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
+  return bind_front_t&lt;std::decay_t&lt;Func&gt;, unwrap_ref_decay_t&lt;BoundArgs&gt;...&gt;{std::forward&lt;Func&gt;(func), std::forward&lt;BoundArgs&gt;(boundArgs)...};
 }</pre>
 
 <p>To properly handle <code>std::reference_wrapper</code> in above code, we use <code>decay_unwrap</code> auxilary metafunction from 
-<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf">P0318R0: <code>decay_unwrap</code> and <code>unwrap_reference</code></a> paper:</p>
+<a href="http://wg21.link/p0318r1">P0318R1: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a> paper.</p>
 <pre>template&lt;typename T&gt;
-struct decay_unwrap;
+struct unwrap_ref_decay;
 
 template&lt;typename T&gt;
-struct decay_unwrap&lt;std::reference_wrapper&lt;T&gt;&gt;
+struct unwrap_ref_decay&lt;std::reference_wrapper&lt;T&gt;&gt;
 {
   using type = T&amp;;
 };
 
 template&lt;typename T&gt;
-struct decay_unwrap 
+struct unwrap_ref_decay
   : std::conditional_t&lt;
       !std::is_same&lt;std::decay_t&lt;T&gt;, T&gt;::value,
-      decay_unwrap&lt;std::decay_t&lt;T&gt;&gt;,
+      unwrap_ref_decay&lt;std::decay_t&lt;T&gt;&gt;,
       std::decay&lt;T&gt;
    &gt;
 {};
@@ -810,33 +813,27 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 <ol>
   <li>Chris Jefferson, Ville Voutilainen, 
       "Bug 40 - variadic bind" 
-      (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">
-                    https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
+      (LEWG Bug 40, <a href="https://issues.isocpp.org/show_bug.cgi?id=40">https://issues.isocpp.org/show_bug.cgi?id=40</a>)</li>
 
   <li>Mikhail Semenov, 
       "Introducing an optional parameter for mem_fn, which allows to bind an object to its member function" 
-      (N3702, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm">
-              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3702.htm</a>)</li>
+      (N3702, <a href="http://wg21.link/n3702">http://wg21.link/n3702</a>)</li>
 
   <li>Tomasz Kamiński, 
       "Parameter group placeholders for bind"
-      (N4171, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html">
-              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4171.html</a>)</li>
+      (N4171, <a href="http://wg21.link/n4171">http://wg21.link/n4171</a>)</li>
 
   <li>Jens Maurer,
       "P0012R1: Make exception specifications be part of the type system, version 5" 
-      (P0012R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html">
-                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0012r1.html</a>)</li>
+      (P0012R1, <a href="http://wg21.link/p0012r1">http://wg21.link/p0012r1</a>)</li>
 
   <li>Marshall Clow,
       "C++ Standard Library Issues Resolved Directly In Kona" 
-      (P0625R0, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807">
-                         http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0625r0.html#2807</a>)</li>
+      (P0625R0, <a href="http://wg21.link/p0625r0">http://wg21.link/p0625r0</a>)</li>
 
   <li>William M. Miller,
       "C++ Standard Core Language Active Issues, Revision 97" 
-      (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1581">
-                http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1581</a>)</li>
+      (<a href="http://wg21.link/cwg1581">http://wg21.link/cwg1581</a>)</li>
 
   <li>Gonzalo BG,
       "[C++11/14] Body of constexpr function templates instantiated too eagerly in unevaluated operands" 
@@ -845,28 +842,23 @@ using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
   <li>Vicente J. Botet Escribá, 
       "C++ generic <code>overload</code> function (Revision 1)" 
-      (P0051R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf">
-                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0051r1.pdf</a>)</li>
+      (P0051R1, <a href="http://wg21.link/p0051r1">http://wg21.link/p0051r1</a>)</li>
 
   <li>Vicente J. Botet Escribá, 
       "<code>unwrap_ref_decay</code> and <code>unwrap_reference</code>" 
-      (P0318R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0318r1.pdf">
-                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0318r1.pdf</a>)</li>
+      (P0318R1, <a href="http://wg21.link/p0318r1">http://wg21.link/p0318r1</a>)</li>
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
-      (N4762, <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">
-              https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf</a>)</li>
+      (N4762, <a href="https://wg21.link/n4762">https://wg21.link/n4762</a>)</li>
 
   <li>Casey Carter, Eric Niebler,
       "Standard Library Concepts"
-      (P0898R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf">
-                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0898r3.pdf</a>)</li>
+      (P0898R3, <a href="http://wg21.link/p0898r3">http://wg21.link/p0898r3</a>)</li>
 
   <li>Walter E. Brown,
       "Standard Library Specification in a Concepts and Contracts World"
-      (P0788R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf">
-                http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0788r3.pdf</a>)</li>
+      (P0788R3, <a href="http://wg21.link/p0788r3">http://wg21.link/p0788r3</a>)</li>
 </ol>
 
 </body></html>
