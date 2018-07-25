@@ -76,7 +76,7 @@ td { text-align: left; vertical-align: top;
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-07-15</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -102,8 +102,8 @@ td { text-align: left; vertical-align: top;
 <p>This paper argues that the currently specified concept does not achieve above goal, due the additional requirement of <code>CommonReference</code>
    for types of parameters. As consequence we propose to relax this concept (and all derived concepts) by removing above requirement.</p>
 
-<p>The need for appying this change, was recognized with the inception of the current concept design - similiar change is already proposed as alternative
-   design in Appendinx D.2 Cross-type Concepts of <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">A Concept Design for the STL</a> (The Palo Alto report) paper.<p> 
+<p>The need for applying this change, was recognized with the inception of the current concept design - similar change is already proposed as alternative
+   design in Appendix D.2 Cross-type Concepts of <a href="https://wg21.link/n3351">A Concept Design for the STL</a> (The Palo Alto report) paper.<p> 
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -331,7 +331,7 @@ private:
 
 <p>Of course, it would be possible to introduce an second concept that would be used for ordered containers, however creating
    multiple concepts representing the same mathematical concept (<em>weak ordering</em>) is against Design Ideas (section 1.3) 
-   presented in the <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">The Palo Alto report</a>: limiting
+   presented in the <a href="https://wg21.link/n3351">The Palo Alto report</a>: limiting
    number of concepts and providing concept representing general idea in the domain.</p>
 
 <h3><a name="motivation.common_reference">3.4. Hacking <code>common_reference</code></a></h3>
@@ -518,7 +518,7 @@ private:
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">N4762</a> (C++ Working Draft, 2018-07-07).</p>
+<p>The proposed wording changes refer to <a href="https://wg21.link/n4762">N4762</a> (C++ Working Draft, 2018-07-07).</p>
 
 <p>Apply following changes to the [concept.relation] Concept <code>Relation</code> section:</p>
 <blockquote class="std">
@@ -564,9 +564,9 @@ concept Relation =
       "Elements of Programming",
        Addison-Wesley Professional; 1 edition (2009)</li>
   
-  <li>Bjarne Stroustrup, Andrew Sutton,
+  <li>Bjarne Stroustrup et al.,
       "A Concept Design for the STL",
-      (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3351.pdf</a>)</li>
+      (N3351, <a href="https://wg21.link/n3351">https://wg21.link/n3351</a>)</li>
 
   <li>Eric Niebler,
       "Range Comprehensions" 
@@ -574,8 +574,7 @@ concept Relation =
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
-      (N4762, <a href="https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf">
-              https://github.com/cplusplus/draft/raw/master/papers/n4762.pdf</a>)</li>
+      (N4762, <a href="https://wg21.link/n4762">https://wg21.link/n4762</a>)</li>
 </ol>
 
 
