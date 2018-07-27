@@ -412,7 +412,7 @@ private:
 <h3><a name="motivation.common_reference">3.5. Implementing mathematical comparison</a></h3>
 
 <p>In contrast to previous sections, when we were unable to implement desired ordering (or implement it effectively), in this section
-   we will discuss the example ordering, that cannot be used as comparator, due existing specialization of <code>common_type</code>.</p>
+   we will discuss the example ordering, that cannot be implemented as comparator, due existing specialization of <code>common_type</code>.</p>
 
 <p>Let us consider implementing an <code>MathematicalLess</code> functor, that will compare class of integral types, according
    to mathematical meaning of this relation, i.e. <code>MathematicalLess{}(-1, 1u)</code> return <code>true</code>. We may
@@ -500,7 +500,7 @@ private:
    To satisfy above requirements, the objects of different types needs to represent the same underlying
    entities - i.e. there is common type for them in the underlying domain.</p>
 
-<p>However, in some implementing an representation of such common type, may be task that is orders of
+<p>However, in some cases, implementing an representation of such common type, may be task that is orders of
    magnitude harder than the implementing comparator itself. To illustrate lets as consider the 
    comparison between class representing variable length integer <code>wide_int</code> <code>i</code> and floating
    point value <code>double</code> <code>d</code>. The implementation of such comparison may work as follow:</p>
