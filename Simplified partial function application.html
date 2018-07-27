@@ -92,7 +92,7 @@ td { text-align: left; vertical-align: top;
 
 <p>This paper addresses <a href="https://issues.isocpp.org/show_bug.cgi?id=40">LEWG Bug 40: variadic bind</a>.</p>
 
-<p>This paper was positively reviewed by LEWG and forwarded to LWG for inclusion into IS durtion Albuquerque meeting.</p>
+<p>This paper was positively reviewed by LEWG and forwarded to LWG for inclusion into IS during Albuquerque meeting.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -132,7 +132,7 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r3">2.4. Revision 3</a></h3>
 
 <ul>
-  <li>Paper now targets LWG after sucessfull LEWG review.</li>
+  <li>Paper now targets LWG after positive LEWG review.</li>
   <li>Corrected uses of shall in [func.require] paragraph.</li>
   <li>Clarified that call wrappers produced by same specialization are same
       (addressing <a href="https://wg21.link/lwg3023">LWG issue 3023</a>).</li>
@@ -146,7 +146,7 @@ td { text-align: left; vertical-align: top;
   <li>Updated reference to <a href="http://wg21.link/p0318r1">P0318: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a>.</li>
   <li>Applied wording fixes from Walter E. Brown.</li>
   <li>Removed "shall be a callable object" requirement.</li>
-  <li>Removed defintion of <em>expression-equivalent</em> (accepted as part of <a href="http://wg21.link/p0898r3">P0898R3: Standard Library Concepts</a>).</li>
+  <li>Removed definition of <em>expression-equivalent</em> (accepted as part of <a href="http://wg21.link/p0898r3">P0898R3: Standard Library Concepts</a>).</li>
   <li>Split "Requires" elements into "Mandates" and "Expects", per <a href="http://wg21.link/p0788r3">P0788R3: Standard Library Specification in a Concepts and Contracts World</a>.</li>
   <li>Changed links to use <a href="https://wg21.link">https://wg21.link</a>.</li>
 </ul>
@@ -790,7 +790,7 @@ struct unwrap_ref_decay
 {};
 
 template&lt;typename T&gt;
-using decay_unwrap_t = typename decay_unwrap&lt;T&gt;::type;</pre>
+using unwrap_ref_decay_t = typename decay_unwrap&lt;T&gt;::type;</pre>
 
 <h2><a name="acknowledgements">9. Acknowledgements</a></h2>
 
