@@ -239,19 +239,15 @@ private:
 <p>The above code has a major drawback - for each comparison of elements (that is limited by O(n log n)) a temporary vector is created, leading
    to degradation of the code performance comparing to STL1 example.</p>
 
-<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function, to reduce
-   the cost of temporary production:</p>
+<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function,
+   to reduce the cost of temporary production:</p>
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
-<p>Firstly, there is still no guarantee that the code will have same performance as corresponding STL1 version - to achieve
-   that the compiler will be required to completely eliminate creation of the view, and replace iteration over it with raw loop
-   - in other words we are requiring heroic optimization efforts on compiler side. 
-   This is acknowledged by range library author in <a href="http://ericniebler.com/2014/04/27/range-comprehensions/">"Performance" section of the following post</a>.</p>
 
-<p>Secondly, this does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
+<p>Firstly, this does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
 <pre>std::equal_range(vi, vd,
                  [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
                  toDepartureDatesView);</pre>
-<p>In the above codei, provided lambda needs to satisfy <code>StrictWeakOrdering</code> on <code>std::vector&lt;std::chrono::local_days&gt;</code>
+<p>In the above code, provided lambda needs to satisfy <code>StrictWeakOrdering</code> on <code>std::vector&lt;std::chrono::local_days&gt;</code>
    and <code>TransformView</code> (result of <code>toDepartureDateView</code>), which means that common reference between these two
    types needs to exists. This happens to be true for this specific case, as all proposed views are convertible to 
    containers, however if we modify the example to use <code>std::span&lt;std::chrono::local_days&gt;</code>
@@ -259,9 +255,14 @@ private:
    as there is no common reference for different views - this specialization also cannot be defined
    by user.</p>
 
+<p>Secondly, there is still no guarantee that the code will have same performance as corresponding STL1 version - to achieve
+   that the compiler will be required to completely eliminate creation of the view, and replace iteration over it with raw loop.</p>
+
 <p>As presented above, the implementation options limitation imposed by requiring a <code>CommonReference</code>
-   for orderings, is negatively impacting the performance in the resulting code. This is true even in situation when viewis are used 
-   - user would be requireid to relay on optimization to achieve same performance.
+   for orderings, is negatively impacting the performance in the resulting code. 
+   Furthermore, this problem will not be addressed by the introduction of the views in C++ standard, as resulting code
+   may fail victim of the same problem (code fails to compile due lack of `CommonReference` for views), and even if it does,
+   the resulting performance may differ depending on the optimization level.
    In authors opinion, this means that current design of Ranges are breaking zero-overhead principle, which is backbone of
    C++ language - the user is able to implement same functionality in more efficient manner, by simply using older version
    of algorithms, that was not imposing such limitation.</p>
@@ -567,10 +568,6 @@ concept Relation =
   <li>Bjarne Stroustrup et al.,
       "A Concept Design for the STL",
       (N3351, <a href="https://wg21.link/n3351">https://wg21.link/n3351</a>)</li>
-
-  <li>Eric Niebler,
-      "Range Comprehensions" 
-      (<a href="http://ericniebler.com/2014/04/27/range-comprehensions/">http://ericniebler.com/2014/04/27/range-comprehensions/</a>)</li>
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
