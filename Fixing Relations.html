@@ -239,7 +239,7 @@ private:
 <p>The above code has a major drawback - for each comparison of elements (that is limited by O(n log n)) a temporary vector is created, leading
    to degradation of the code performance comparing to STL1 example.</p>
 
-<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function,
+<p>This problem can be mitigated by returning a transform view (assuming it is introduced) from the <code>toDepartureDates</code> function,
    to reduce the cost of temporary production:</p>
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
 
