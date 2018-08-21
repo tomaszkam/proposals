@@ -261,8 +261,7 @@ private:
 <p>As presented above, the implementation options limitation imposed by requiring a <code>CommonReference</code>
    for orderings, is negatively impacting the performance in the resulting code. 
    Furthermore, this problem will not be fully addressed by the introduction of the views from <a href="https://wg21.link/p0896r2">P0896R2: The One Ranges Proposal</a>
-   in C++ standard, as resulting code may fail victim of  the same problem (code fails to compile due lack of `CommonReference` for views), and even if it does,
-   the resulting performance may differ depending on the optimization level.
+   in C++ standard, as resulting code may fail victim of the same problem &mdash; code fails to compile due lack of `CommonReference` for views.
    In authors opinion, this means that current design of Ranges are breaking zero-overhead principle, which is backbone of
    C++ language - the user is able to implement same functionality in more efficient manner, by simply using older version
    of algorithms, that was not imposing such limitation.</p>
