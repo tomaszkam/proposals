@@ -161,8 +161,7 @@ std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 <p>In situation when <em>weak ordering</em> is defined in terms of the composition of the <em>key function</em> and <em>strong ordering</em>, the type
    returned by <em>key function</em> may be unrelated to the actual object type, as we are usually returning a member of that object. This means
    that the user is forced to rewrite they comparators into separate projection and homogeneous functor. 
-   This puts an arbitrary limitation on the implementation freedom, and have negative consequences both on runtime performance of the code
-   and its readability.</p>
+   This puts an  limitation on the implementation freedom for the users, and have negative consequences on runtime performance of the code.</p>
 
 <h3><a name="motivation.cost">3.1. Inefficient abstraction</a></h3>
 
@@ -236,11 +235,10 @@ private:
 <pre>std::equal_range(vi, vd,
                  [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
                  toDepartureDates);</pre>
-<p>The above code has a major drawback - for each comparison of elements (that is limited by O(n log n)) a temporary vector is created, leading
+<p>The above code has a major drawback - for each comparison of elements (that is limited by <code><i>O</i>(nlog(n))</code>) a temporary vector is created, leading
    to degradation of the code performance comparing to STL1 example.</p>
 
-<p>This problem can be mitigated by returning a transform view (assuming <a href="https://wg21.link/p0896r2">P0896R2: The One Ranges Proposal</a> is accepted)
-   from the <code>toDepartureDates</code> function,  to reduce the cost of temporary production:</p>
+<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function,  to reduce the cost of temporary production:</p>
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
 
 <p>Firstly, this does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
@@ -256,7 +254,9 @@ private:
    by user.</p>
 
 <p>Secondly, there is still no guarantee that the code will have same performance as corresponding STL1 version - to achieve
-   that the compiler will be required to completely eliminate creation of the view, and replace iteration over it with raw loop.</p>
+   that the compiler will be required to completely eliminate creation of the view, and replace iteration over it with raw loop.
+   [ Note: Tests performed on g++ 7.3 performed with modified version of <code>cmcstl2</code> (containing a mock implementation for
+     <code>common_reference</code> for views) indicated no performance degradation. ]</p>
 
 <p>As presented above, the implementation options limitation imposed by requiring a <code>CommonReference</code>
    for orderings, is negatively impacting the performance in the resulting code. 
@@ -493,14 +493,15 @@ private:
    this concept.</p>
 
 <p>However, the underlying semantics of the <code>StrictTotallyOrderedWith&lt;T, U&gt;</code> is different 
-   than the <code>StrictWeakOrdering&lt;std::less&lt;&gt;, T, U</code>, as it is meant to represent
+   than the <code>StrictWeakOrdering&lt;std::less&lt;&gt;, T, U&gt;</code>, as it is meant to represent
    <em>strong order</em> - in contrast to the <em>weak ordering</em> for the <em>strong ordering</em>, 
    if <code>a</code> and <code>b</code> are not ordered (<code>!(a &lt; b) &amp;&amp; !(b &lt; a)</code>),
-   then they are the same <code>a == b</code> (representing the same value). 
-   To satisfy above requirements, the objects of different types need to represent the same underlying
-   entities - i.e. there is common type for them in the underlying domain.</p>
+   then they are the same (<code>a == b</code>).
+   In other words, even if situation when types of <code>a</code> and <code>b</code> differs, they
+   are different representation of the same entity (e.g. <code>std::string</code> and <code>std::string_view</code>),
+   and should have a notion of "common type" (sequences of characters).</p>
 
-<p>Unfortunately,, in some cases, implementing an representation of such common type, may be task that is orders of
+<p>Unfortunately, in some cases, implementing an representation of such common type, may be task that is orders of
    magnitude harder than implementing comparator itself. To illustrate lets as consider the 
    comparison between class representing variable length integer <code>wide_int</code> <code>i</code> and floating
    point value <code>double</code> <code>d</code>. The implementation of such comparison may work as follow:</p>
