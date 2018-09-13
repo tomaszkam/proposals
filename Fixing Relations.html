@@ -161,7 +161,7 @@ std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 <p>In situation when <em>weak ordering</em> is defined in terms of the composition of the <em>key function</em> and <em>strong ordering</em>, the type
    returned by <em>key function</em> may be unrelated to the actual object type, as we are usually returning a member of that object. This means
    that the user is forced to rewrite they comparators into separate projection and homogeneous functor. 
-   This puts an  limitation on the implementation freedom for the users, and have negative consequences on runtime performance of the code.</p>
+   This puts an limitation on the implementation freedom for the users, and have negative consequences on runtime performance of the code.</p>
 
 <h3><a name="motivation.cost">3.1. Inefficient abstraction</a></h3>
 
@@ -255,7 +255,7 @@ private:
 
 <p>Secondly, there is still no guarantee that the code will have same performance as corresponding STL1 version - to achieve
    that the compiler will be required to completely eliminate creation of the view, and replace iteration over it with raw loop.
-   [ Note: Tests performed on g++ 7.3 performed with modified version of <code>cmcstl2</code> (containing a mock implementation for
+   [ Note: Tests performed on g++ 7.3 with modified version of <code>cmcstl2</code> (containing a mock implementation of
      <code>common_reference</code> for views) indicated no performance degradation. ]</p>
 
 <p>As presented above, the implementation options limitation imposed by requiring a <code>CommonReference</code>
