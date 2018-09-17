@@ -84,7 +84,7 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype(std::forward<Object>(object).*functor)
+            decltype((std::forward<Object>(object).*functor))
           >::type
     {
       return std::forward<Object>(object).*functor;
@@ -104,7 +104,7 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype(to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor)
+            decltype((to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor))
           >::type
     {
       return to_target_reference<Functor>{}(*std::forward<Object>(object)).*functor;
@@ -128,7 +128,7 @@ namespace functional
               Object&&,
               typename std::decay<Functor>::type
             >::value,
-            decltype(to_target_reference<Functor>{}(std::forward<Object>(object)).*functor)
+            decltype((to_target_reference<Functor>{}(std::forward<Object>(object)).*functor))
           >::type
     {
       return to_target_reference<Functor>{}(std::forward<Object>(object)).*functor;
