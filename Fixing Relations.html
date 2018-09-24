@@ -525,7 +525,7 @@ private:
 <blockquote class="std">
 <pre>template&lt;class R, class T, class U&gt;
 concept Relation =
-  Predicate&lt;R, T, T&gt; &amp;&amp; Predicate<R, U, U> &amp;&amp;
+  Predicate&lt;R, T, T&gt; &amp;&amp; Predicate&lt;R, U, U&gt; &amp;&amp;
   <del>CommonReference&lt;const remove_reference_t&lt;T&gt;&amp;, const remove_reference_t&lt;U&gt;&amp;&gt; &amp;&amp;</del>
   <del>Predicate&lt;R,</del>
     <del>common_reference_t&lt;const remove_reference_t&lt;T&gt;&amp;, const remove_reference_t&lt;U&gt;&amp;&gt;,</del>
@@ -549,9 +549,9 @@ concept Relation =
   </dl>
 </blockquote>
 
-<p>Note that the definition provided in [concept.strictweakorder] Concept <code>StrictWeakOrder</code>, does not need to be updated
-   as it does not rely on the existence of <code>common_reference_t&lt;const remove_reference_t&lt;T&gt;&amp;, const remove_reference_t&lt;U&gt;&amp;&gt;</code>
-   in any way.</p> 
+<p>Note that the definition of concept <code>StrictWeakOrder</code> in [concept.strictweakorder] does not need to be updated
+   as it does not directly rely directly on <code>common_reference_t&lt;const remove_reference_t&lt;T&gt;&amp;, const remove_reference_t&lt;U&gt;&amp;&gt;</code>.
+   </p> 
 
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
@@ -571,7 +571,7 @@ concept Relation =
 
   <li>Eric Niebler, Casey Carter, Christopher Di Bella,
       "The One Ranges Proposal",
-      (N4762, <a href="https://wg21.link/p0896r2">https://wg21.link/p0896r2</a>)</li>
+      (P0896R2, <a href="https://wg21.link/p0896r2">https://wg21.link/p0896r2</a>)</li>
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
