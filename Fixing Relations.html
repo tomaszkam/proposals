@@ -280,22 +280,22 @@ private:
 <p>In our case we are interested in the definition of the <em>weak ordering</em> over some domain <em>X</em>. The mathematical
    definition of <em>weak ordering</em> requires following axioms to be true:
    <ul>
-     <li><em>irreflexivity</em>: for all <code>t</code> in <em>X</em>: <code>!r(t, t)</code></li>
-     <li><em>asymmetry</em>: for all <code>t</code>, <code>u</code> in <em>X</em>: <code>r(t, u)</code> =&gt; <code>!r(u, t)</code></li>
-     <li><em>transitivity</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>r(t, u) &amp;&amp; r(u, z)</code> =&gt; <code>r(t, z)</code></li>
-     <li><em>transitivity of incomparability</em>: for all <code>t</code>, <code>u</code>, <code>z</code> in <em>X</em>: <code>(!r(t, u) &amp;&amp; !r(u, t)) &amp;&amp; (!r(u, z) &amp;&amp; !r(z, u))</code> =&gt; <code>(!r(t, z) &amp;&amp; !r(z, t))</code></li>
+     <li><em>irreflexivity</em>: for all <code>x</code> in <em>X</em>: <code>!r(x, x)</code></li>
+     <li><em>asymmetry</em>: for all <code>x</code>, <code>y</code> in <em>X</em>: <code>r(x, y)</code> =&gt; <code>!r(y, x)</code></li>
+     <li><em>transitivity</em>: for all <code>x</code>, <code>y</code>, <code>z</code> in <em>X</em>: <code>r(x, y) &amp;&amp; r(y, z)</code> =&gt; <code>r(x, z)</code></li>
+     <li><em>transitivity of incomparability</em>: for all <code>x</code>, <code>y</code>, <code>z</code> in <em>X</em>: <code>(!r(x, y) &amp;&amp; !r(y, x)) &amp;&amp; (!r(y, z) &amp;&amp; !r(z, y))</code> =&gt; <code>(!r(x, z) &amp;&amp; !r(z, x))</code></li>
    </ul>
 </p>
 
 <p>The last requirement is necessary to show that the function <code>eq(x, y)</code> equivalent to <code>!r(x, y) &amp;&amp; !r(y, x)</code> is an equivalence relation,
    i.e. the relation is <em>reflexive</em> (guaranteed by <em>irreflexivity</em> of <code>r</code>),  <em>symmetric</em> (from definition), and <em>transitive</em> (imposed 
    directly by <em>transitivity of incomparability</em> for <code>r</code>). 
-   This guarantees that for any <code>t</code>, <code>u</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,
+   This guarantees that for any <code>x</code>, <code>y</code> in the <em>X</em> only one of following is true:  <code>r(x, y)</code>,  <code>eq(x, y)</code>, <code>r(y, x)</code>,
    where <code>eq</code> is equality relation. 
    That means that <code>r</code> also satisfies definition of <em>weak ordering</em> presented in section "4.2 Total and Weak Orderings" of "Elements of Programming" by Alexander Stepanov and Paul McJones.</p>
 
 <p>To verify if given functor <code>f</code> is strict weak ordering over an domain consisting of objects of type <code>T</code> and of type <code>U</code> 
-   (note that domain is just ia set of elements, which may be on different type), we will require following invocation to be well-formed:
+   (note that domain is just a set of elements, which may be of different type), we will require following invocation to be well-formed:
    <code>f(t, u)</code>, <code>f(u, t)</code>, <code>f(t, t)</code>, <code>f(u, u)</code>, where <code>t</code> is object of type <code>T</code> and <code>u</code>
    of type <code>U</code>.</p>
 
@@ -550,8 +550,8 @@ concept Relation =
 </blockquote>
 
 <p>Note that the definition of concept <code>StrictWeakOrder</code> in [concept.strictweakorder] does not need to be updated
-   as it does not directly rely directly on <code>common_reference_t&lt;const remove_reference_t&lt;T&gt;&amp;, const remove_reference_t&lt;U&gt;&amp;&gt;</code>.
-   </p> 
+   as it does not rely on the existence of <code>common_reference_t&lt;const remove_reference_t&lt;T&gt;&amp;, const remove_reference_t&lt;U&gt;&amp;&gt;</code>
+   in any way.</p> 
 
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
