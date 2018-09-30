@@ -99,8 +99,12 @@ td { text-align: left; vertical-align: top;
 <p>The secondary goal is to simplify migration to the rangified version of algorithms, however reaching of this goal should 
    not undermine above properties.</p>
 
-<p>This paper argues that the currently specified concept does not achieve above goal, due the additional requirement of <code>CommonReference</code>
-   for types of parameters. As consequence we propose to relax this concept (and all derived concepts) by removing above requirement.</p>
+<p>This paper argues that the currently specified <code>Relation</code> concept does not achieve above goal, due the additional 
+   requirement of <code>CommonReference</code> for types of parameters of callable. As consequence we propose to relax this concept
+   (and derived <code>StrictWeakOrdering</code> concept) by removing above requirement.
+   [ Note: These changes affect only requirements on comparators used with STL algorithms, and are not changing the requirements
+     for comparisions operators (<code>&lt;</code>, <code>==</code>, ...). ]
+</p>
 
 <p>The need for applying this change, was recognized with the inception of the current concept design - similar change is already proposed as alternative
    design in Appendix D.2 Cross-type Concepts of <a href="https://wg21.link/n3351">A Concept Design for the STL</a> (The Palo Alto report) paper.<p> 
@@ -161,7 +165,7 @@ std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 <p>In situation when <em>weak ordering</em> is defined in terms of the composition of the <em>key function</em> and <em>strong ordering</em>, the type
    returned by <em>key function</em> may be unrelated to the actual object type, as we are usually returning a member of that object. This means
    that the user is forced to rewrite they comparators into separate projection and homogeneous functor. 
-   This puts an limitation on the implementation freedom for the users, and have negative consequences on runtime performance of the code.</p>
+   This puts an limitation on the implementation freedom for the users, and have negative consequences on expressiveness and runtime performance of the code.</p>
 
 <h3><a name="motivation.cost">3.1. Inefficient abstraction</a></h3>
 
@@ -241,7 +245,7 @@ private:
 <p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function,  to reduce the cost of temporary production:</p>
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
 
-<p>Firstly, this does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
+<p>This does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
 <pre>std::equal_range(vi, vd,
                  [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
                  toDepartureDatesView);</pre>
@@ -252,11 +256,6 @@ private:
    instead of <code>std::vector&lt;std::chrono::local_days&gt;</code> the code will again fail to compile,
    as there is no common reference for different views - this specialization also cannot be defined
    by user.</p>
-
-<p>Secondly, there is still no guarantee that the code will have same performance as corresponding STL1 version - to achieve
-   that the compiler will be required to completely eliminate creation of the view, and replace iteration over it with raw loop.
-   [ Note: Tests performed on g++ 7.3 with modified version of <code>cmcstl2</code> (containing a mock implementation of
-     <code>common_reference</code> for views) indicated no performance degradation. ]</p>
 
 <p>As presented above, the implementation options limitation imposed by requiring a <code>CommonReference</code>
    for orderings, is negatively impacting the performance in the resulting code. 
@@ -479,7 +478,7 @@ private:
   <li><code>comp</code> model <em>weak ordering</em> over sum of elements in <code>range</code> and <code>value</code>,</li>
   <li><code>range</code> elements is sorted in order defined by the <code>comp</code>.</li>
 </ol>
-<p>The second requirement can be checked by simply checking if <code>is_sorted(range.begin(), range.end(), comp)</code> is true,
+<p>The second requirement can be checked by simply checking if <code>std::is_sorted(range.begin(), range.end(), comp)</code> is true,
    which impose that <code>comp</code> can be invoked with two elements of supplied range. For the first requirement
    we need to verify axioms described in section <a href="motivation.sound">3.2. Mathematical soundness</a> of this paper - 
    such validation requires <code>comp</code> to be invocable with any combination of types.</code>
@@ -499,7 +498,7 @@ private:
    then they are the same (<code>a == b</code>).
    In other words, even if situation when types of <code>a</code> and <code>b</code> differs, they
    are different representation of the same entity (e.g. <code>std::string</code> and <code>std::string_view</code>),
-   and should have a notion of "common type" (sequences of characters).</p>
+   and should have a notion of "common type" (e.g. sequences of characters).</p>
 
 <p>Unfortunately, in some cases, implementing an representation of such common type, may be task that is orders of
    magnitude harder than implementing comparator itself. To illustrate lets as consider the 
@@ -556,7 +555,7 @@ concept Relation =
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
-<p>Casey Carter and Michał Łoś offered many useful suggestions and corrections to the proposal.</p>
+<p>Casey Carter, Andrzej Krzemieński and Michał Łoś offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">7. References</a></h2>
 
