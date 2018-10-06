@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Spaceship library update</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXRX</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-06</td>
+  </tr>
+  <tr>
+    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Spaceship library update</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper proposed a set of minor usability tweaks for the library portion of the tree-way comparison operator:
+   comparison category types.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<h3><a name="motivation.equality">3.1. Equality for the comparison categories</a></h3>
+
+<p>Currently, the comparison category types defined in the standard (<code>weak_equality</code>, <code>strong_equality</code>,
+   <p>partial_ordering</code>, ...) are not providing the equality operator for comparing they values. Instead, the 
+   suggested way to inspect the comparison result is to compare it against the zero constant (<code>0</code>).</p>
+
+<p>The above mechanism is working effectively, for situations when we want to check if the category object <code>res</code> represent
+   one of the following result:</p>
+<ul>
+   <li>equal/equivalent: <code>res == 0</code>,</li>
+   <li>non-equal/non-equivalent: <code>res != </code>,</li>
+   <li>less: <code>res &lt; 0</code>,</li>
+   <li>less-or-equal: <code>res &lt;= 0</code>,</li>
+   <li>greater: <code>res &gt; 0</code>,</li>
+   <li>greater: <code>res &gt;= 0</code>.</li>
+</ul>
+<p>However, if we want to check if the <code>partial_ordering</code> object <code>part</code> is representing that elements are unordered
+   (<code>partial_order::unordered</code>), we are forced to check if it does not represent any of the above result, by using one of the
+   following:<p>
+<pre>!(part &lt; 0) &amp;&amp; !(part == 0) &&amp; !(part &gt; 0)
+!(part &lt;= 0) &amp;&amp; !(part &gt; &gt;= 0)</pre>
+<p>Both of above solution are less efficient that possible library implementation, that have access to the underlying representation
+   of the object.</p> 
+
+<p>Secondly, we are missing an efficient way to check if two comparison object are having the same value, if nor of them
+   has an runtime know value. For example imagine that we want to implement an unanimous comparison predicate &mdash;
+   the objects are considered to be less, if all corresponding fields are less (same for greater or equal)
+   (see <a href="https://wg21.link/p0100">P0100: Comparison in C++</a>).</p>
+
+<p>To illustrate,lets implementation for of above predicate for class <code>A</code> containing members <code>x</code>,
+   <code>y</code>, <code>z</code>:</p>
+<pre>std::partial_ordering unanimous_compare(A const&amp; lhs, A const&amp; rhs)
+{
+   auto first_result = lhs.x &lt;=&gt; rhs.y;
+   if (auto res = lhs.x &lt;=&gt; rhs.y; !is_same(first_result, res))
+     return std::partial_ordering::unordered;
+   if (auto res = lhs.z &lt;=&gt; rhs.z; !is_same(first_result, res))
+     return std::partial_ordering::unordered;
+   return first_result == 0 ? first_result : std::partial_ordering::unordered;
+}</pre>
+
+<p>And  <code>is_same</code> for the existing comparison categories:</p>
+<pre>bool is_same(std::weak_equality lhs, std::weak_equality rhs) i
+// handles std::strong_equality via conversion
+{
+   if (lhs == 0)
+     return rhs == 0;
+
+   // lhs != 0
+   return rhs != 0;
+}
+
+bool is_same(std::partial_ordering lhs, std::partial_ordering rhs)
+{
+    if (lhs == 0)
+      return rhs == 0;
+
+    if (lhs &lt; 0)
+      return rhs &lt; 0;
+   
+    if (lhs &gt; 0)
+      return rhs glt; 0;
+
+    // lhs is unordered
+    return !(rhs &lt;= 0) &amp;&amp; !(rhs &gt= 0);
+}
+
+bool is_same(std::weak_ordering lhs, std::weak_ordering rhs)
+// optimization for std::weak_ordering and std::strong_ordering
+{
+    if (lhs == 0)
+      return rhs == 0;
+
+    if (lhs &lt; 0)
+      return rhs &lt; 0;
+  
+    // lhs &gt; 0 
+    return rhs glt; 0;
+}</pre>
+<p>Again above functions may be implemented more effectively in library.</p>
+
+<p>To address both of above issues, we propose to make comparison categories equality comparable, thus allowing 
+   unordered values to be checked by <code>res == std::partial_ordering::unordered</code> and replacing the whole
+   <code>is_same</code> implementation by simple invocation of comparison operator (<code>lhs == rhs</code>).</p> 
+
+   
+<h3><a name="motivation.common_type">3.2. <code>common_type</code> for comparison categories</a></h3>
+
+<p>For the comparison category types <code>C...</code>, the standard currently provides two independent traits
+   to produce their common types:<p>
+<ul>
+  <li>the standard library mechanism: <code>std::common_type_t&lt;C...&gt;</code>,</li>
+  <li>specialized <code>std::common_comparison_category_t&lt;C...&gt;</code>.</li>
+</ul>
+<p>In the authors opinion, regardless if the programmer will use existing general purpose trait (<code>common_type</code>) 
+   or the specialized version (<code>common_comparison_category</code>), they should expect the same result.</p>
+
+<p>Currently above is not held for the following combination of the comparison categories:<p>
+<ul>
+  <li><code>std::strong_equality</code> and <code>std::partial_ordering</code>,</li>
+  <li><code>std::strong_equality</code> and <code>std::weak_ordering</code>.</li>
+</ul>
+<p>For the above types, <code>common_comparison_category</code> is <code>weak_ordering</code>, while <code>common_type</code>
+   does not have nested type.</p>
+
+<p>To fix above we are proposing that <code>common_type&lt;C...&gt;::type</code> shall have same value
+   as <code>common_comparison_category&lt;C...&gt;::type</code> in case when all types in pack <code>C</code>
+   are comparison category types. This may be achieved by providing following specializations
+   of <code>common_type</code>:</p>
+<pre>template&lt;&gt; struct common_type&lt;strong_equality, partial_ordering&gt; { using type = weak_equality; };
+template&lt;&gt; struct common_type&lt;partial_ordering, strong_equality&gt; { using type = weak_equality; };
+template&lt;&gt; struct common_type&lt;strong_equality, weak_ordering&gt; { using type = weak_equality; };
+template&lt;&gt; struct common_type&lt;weak_ordering, strong_equality&gt; { using type = weak_equality; };</pre>
+
+<p>Finally, proposed <code>common_type</code> extension, is required guarantee that <code>EqualityComparableWith</code>
+   concept would be satisfied for above categories, after equality operations will be introduced.</p>
+     
+<h3><a name="motivation.compare_3way_placement">3.3. Header for <code>compare_3way</code></a></h3>
+
+<p>Per author's input during Albuquerque both the <code>compare_3way</code> and <code>lexicographical_compare_3way</code> functions
+   were moved from the <code>compare<code> header to the <code>algorithm</code>.
+   While, moving  <code>lexicographical_compare_3way</code>
+   was right decision, as it is working on iterator/ranges (and for example require inclusion of related concept), moving
+   <code>compare_3way</code> may be an mistake.</p>
+
+<p>The <code>compare_3way</code> is a function designed for handling comparison in generic code, regardless
+   if argument type provides defines <code>operator&lt;=&gt;</code> or set of two-ways comparison operators.
+   This makes it a fundamental building block for implementing comparison operators in case of generic components,
+   like <code>std::optional</code>. As consequence of current placement of this function, implementation of such
+   component would be required to bring content of the <code>algorithm</code> header.</p>
+
+<p>To avoid above overhead we are proposing the move <code>compare_3way</code> function back to </code>compare</code>
+   header, as it was originally proposed.</p>
+
+
+<h2><a name="wording">4. Proposed Wording</a></h2>
+
+<p>TBD.</p>
+
+<h2><a name="acknowledgements">5. Acknowledgements</a></h2>
+
+<p>Herb Sutter for the discussion and feedback on changes proposed in this document.</p> 
+
+<h2><a name="literature">6. References</a></h2>
+
+<ol>
+  <li>Herb Sutter, Jens Maurer, Walter E. Brown, 
+      "Consistent comparison" 
+      (P0515R3, <a href="http://wg21.link/p0515r3">http://wg21.link/p0515r3</a>)</li>
+
+  <li>Lawrence Crowl, 
+      "Comparison in C++" 
+      (P0100R2, <a href="http://wg21.link/p0100r2">http://wg21.link/p0100r2</a>)</li>
+
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4762, <a href="https://wg21.link/n4762">https://wg21.link/n4762</a>)</li>
+
+</ol>
+
+
+</body></html>
