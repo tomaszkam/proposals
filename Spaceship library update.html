@@ -76,7 +76,7 @@ td { text-align: left; vertical-align: top;
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-06</td>
   </tr>
   <tr>
-    <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -206,7 +206,7 @@ bool is_same(std::weak_ordering lhs, std::weak_ordering rhs)
 <p>For the above types, <code>common_comparison_category</code> is <code>weak_equality</code>, while <code>common_type</code>
    does not have nested type.</p>
 
-<p>To fix above we are proposing that <code>common_type&lt;C...&gt;::type</code> shall have same value
+<p>To fix above we are proposing that <code>common_type&lt;C...&gt;::type</code> shall be the same 
    as <code>common_comparison_category&lt;C...&gt;::type</code> in case when all types in pack <code>C</code>
    are comparison category types. This may be achieved by providing following specializations
    of <code>common_type</code>:</p>
