@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1248R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-05</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-07</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -93,7 +93,7 @@ td { text-align: left; vertical-align: top;
                               especially it shall not be less effective than STL1 counterparts,</li>
   <li><em>generality</em>: concepts should be usable both in case of algorithms and containers, they should map to the underlying 
                            mathematical concepts and avoid imposing additional requirement,</li>
-  <li><em>soundness</em>: the syntactic requirements of the algorithm should allow (runtime) check if supplied object satisfies
+  <li><em>soundness</em>: the syntactic requirements of the algorithm should allow to check (in runtime) if supplied object satisfies
                           associated semantic requirement.</li>
 </ul>
 <p>The secondary goal is to simplify migration to the rangified version of algorithms, however reaching of this goal should 
@@ -102,11 +102,11 @@ td { text-align: left; vertical-align: top;
 <p>This paper argues that the currently specified <code>Relation</code> concept does not achieve above goal, due the additional 
    requirement of <code>CommonReference</code> for types of parameters of callable. As consequence we propose to relax this concept
    (and derived <code>StrictWeakOrdering</code> concept) by removing above requirement.
-   [ Note: These changes affect only requirements on comparators used with STL algorithms, and are not changing the requirements
-     for comparisions operators (<code>&lt;</code>, <code>==</code>, ...). ]
+   [ Note: This affects only requirements on comparators used with STL algorithms, and are not affecting relational operators
+     (<code>&lt;</code>, <code>==</code>, ...). ]
 </p>
 
-<p>The need for applying this change, was recognized with the inception of the current concept design - similar change is already proposed as alternative
+<p>The need for applying this change, was recognized with the inception of the current concept design - similar change is discussed as alternative
    design in Appendix D.2 Cross-type Concepts of <a href="https://wg21.link/n3351">A Concept Design for the STL</a> (The Palo Alto report) paper.<p> 
 
 <!--h2><a name="toc">Table of contents</a></h2-->
@@ -242,10 +242,10 @@ private:
 <p>The above code has a major drawback - for each comparison of elements (that is limited by <code><i>O</i>(nlog(n))</code>) a temporary vector is created, leading
    to degradation of the code performance comparing to STL1 example.</p>
 
-<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function,  to reduce the cost of temporary production:</p>
+<p>This problem can be mitigated by returning a transform view from the <code>toDepartureDates</code> function, to reduce the cost of temporary production:</p>
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
 
-<p>This does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
+<p>Above solution does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
 <pre>std::equal_range(vi, vd,
                  [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
                  toDepartureDatesView);</pre>
@@ -434,7 +434,7 @@ private:
 
 <p>Now let us discuss if <code>StrictWeakOrdering&lt;MathematicalLess, unsigned, int&gt;</code>. Firstly, the <code>unsigned</code> and
    <code>int</code> types has a common type: <code>std::common_type_t&lt;unsigned, int&gt;</code> is <code>unsigned</code>. Secondly
-   <code>MathematicalLess</code> can be invoked with any combination of objects of type either <code>int</code> or </code>unsigned</code>.
+   <code>MathematicalLess</code> can be invoked with any combination of objects of type either <code>int</code> or <code>unsigned</code>.
    This means that we are satisfying our syntactic requirements.</code>
 
 <p>However, if we consider following semantic requirement that the invocation of relation <code>r(a, b)</code> is always equivalent to
@@ -443,7 +443,7 @@ private:
    as <code>MathematicalLess{}(unsigned(-1), unsigned(1u))</code>, which is equal to <code>false</code>. However, by the design
    of <code>MathematicalLess</code> the result shall be true.</code>.</p>
 
-<p>Note that this problem cannot be without introducing opaque typedefs, as user is not allowed to change the common type
+<p>Note that this problem cannot be fixed without introducing opaque typedefs, as user is not allowed to change the common type
    for built-in types.</p> 
 
 <h2><a name="design">4. Design Decisions</a></h2>
