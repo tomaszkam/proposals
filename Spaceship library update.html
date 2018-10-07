@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-06</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-07</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -114,7 +114,7 @@ td { text-align: left; vertical-align: top;
    <li>less: <code>res &lt; 0</code>,</li>
    <li>less-or-equal: <code>res &lt;= 0</code>,</li>
    <li>greater: <code>res &gt; 0</code>,</li>
-   <li>greater: <code>res &gt;= 0</code>.</li>
+   <li>greater-or-equal: <code>res &gt;= 0</code>.</li>
 </ul>
 <p>However, if we want to check if the <code>partial_ordering</code> object <code>part</code> is representing unordered result
    (<code>partial_order::unordered</code>), we are forced to check if it does not represent any of the above result, by using one of the
@@ -204,7 +204,7 @@ bool is_same(std::weak_ordering lhs, std::weak_ordering rhs)
   <li><code>strong_equality</code> and <code>weak_ordering</code>.</li>
 </ul>
 <p>For the above types, <code>common_comparison_category</code> is <code>weak_equality</code>, while <code>common_type</code>
-   does not have nested type.</p>
+   does not have nested <code>type</code> typedef.</p>
 
 <p>To fix above we are proposing that <code>common_type&lt;C...&gt;::type</code> shall be the same 
    as <code>common_comparison_category&lt;C...&gt;::type</code> in case when all types in pack <code>C</code>
@@ -222,8 +222,8 @@ template&lt;&gt; struct common_type&lt;weak_ordering, strong_equality&gt; { usin
 
 <p>Per author's input during Albuquerque both the <code>compare_3way</code> and <code>lexicographical_compare_3way</code> functions
    were moved from the <code>compare</code> header to the <code>algorithm</code>.
-   While, moving  <code>lexicographical_compare_3way</code> was right decision, as it is working on iterator/ranges 
-   (and for example require inclusion of related concept), moving <code>compare_3way</code> may be an mistake.</p>
+   While, moving  <code>lexicographical_compare_3way</code> was right decision, as it is working on iterator/ranges,
+   moving <code>compare_3way</code> may be an mistake.</p>
 
 <p>The <code>compare_3way</code> is a function designed for handling comparison in generic code, regardless
    if argument type defines <code>operator&lt;=&gt;</code> or set of two-ways comparison operators.
