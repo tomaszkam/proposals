@@ -70,7 +70,7 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXRX</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-06</td>
@@ -102,34 +102,35 @@ td { text-align: left; vertical-align: top;
 
 <h3><a name="motivation.equality">3.1. Equality for the comparison categories</a></h3>
 
-<p>Currently, the comparison category types defined in the standard (<code>weak_equality</code>, <code>strong_equality</code>,
-   <p>partial_ordering</code>, ...) are not providing the equality operator for comparing they values. Instead, the 
+<p>Currently the comparison category types defined in the standard (<code>weak_equality</code>, <code>strong_equality</code>,
+   <code>partial_ordering</code>, ...) are not providing the equality operator for comparing they values. Instead the 
    suggested way to inspect the comparison result is to compare it against the zero constant (<code>0</code>).</p>
 
 <p>The above mechanism is working effectively, for situations when we want to check if the category object <code>res</code> represent
    one of the following result:</p>
 <ul>
    <li>equal/equivalent: <code>res == 0</code>,</li>
-   <li>non-equal/non-equivalent: <code>res != </code>,</li>
+   <li>non-equal/non-equivalent: <code>res != 0</code>,</li>
    <li>less: <code>res &lt; 0</code>,</li>
    <li>less-or-equal: <code>res &lt;= 0</code>,</li>
    <li>greater: <code>res &gt; 0</code>,</li>
    <li>greater: <code>res &gt;= 0</code>.</li>
 </ul>
-<p>However, if we want to check if the <code>partial_ordering</code> object <code>part</code> is representing that elements are unordered
+<p>However, if we want to check if the <code>partial_ordering</code> object <code>part</code> is representing unordered result
    (<code>partial_order::unordered</code>), we are forced to check if it does not represent any of the above result, by using one of the
    following:<p>
 <pre>!(part &lt; 0) &amp;&amp; !(part == 0) &&amp; !(part &gt; 0)
-!(part &lt;= 0) &amp;&amp; !(part &gt; &gt;= 0)</pre>
+!(part &lt;= 0) &amp;&amp; !(part &gt;= 0)</pre>
 <p>Both of above solution are less efficient that possible library implementation, that have access to the underlying representation
    of the object.</p> 
 
-<p>Secondly, we are missing an efficient way to check if two comparison object are having the same value, if nor of them
-   has an runtime know value. For example imagine that we want to implement an unanimous comparison predicate &mdash;
-   the objects are considered to be less, if all corresponding fields are less (same for greater or equal)
-   (see <a href="https://wg21.link/p0100">P0100: Comparison in C++</a>).</p>
+<p>Secondly, we are missing an efficient way to check if two comparison results are having the same value, 
+   in situation if nor of them has a runtime know value. 
+   For example imagine that we want to implement an unanimous comparison predicate
+   (see <a href="https://wg21.link/p0100">P0100: Comparison in C++</a>) &mdash;
+   the objects are considered to be less, if all corresponding fields are less (same for greater or equal).</p>
 
-<p>To illustrate,lets implementation for of above predicate for class <code>A</code> containing members <code>x</code>,
+<p>To illustrate, lets consider implementation for of above predicate for class <code>A</code> containing members <code>x</code>,
    <code>y</code>, <code>z</code>:</p>
 <pre>std::partial_ordering unanimous_compare(A const&amp; lhs, A const&amp; rhs)
 {
@@ -142,7 +143,7 @@ td { text-align: left; vertical-align: top;
 }</pre>
 
 <p>And  <code>is_same</code> for the existing comparison categories:</p>
-<pre>bool is_same(std::weak_equality lhs, std::weak_equality rhs) i
+<pre>bool is_same(std::weak_equality lhs, std::weak_equality rhs) 
 // handles std::strong_equality via conversion
 {
    if (lhs == 0)
@@ -161,7 +162,7 @@ bool is_same(std::partial_ordering lhs, std::partial_ordering rhs)
       return rhs &lt; 0;
    
     if (lhs &gt; 0)
-      return rhs glt; 0;
+      return rhs &gt; 0;
 
     // lhs is unordered
     return !(rhs &lt;= 0) &amp;&amp; !(rhs &gt= 0);
@@ -179,30 +180,30 @@ bool is_same(std::weak_ordering lhs, std::weak_ordering rhs)
     // lhs &gt; 0 
     return rhs glt; 0;
 }</pre>
-<p>Again above functions may be implemented more effectively in library.</p>
+<p>Again above functions may be implemented more effectively in library, that can just compare underlying representation.</p>
 
 <p>To address both of above issues, we propose to make comparison categories equality comparable, thus allowing 
-   unordered values to be checked by <code>res == std::partial_ordering::unordered</code> and replacing the whole
+   unordered values to be checked by <code>part == std::partial_ordering::unordered</code> and replacing the whole
    <code>is_same</code> implementation by simple invocation of comparison operator (<code>lhs == rhs</code>).</p> 
 
    
 <h3><a name="motivation.common_type">3.2. <code>common_type</code> for comparison categories</a></h3>
 
 <p>For the comparison category types <code>C...</code>, the standard currently provides two independent traits
-   to produce their common types:<p>
+   to produce their common type:<p>
 <ul>
   <li>the standard library mechanism: <code>std::common_type_t&lt;C...&gt;</code>,</li>
   <li>specialized <code>std::common_comparison_category_t&lt;C...&gt;</code>.</li>
 </ul>
 <p>In the authors opinion, regardless if the programmer will use existing general purpose trait (<code>common_type</code>) 
-   or the specialized version (<code>common_comparison_category</code>), they should expect the same result.</p>
+   or the specialized version (<code>common_comparison_category</code>), they should get the same result.</p>
 
 <p>Currently above is not held for the following combination of the comparison categories:<p>
 <ul>
-  <li><code>std::strong_equality</code> and <code>std::partial_ordering</code>,</li>
-  <li><code>std::strong_equality</code> and <code>std::weak_ordering</code>.</li>
+  <li><code>strong_equality</code> and <code>partial_ordering</code>,</li>
+  <li><code>strong_equality</code> and <code>weak_ordering</code>.</li>
 </ul>
-<p>For the above types, <code>common_comparison_category</code> is <code>weak_ordering</code>, while <code>common_type</code>
+<p>For the above types, <code>common_comparison_category</code> is <code>weak_equality</code>, while <code>common_type</code>
    does not have nested type.</p>
 
 <p>To fix above we are proposing that <code>common_type&lt;C...&gt;::type</code> shall have same value
@@ -220,30 +221,51 @@ template&lt;&gt; struct common_type&lt;weak_ordering, strong_equality&gt; { usin
 <h3><a name="motivation.compare_3way_placement">3.3. Header for <code>compare_3way</code></a></h3>
 
 <p>Per author's input during Albuquerque both the <code>compare_3way</code> and <code>lexicographical_compare_3way</code> functions
-   were moved from the <code>compare<code> header to the <code>algorithm</code>.
-   While, moving  <code>lexicographical_compare_3way</code>
-   was right decision, as it is working on iterator/ranges (and for example require inclusion of related concept), moving
-   <code>compare_3way</code> may be an mistake.</p>
+   were moved from the <code>compare</code> header to the <code>algorithm</code>.
+   While, moving  <code>lexicographical_compare_3way</code> was right decision, as it is working on iterator/ranges 
+   (and for example require inclusion of related concept), moving <code>compare_3way</code> may be an mistake.</p>
 
 <p>The <code>compare_3way</code> is a function designed for handling comparison in generic code, regardless
-   if argument type provides defines <code>operator&lt;=&gt;</code> or set of two-ways comparison operators.
+   if argument type defines <code>operator&lt;=&gt;</code> or set of two-ways comparison operators.
    This makes it a fundamental building block for implementing comparison operators in case of generic components,
    like <code>std::optional</code>. As consequence of current placement of this function, implementation of such
    component would be required to bring content of the <code>algorithm</code> header.</p>
 
-<p>To avoid above overhead we are proposing the move <code>compare_3way</code> function back to </code>compare</code>
+<p>To avoid above overhead we are proposing the move <code>compare_3way</code> function back to <code>compare</code>
    header, as it was originally proposed.</p>
 
+<h2><a name="design">4. Design Decisions</a></h2>
 
-<h2><a name="wording">4. Proposed Wording</a></h2>
+<h3><a name="design.orderings">4.1. No ordering for comparison categories</a></h3>
+
+<p>This paper purposely does not propose to define an orderings for the comparison categories.
+   While defining some kind of ordering would be technically possible (as we have small set of elements),
+   we have not found motivating use cases for such feature, in addition we reckon that any definition 
+   of ordering would not intuitive, especially when you consider how <code>unordered</code> should be ordered
+   respective to <code>less</code>, <code>equivalent</code> and <code>greater</code> values.</p>
+
+
+<h3><a name="design.common_type_placement">4.2. Placement of <code>common_type</code> specialization</a></h3>
+
+<p>This paper is specifically avoiding providing an explicit specialization of the <code>common_type</code>
+   in the <code>compare</code> header (like it is done for the <code>chrono</code>), to avoid potential bloat
+   of the header - instead the programmers are still required to include <code>type_traits</code> to use
+   an <code>common_type</code> for common comparison categories. [ Note: They can still use dedicated
+   lightweight <code>common_comparison_category</code> trait. ]</p>
+
+<p>This decision is motivated by the fact, that inclusion of the <code>compare</code> is required both to
+   declare <code>operator&lt;=&gt;</code> and use relation operators (<code>&lt;=&gt;</code>, <code>&lt;</code>, <code>&gt;</code>, ...)
+   on class, an thus we expect this header to me include by majority of translation units.</p>
+
+<h2><a name="wording">5. Proposed Wording</a></h2>
 
 <p>TBD.</p>
 
-<h2><a name="acknowledgements">5. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
-<p>Herb Sutter for the discussion and feedback on changes proposed in this document.</p> 
+<p>Herb Sutter for discussion and feedback on changes proposed in this document.</p> 
 
-<h2><a name="literature">6. References</a></h2>
+<h2><a name="literature">7. References</a></h2>
 
 <ol>
   <li>Herb Sutter, Jens Maurer, Walter E. Brown, 
