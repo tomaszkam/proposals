@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1248R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1248R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-07</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-11-04</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -116,6 +116,13 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
 <p>Initial revision.</p>
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<ul>
+  <li>Properly qualified invocations of <code>equal_range</code> with <code>std::ranges</code> namespaces,
+      in situations when range version is discussed.</li>
+</ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
@@ -222,7 +229,7 @@ private:
 <p>If we want to implement the same functionality using the ranges, we can mechanically transform the code sorting elements:</p>
 <pre>std::ranges::sort(vi, ItineraryDepartureDatesLess{});</pre>
 <p>However such manual transformation will not work if we want to search itineraries departing on specific dates (<code>std::vector&lt;std::chrono::local_days&gt;</code> <code>vd</code>):</p>
-<pre>std::equal_range(vi, vd, ItineraryDepartureDatesLess{});</pre>
+<pre>std::ranges::equal_range(vi, vd, ItineraryDepartureDatesLess{});</pre>
 <p>will not compile, as (unsuprisingly) there is no common reference between the <code>Itinerary</code> and <code>std::vector&lt;std::chrono::local_days&gt;</code> &mdash;
    it will be ambiguous if <code>std::vector&lt;std::chrono::local_days&gt;</code> meant to represent departure or arrival dates of either
    all legs or all flights constituting given itinerary.</p>
@@ -236,9 +243,9 @@ private:
 }</pre>
 
 <p>For the comparator, we just need to invoke <code>lexicographical_compare</code> giving following code:</p>
-<pre>std::equal_range(vi, vd,
-                 [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
-                 toDepartureDates);</pre>
+<pre>std::ranges::equal_range(vi, vd,
+                         [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
+                         toDepartureDates);</pre>
 <p>The above code has a major drawback - for each comparison of elements (that is limited by <code><i>O</i>(nlog(n))</code>) a temporary vector is created, leading
    to degradation of the code performance comparing to STL1 example.</p>
 
@@ -246,9 +253,9 @@ private:
 <pre>auto const toDepartureDatesView = [](Itinerary const&amp; i) { return i.legs | ranges::view::transform(&amp;Leg::departureDate); };</pre>
 
 <p>Above solution does not eliminate the problems caused by common reference requirement, just pushes is one level down.</p>
-<pre>std::equal_range(vi, vd,
-                 [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
-                 toDepartureDatesView);</pre>
+<pre>std::ranges::equal_range(vi, vd,
+                         [](auto const&amp; lhs, auto const&amp; rhs) { return std::ranges::lexicographical_compare(lhs, rhs); },
+                         toDepartureDatesView);</pre>
 <p>In the above code, provided lambda needs to satisfy <code>StrictWeakOrdering</code> on <code>std::vector&lt;std::chrono::local_days&gt;</code>
    and <code>TransformView</code> (result of <code>toDepartureDateView</code>), which means that common reference between these two
    types needs to exists. This happens to be true for this specific case, as all proposed views are convertible to 
@@ -395,9 +402,9 @@ private:
    the other solution is to use a different type to represent such object, so instead of using <code>std::string_view</code> to represent above values,
    we will use specialized object (like above <code>EmployeeNameView</code> and <code>EmployeeSurnameView</code>) when search for value.
    Instead of:</p>
-<pre>std::equal_range(ve.begin(), ve.end(), "Kowalski"sv, NameLess{});</pre>
+<pre>std::ranges::equal_range(ve, "Kowalski"sv, NameLess{});</pre>
 <p>we will write</p>
-<pre>std::equal_range(ve.begin(), ve.end(), EmployeeNameView("Kowalski"));</pre>
+<pre>std::ranges::equal_range(ve, EmployeeNameView("Kowalski"));</pre>
 <p>Note that we not longer need to provide the comparator object, as <code>Employee</code> are comparable with <code>EmployeeNameView</code>, due
    to existence of implicit conversion. Essentially, this solution replaces custom comparison functor (which can be created using lambda)
    with custom type.</p>
