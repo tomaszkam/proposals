@@ -154,7 +154,7 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r5">2.6. Revision 5</a></h3>
 
 <ul>
-  <li>Updated wording to match "Guidelines for Formulating Library Semantics Specifications" paper.</li>
+  <li>Applied feedback from LWG small group review in San Diego.</li>
 </ul>
 
 
@@ -565,19 +565,19 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
          <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
 		 
      <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with a <em>call pattern</em> <code>cp</code>
-          ensures that a postfix call expression performed on an expression of type of potentially const qualified reference 
+          ensures that a postfix call expression performed on an expression of type of potentially const-qualified reference 
           to <code>G</code> is expression-equivalent ([defns.expression-equivalent]) to an expression <code>e</code> determined as follows:
           every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
           is replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
 
-     <dd><ins>The copy and move constructors of the perfect forwarding call wrapper have the same apparent
+    <dd><ins>The copy and move constructors of the perfect forwarding call wrapper have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
-         [ Note: This implies that copy/move constructors have the same <em>exception-specification</em> as corresponding
-           implicit definition and they are declared as <code>constexpr</code> if corresponding implicit definition
-           would be considered to be <code>constexpr</code> - end note. ]
+         [ Note: This implies that each copy/move constructors has the same <em>exception-specification</em> as the
+	   corresponding implicit definition and is declared as <code>constexpr</code> if the corresponding implicit definition
+           would be considered to be <code>constexpr</code>. - end note. ]
         </ins><p></p></dd>
 
-     <dd><ins>Perfect forwarding call wrappers have the same type, if their call patterns and types of their corresponding
+     <dd><ins>Perfect forwarding call wrappers have the same type if their call patterns and types of their corresponding
      	 state entities are the same.<p></p></dd>
   </dl>
 </blockquote>
@@ -632,6 +632,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
                                is_move_constructible&lt;FD&gt;,
                                is_constructible&lt;BoundArgs, Args&gt;...,
                                is_move_constructible&lt;BoundArgs&gt;...&gt;</code>
+        shall be <code>true</code>.
     <p></p></dd>
 
 
@@ -682,7 +683,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
     </ul><p></p></dd>
 
     <dt>Mandates:</dt> 
-    <dd><code>is_constructible_v&lt;FD, F&gt; &amp;&amp; is_move_constructible_v&lt;FD&gt;</code>.
+    <dd><code>is_constructible_v&lt;FD, F&gt; &amp;&amp; is_move_constructible_v&lt;FD&gt;</code> shall be <code>true</code>.
     <p></p></dd>
 
     <dt>Expects:</dt> 
