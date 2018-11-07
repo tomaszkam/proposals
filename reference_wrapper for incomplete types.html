@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P0357R2</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0357R3</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-06-10</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-11-07</td>
   </tr>
   <tr>
     <th>Project:&nbsp;&nbsp;</th><th> </th><td>Programming Language C++, Library Working Group</td>
@@ -100,27 +100,33 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="history">2. History</a></h2>
 
-<h3><a name="history.r1">2.1. Revision 2</a></h3>
-
-<ul>
-  <li>Updated wording to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4750.pdf">N4750</a> (C++ Working Draft, 2018-05-07).</li>
-  <li>Dropped uncessary removal wording (accepted as part of <a href="https://wg21.link/p0619r4">P0619R4</a>).</li>
-  <li>Updated discussion section of paper to match current state of C++20.</li>
-</ul>
-
-
 <h3><a name="history.r1">2.1. Revision 1</a></h3>
 
 <ul>
   <li>Minor corrections and clarifications to paper text. Clarified relation to
-      <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a></li>
-  <li>Updated wording to refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4606.pdf">N4606</a> (C++ Working Draft, 2016-07-12)
+      <a href="https://wg21.link/p0091r3">P0091: Template argument deduction for class templates</a></li>
+  <li>Updated wording to refer to <a href="https://wg21.link/n4606">N4606</a> (C++ Working Draft, 2016-07-12)
       and included content of removed subclause.</li>
   <li>Included proposed feature testing recommendation macro.</li>
   <li>Corrected included implementation for the <code>operator()</code> of <code>reference_wrapper</code>, so it is now const qualified.</li>
   <li>Extended implementability section to discuss details of instantiation of <code>reference_wrapper</code> and <code>operator()</code> member.</li>
 </ul>
 
+<h3><a name="history.r2">2.2. Revision 2</a></h3>
+
+<ul>
+  <li>Updated wording to <a href="https://wg21.link/n4750">N4750</a> (C++ Working Draft, 2018-05-07).</li>
+  <li>Dropped uncessary removal wording (accepted as part of <a href="https://wg21.link/p0619r4">P0619R4</a>).</li>
+  <li>Updated discussion section of paper to match current state of C++20.</li>
+</ul>
+
+<h3><a name="history.r3">2.3. Revision 3</a></h3>
+
+<ul>
+  <li>Updated wording to <a href="http://wg21.link/n4778">N4778</a> (C++ Working Draft, 2018-10-08).</li>
+  <li>Replaced "Remarks" element with "Mandates", per <a href="http://wg21.link/p0788r3">P0788R3: Standard Library Specification in a Concepts and Contracts World</a>.</li>
+  <li>Changed links to use <a href="https://wg21.link">https://wg21.link</a>.</li>
+</ul>
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
@@ -151,7 +157,7 @@ td { text-align: left; vertical-align: top;
    one of the types <code>T</code> or <code>U</code> is incomplete.</p>
 
 <p>Furthermore this problem is not addressed by inclusion of the
-   <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">P0091: Template argument deduction for class templates</a>,
+   <a href="https://wg21.link/p0091r3">P0091: Template argument deduction for class templates</a>,
    as implicit deduction guides synthesized from <code>pair</code> and <code>tuple</code>
    constructors do not deduce reference types.</p>
 
@@ -179,7 +185,7 @@ td { text-align: left; vertical-align: top;
 <p>Despite the fact that support for incomplete types and heterogeneous container lookup
    in <code>reference_wrapper</code> may look incompatible, there is the possibility to 
    provide both of them, via an alternative design that relies on a metafunction instead of
-   a nested type, as proposed in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
+   a nested type, as proposed in <a href="https://wg21.link/p0046r1">
    P0046R1: Change is_transparent to metafunction (Revision 1)</a>.</p>
 
 <h2><a name="standard">5. Impact On The Standard</a></h2>
@@ -191,7 +197,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="wording">6. Proposed Wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4750.pdf">N4750</a> (C++ Working Draft, 2018-05-07).</p>
+<p>The proposed wording changes refer to <a href="https://wg21.link/n4778">N4778</a> (C++ Working Draft, 2018-10-08).</p>
 
 <p>At the end of the section 23.14.5 Class template <code>reference_wrapper</code> [refwrap]:</p>
 <blockquote class="std"> 
@@ -210,11 +216,11 @@ td { text-align: left; vertical-align: top;
 </pre>
   <dl class="attribute">
 
+    <dt><ins>Mandates:</ins></dt>
+    <dd><p><ins><code>T</code> is a complete type.</ins></p></dd>
+
     <dt>Returns:</dt> 
     <dd><p><code><em>INVOKE</em>(get(), std::forward&lt;ArgTypes&gt;(args)...)</code>. ([func.require] 20.12.2).</p></dd>
-
-    <dt><ins>Remarks:</ins></dt>
-    <dd><p><ins>If <code>T</code> is an incomplete type, the program is ill-formed.</ins></p></dd>
 
   </dl>
 </blockquote>
@@ -296,19 +302,20 @@ public:
 
   <li>Tomasz Kamiński, 
       "Change is_transparent to metafunction (Revision 1)",
-      (P0046R1, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html">
-               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0046r1.html</a>)</li>
+      (P0046R1, <a href="https://wg21.link/p0046r1">https://wg21.link/p0046r1</a>)</li>
 
   <li>Mike Spertus, Faisal Vali, Richard Smith,
       "Template argument deduction for class templates (Rev. 6)",
-      (P0091R3, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html">
-               http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0091r3.html</a>)</li>
+      (P0091R3, <a href="https://wg21.link/p0091r3">https://wg21.link/p0091r3</a>)</li>
 
-           
   <li>Richard Smith, 
       "Working Draft, Standard for Programming Language C++" 
-      (N4750, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4750.pdf">
-              http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/n4750.pdf</a>)</li>
+      (N4778, <a href="https://wg21.link/n4778">https://wg21.link/n4778</a>)</li>
+
+  <li>Walter E. Brown,
+      "Standard Library Specification in a Concepts and Contracts World"
+      (P0788R3, <a href="http://wg21.link/p0788r3">http://wg21.link/p0788r3</a>)</li>
+
 </ol>
 
 
