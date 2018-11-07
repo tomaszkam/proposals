@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0356R5</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-23</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-11-08</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
@@ -543,8 +543,9 @@ functions would be required anyway.</p>
 
         A<ins>n</ins> <em><ins>argument</ins> forwarding call wrapper</em> is a call wrapper that
         can be called with an arbitrary argument list and delivers the arguments to the wrapped 
-        callable object as references. This forwarding step <del>shall </del>ensure<ins>s</ins> that rvalue arguments
-        are delivered as rvalue references and lvalue arguments are delivered as lvalue references.
+	callable object as references. This forwarding step <del>shall ensure that</del><ins>delivers</ins>
+	rvalue arguments <del>are delivered</del> as rvalue references and lvalue arguments 
+	<del>are delivered </del>as lvalue references.
 
         A <em>simple call wrapper</em> is a<ins>n argument</ins> forwarding call wrapper that is <em>Cpp17CopyConstructible</em>
         and <em>Cpp17CopyAssignable</em> and whose copy constructor, move constructor, and assignment
@@ -557,21 +558,22 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates its state entities to the underlying call expression.
-         This propagation step ensures that the state entity of type <code>T</code> is delivered 
-         as <code>T <em>cv</em>&amp;</code> when the call is performed on an lvalue of the call wrapper
-         type and as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
+         that forwards its state entities to the underlying call expression.
+         This forwarding step delivers a state entity of type <code>T</code> as <code>T <em>cv</em>&amp;</code>
+	 when the call is performed on an lvalue of the call wrapper type and
+	 as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
          <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
          <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
-		 
-     <dd><ins>A perfect forwarding call wrapper of type <code>G</code> with a <em>call pattern</em> <code>cp</code>
-          ensures that a postfix call expression performed on an expression of type of potentially const-qualified reference 
-          to <code>G</code> is expression-equivalent ([defns.expression-equivalent]) to an expression <code>e</code> determined as follows:
-          every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
-          is replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
 
-    <dd><ins>The copy and move constructors of the perfect forwarding call wrapper have the same apparent
-         semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
+     <dd><ins>A <em>call pattern</em> defines the semantics of invoking the perfect forwarding
+	  call wrapper.
+          A postfix call performed on an perfect forwarding call wrapper is expression-equivalent ([defns.expression-equivalent])
+	  to an expression <code>e</code> determined from its call pattern <code>cp</code> by
+	  replacing all occurrences of arguments of the call wrapper and its state entities
+          with references as described in the corresponding forwarding steps.</ins><p></p></dd>
+
+    <dd><ins>The copy/move constructor of the perfect forwarding call wrapper have the same apparent
+	     semantics as if memberwise copy/move of its state entities where performed ([class.copy.ctor])
          [ Note: This implies that each copy/move constructors has the same <em>exception-specification</em> as the
 	   corresponding implicit definition and is declared as <code>constexpr</code> if the corresponding implicit definition
            would be considered to be <code>constexpr</code>. - end note. ]
