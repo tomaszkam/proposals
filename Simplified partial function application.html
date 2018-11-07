@@ -557,8 +557,8 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
         — end note ].<p></p></dd>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
-         that propagates its state entities to the underlying call expression.
-         This propagation step ensures that the state entity of type <code>T</code> is delivered 
+         that forwards its state entities to the underlying call expression.
+         This forwards step ensures that the state entity of type <code>T</code> is delivered 
          as <code>T <em>cv</em>&amp;</code> when the call is performed on an lvalue of the call wrapper
          type and as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
          <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
@@ -570,7 +570,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 	  perfect forwarding call wrapper is expression-equivalent ([defns.expression-equivalent]) to
 	  an expression <code>e</code> determined from its call pattern <code>cp</code> as follows:
           every occurrence of the name of the argument of the call wrapper or one of its state entities in <code>cp</code>
-          is replaced with an expression of reference type determined by the corresponding propagation rules.</ins><p></p></dd>
+          is replaced with an expression of reference type determined by the corresponding forwarding steps.</ins><p></p></dd>
 
     <dd><ins>The copy and move constructors of the perfect forwarding call wrapper have the same apparent
          semantics as the implicitly-defined memberwise operation performed for its state entities ([class.copy])
