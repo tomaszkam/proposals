@@ -154,7 +154,7 @@ td { text-align: left; vertical-align: top;
 <h3><a name="history.r5">2.6. Revision 5</a></h3>
 
 <ul>
-  <li>Applied feedback from LWG small group review in San Diego.</li>
+  <li>Applied feedback from LWG review in San Diego.</li>
 </ul>
 
 
@@ -528,11 +528,11 @@ functions would be required anyway.</p>
 
     <dd>A <em>target object</em> is the callable object held by a call wrapper.<p></p></dd>
 
-    <dd><ins>A call wrapper type may additionally hold a sequence of objects, references to functions and references
+    <dd><ins>A call wrapper type may additionally hold a sequence of objects, references to functions, and references
              to objects, that may be passed as arguments to the target object.
              These entities are collectively referred to as <em>bound argument entities</em>.</ins><p></p></dd>
 
-    <dd><ins>The held target object and bound argument entities of the call wrapper are collectively referred to as <em>state entities</em>.</ins><p></p></dd>
+    <dd><ins>The target object and bound argument entities of the call wrapper are collectively referred to as <em>state entities</em>.</ins><p></p></dd>
   </dl>
 </blockquote>
 
@@ -559,28 +559,28 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 
      <dd><ins>A <em>perfect forwarding call wrapper</em> is an argument forwarding call wrapper
          that forwards its state entities to the underlying call expression.
-         This forwarding step delivers a state entity of type <code>T</code> as <code>T <em>cv</em>&amp;</code>
+         This forwarding step delivers a state entity of type <code>T</code> as <code><em>cv</em> T&amp;</code>
 	 when the call is performed on an lvalue of the call wrapper type and
-	 as <code>T <em>cv</em>&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
-         <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
+	 as <code><em>cv</em> T&amp;&amp;</code> otherwise, where <code><em>cv</em></code> represents
+         the <em>cv</em>-qualifiers of the call wrapper and where <code><em>cv</em></code> shall be neither
          <code>volatile</code> nor <code>const volatile</code>.</ins><p></p></dd>
 
-     <dd><ins>A <em>call pattern</em> defines the semantics of invoking the perfect forwarding
+     <dd><ins>A <em>call pattern</em> defines the semantics of invoking a perfect forwarding
 	  call wrapper.
           A postfix call performed on an perfect forwarding call wrapper is expression-equivalent ([defns.expression-equivalent])
 	  to an expression <code>e</code> determined from its call pattern <code>cp</code> by
-	  replacing all occurrences of arguments of the call wrapper and its state entities
+	  replacing all occurrences of the arguments of the call wrapper and its state entities
           with references as described in the corresponding forwarding steps.</ins><p></p></dd>
 
-    <dd><ins>The copy/move constructor of the perfect forwarding call wrapper have the same apparent
-	     semantics as if memberwise copy/move of its state entities where performed ([class.copy.ctor])
-         [ Note: This implies that each copy/move constructors has the same <em>exception-specification</em> as the
+    <dd><ins>The copy/move constructor of a perfect forwarding call wrapper has the same apparent
+	     semantics as if memberwise copy/move of its state entities were performed ([class.copy.ctor])
+         [ Note: This implies that each of the copy/move constructors has the same <em>exception-specification</em> as the
 	   corresponding implicit definition and is declared as <code>constexpr</code> if the corresponding implicit definition
            would be considered to be <code>constexpr</code>. - end note. ]
         </ins><p></p></dd>
 
-     <dd><ins>Perfect forwarding call wrappers have the same type if their call patterns and types of their corresponding
-     	 state entities are the same.<p></p></dd>
+	<dd><ins>Perfect forwarding call wrappers returned by a given standard library function template have the same type if the 
+		 types of their corresponding state entities are the same.<p></p></dd>
   </dl>
 </blockquote>
 
@@ -656,12 +656,7 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
 <p>Note: This wording can be further simplified by use of <code>unwrap_ref_decay_t</code> from
 <a href="http://wg21.link/p0318r1">P0318R1: <code>unwrap_ref_decay</code> and <code>unwrap_reference</code></a> paper.</p>
 
-<h3><a name="wording.not_fn">6.3. Alternative wording for <code>not_fn</code></a></h3>
-
-<p>This section presents an alternative wording for the <code>not_fn</code>, that aims to provide same guarantees
-   as existing standard wording, without resorting to use of exposition only <code><em>call_wrapper</em></code> class.
-   The major improvements over <a href="http://wg21.link/n4600#func.not_fn">Library Fundamentals TS v2 wording</a>,
-   comes from using <em>perfect forwarding call wrapper</em> in definition of <code>not_fn(f)</code> return.</p>
+<h3><a name="wording.not_fn">6.3. Wording for <code>not_fn</code></a></h3>
 
 <p>Change the section [func.not_fn] Function template <code>not_fn</code> to:</p>
 <blockquote class="stdins"> 
