@@ -568,11 +568,11 @@ R operator()(UnBoundArgs&amp;&amp;... unbound_args) cv-qual;</pre>
      <dd><ins>A <em>call pattern</em> defines the semantics of invoking the perfect forwarding
 	  call wrapper.
           A postfix call performed on an perfect forwarding call wrapper is expression-equivalent ([defns.expression-equivalent])
-	  to an expression <code>e</code> determined from its call pattern <code>cp</code> as follows:
-          occurrences of arguments of the call wrapper and its state entities in <code>cp</code>
-          are replaced with references as described in the corresponding forwarding steps.</ins><p></p></dd>
+	  to an expression <code>e</code> determined from its call pattern <code>cp</code> by
+	  replacing all occurrences of arguments of the call wrapper and its state entities
+          with references as described in the corresponding forwarding steps.</ins><p></p></dd>
 
-    <dd><ins>The copy and move constructors of the perfect forwarding call wrapper have the same apparent
+    <dd><ins>The copy/move constructor of the perfect forwarding call wrapper have the same apparent
 	     semantics as if memberwise copy/move of its state entities where performed ([class.copy.ctor])
          [ Note: This implies that each copy/move constructors has the same <em>exception-specification</em> as the
 	   corresponding implicit definition and is declared as <code>constexpr</code> if the corresponding implicit definition
