@@ -70,13 +70,13 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1295R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1295R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-10-07</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2018-01-28</td>
   </tr>
   <tr>
-    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -95,6 +95,16 @@ td { text-align: left; vertical-align: top;
 <h2><a name="history">2. Revision history</a></h2>
 
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<ul>
+  <li>Changed audience to LWG.</li>
+  <li>Included proposed wording.</li>
+</ul>
 
 <p>Initial revision.</p>
 
@@ -259,7 +269,203 @@ template&lt;&gt; struct common_type&lt;weak_ordering, strong_equality&gt; { usin
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
-<p>TBD.</p>
+
+<h3><a name="wording.equality">5.1.Wording for equality for comparison category types</a></h3>
+
+<p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.weakeq] Class <code>weak_equality</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr weak_equality operator==(weak_equality lhs, weak_equality rhs) noexcept;
+friend constexpr weak_equality operator!=(weak_equality lhs, weak_equality rhs) noexcept;</pre>
+</blockquote>
+
+<p>Insert the following at the end of [cmp.weakeq] Class <code>weak_equality</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr weak_equality operator==(weak_equality lhs, weak_equality rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>lhs.value == rhs.value</code>.</dd>
+  </dl>
+
+  <pre>constexpr weak_equality operator!=(weak_equality lhs, weak_equality rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>!(lhs == rhs)</code>.</dd>
+  </dl>
+
+</blockquote>
+
+<p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.strongeq] Class <code>strong_equality</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr strong_equality operator==(strong_equality lhs, strong_equality rhs) noexcept;
+friend constexpr strong_equality operator!=(strong_equality lhs, strong_equality rhs) noexcept;</pre>
+</blockquote>
+
+<p>Insert the following at the end of [cmp.strongeq] Class <code>strong_equality</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr strong_equality operator==(strong_equality lhs, strong_equality rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>lhs.value == rhs.value</code>.</dd>
+  </dl>
+
+  <pre>constexpr strong_equality operator!=(strong_equality lhs, strong_equality rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>!(lhs == rhs)</code>.</dd>
+  </dl>
+
+</blockquote>
+
+
+<p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.partialeq] Class <code>partial_ordering</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr partial_ordering operator==(partial_ordering lhs, partial_ordering rhs) noexcept;
+friend constexpr partial_ordering operator!=(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
+</blockquote>
+
+<p>Insert the following at the end of [cmp.partialeq] Class <code>partial_ordering</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr partial_ordering operator==(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>lhs.value == rhs.value</code>.</dd>
+  </dl>
+
+  <pre>constexpr partial_ordering operator!=(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>!(lhs == rhs)</code>.</dd>
+  </dl>
+
+</blockquote>
+
+
+<p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.weakeq] Class <code>weak_ordering</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr weak_ordering operator==(weak_ordering lhs, weak_ordering rhs) noexcept;
+friend constexpr weak_ordering operator!=(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
+</blockquote>
+
+<p>Insert the following at the end of [cmp.weakeq] Class <code>weak_ordering</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr weak_ordering operator==(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>lhs.is_ordered == rhs.is_ordered &amp;&amp; (!lhs.is_ordered || lhs.value == rhs.value)</code>.</dd>
+  </dl>
+
+  <pre>constexpr weak_ordering operator!=(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>!(lhs == rhs)</code>.</dd>
+  </dl>
+
+</blockquote>
+
+<p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.strongeq] Class <code>strong_ordering</code> section.</p>
+<blockquote class="stdins"> 
+<pre>friend constexpr strong_ordering operator==(strong_ordering lhs, strong_ordering rhs) noexcept;
+friend constexpr strong_ordering operator!=(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
+</blockquote>
+
+<p>Insert the following at the end of [cmp.strongeq] Class <code>strong_ordering</code> section.</p>
+<blockquote class="stdins">
+  <pre>constexpr strong_ordering operator==(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>lhs.value == rhs.value</code>.</dd>
+  </dl>
+
+  <pre>constexpr strong_ordering operator!=(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt>
+    <dd><code>!(lhs == rhs)</code>.</dd>
+  </dl>
+
+</blockquote>
+
+
+<h3><a name="wording.common_type">5.2.Wording for <code>common_type</code></a></h3>
+
+<p>Change in [meta.trans.other] Other transformations paragraph 6 as follows:</p>
+
+<blockquote class="std">
+  <dl clas="attribute">
+
+     <dd>Note A: For the <code>common_type</code> trait applied to a template parameter pack <code>T</code> of types, 
+         the member <code>type</code> shall be either defined or not present as follows:
+         <ul>
+           <li>If <code>sizeof...(T)</code> is zero, there shall be no member <code>type</code>.</li>
+           <li>If <code>sizeof...(T)</code> is one, let <code>T0</code> denote the sole type constituting the pack <code>T</code>.
+               The member typedef-name <code>type</code> shall denote the same type, if any, as <code>common_type_t&lt;T0, T0&gt;</code>;
+               otherwise there shall be no member <code>type</code>.</li>
+           <li>If <code>sizeof...(T)</code> is two, let the first and second types constituting <code>T</code> be denoted by <code>T1</code>
+               and <code>T2</code>, respectively, and let <code>D1</code> and <code>D2</code> denote the same types as <code>decay_t&lt;T1&gt;</code>
+               and <code>decay_t&lt;T2&gt;</code>, respectively.
+               <ul>
+                  <li>If <code>is_same_v&lt;T1, D1&gt;</code> is <code>false</code> or <code>is_same_v&lt;T2, D2&gt;</code>,
+                      let <code>C</code> denote the same type, if any, as <code>common_type_t&lt;D1, D2&gt;</code>.</li>
+                  <li>[ Note: None of the following will apply if there is a specialization <code>common_type_t&lt;D1, D2&gt;</code>. — end note ]</li>
+                  <li><ins>Otherwise, if both <code>D1</code> and <code>D2</code> denote comparison category type ([cmp.categories.pre]]),
+                      let <code>C</code> denote common comparison type ([class.spaceship]) of <code>D1</code> and <code>D2</code>.</ins></li>
+                  <li>Otherwise, if <code>decay_t&lt;decltype(false ? declval<D1>() : declval<D2>())&gt;</code> denotes a valid type,
+                      let <code>C</code> denote that type.</li>
+                  <li>Otherwise, if <code><em>COND_RES</em>(<em>CREF</em>(D1), <em>CREF</em>(D2))</code> denotes a type, let <code>C</code> denote 
+                      <code>decay_t&lt;<em>COND_RES</em>(<em>CREF</em>(D1), <em>CREF</em>(D2))&gt;</code>.</li>
+               </ul>
+              In either case, the member typedef-name <code>type</code> shall denote the same type, if any, as <code>C</code>.
+              Otherwise, there shall be no member <code>type</code>.          
+           </li>
+           <li>If <code>sizeof...(T)</code> is greater than two, let <code>T1</code>, <code>T2</code>, and <code>R</code>,
+               respectively, denote the first, second, and (pack of) remaining types constituting <code>T</code>.
+               Let <code>C</code> denote the same type, if any, as <code>common_type_t&lt;T1, T2&gt;</code>.
+               If there is such a type <code>C</code>, the member typedef-name <code>type</code> shall denote the same type, if any, as <code>common_type_t&lt;C, R...&gt;</code>.
+               Otherwise, there shall be no member <code>type</code>.</li>
+        </ul>
+    </dd>
+
+  </dl>
+</blockquote>
+
+
+<h3><a name="wording.header">5.3.Change of <code>compare_3way</code> header</a></h3>
+
+<p>Add following declaration at the end of the "comparison algorithms" group in the [compare.syn] Header &lt;compare&gt; synopsis:</p>
+<pre>// [cmp.alg], comparison algorithms
+template&lt;class T&gt; constexpr strong_ordering strong_order(const T&amp; a, const T&amp; b);
+template&lt;class T&gt; constexpr weak_ordering weak_order(const T&amp; a, const T&amp; b);
+template&lt;class T&gt; constexpr partial_ordering partial_order(const T&amp; a, const T&amp; b);
+template&lt;class T&gt; constexpr strong_equality strong_equal(const T&amp; a, const T&amp; b);
+template&lt;class T&gt; constexpr weak_equality weak_equal(const T&amp; a, const T&amp; b);
+<ins>template&lt;class T, class U&gt; constexpr auto compare_3way(const T&amp; a, const U&amp; b);</ins></pre>
+
+<p>Remove following declaration from the [algorithm.syn] Header &lt;algorithm&gt; synopsis:<p>
+<pre>// [alg.3way], three-way comparison algorithms
+<del>template&lt;class T, class U&gt;
+  constexpr auto compare_3way(const T&amp; a, const U&amp; b);</del>
+template&lt;class InputIterator1, class InputIterator2, class Cmp&gt;
+  constexpr auto
+    lexicographical_compare_3way(InputIterator1 b1, InputIterator1 e1,
+                                 InputIterator2 b2, InputIterator2 e2,
+                                 Cmp comp)
+       -&gt; common_comparison_category_t&lt;decltype(comp(*b1, *b2)), strong_ordering&gt;;
+template&lt;class InputIterator1, class InputIterator2&gt;
+  constexpr auto
+    lexicographical_compare_3way(InputIterator1 b1, InputIterator1 e1,
+       InputIterator2 b2, InputIterator2 e2);</pre>
+
+<p>Move the specification of <code>compare_3way</code> function template from [alg.3way] hree-way comparison algorithms to
+   the end of [cmp.alg] omparison algorithms section.</p>
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
