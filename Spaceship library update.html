@@ -274,20 +274,20 @@ template&lt;&gt; struct common_type&lt;weak_ordering, strong_equality&gt; { usin
 
 <p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.weakeq] Class <code>weak_equality</code> section.</p>
 <blockquote class="stdins"> 
-<pre>friend constexpr weak_equality operator==(weak_equality lhs, weak_equality rhs) noexcept;
-friend constexpr weak_equality operator!=(weak_equality lhs, weak_equality rhs) noexcept;</pre>
+<pre>friend constexpr bool operator==(weak_equality lhs, weak_equality rhs) noexcept;
+friend constexpr bool operator!=(weak_equality lhs, weak_equality rhs) noexcept;</pre>
 </blockquote>
 
 <p>Insert the following at the end of [cmp.weakeq] Class <code>weak_equality</code> section.</p>
 <blockquote class="stdins">
-  <pre>constexpr weak_equality operator==(weak_equality lhs, weak_equality rhs) noexcept;</pre>
+  <pre>constexpr bool operator==(weak_equality lhs, weak_equality rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
     <dd><code>lhs.value == rhs.value</code>.</dd>
   </dl>
 
-  <pre>constexpr weak_equality operator!=(weak_equality lhs, weak_equality rhs) noexcept;</pre>
+  <pre>constexpr bool operator!=(weak_equality lhs, weak_equality rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
@@ -298,20 +298,20 @@ friend constexpr weak_equality operator!=(weak_equality lhs, weak_equality rhs) 
 
 <p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.strongeq] Class <code>strong_equality</code> section.</p>
 <blockquote class="stdins"> 
-<pre>friend constexpr strong_equality operator==(strong_equality lhs, strong_equality rhs) noexcept;
-friend constexpr strong_equality operator!=(strong_equality lhs, strong_equality rhs) noexcept;</pre>
+<pre>friend constexpr bool operator==(strong_equality lhs, strong_equality rhs) noexcept;
+friend constexpr bool operator!=(strong_equality lhs, strong_equality rhs) noexcept;</pre>
 </blockquote>
 
 <p>Insert the following at the end of [cmp.strongeq] Class <code>strong_equality</code> section.</p>
 <blockquote class="stdins">
-  <pre>constexpr strong_equality operator==(strong_equality lhs, strong_equality rhs) noexcept;</pre>
+  <pre>constexpr bool operator==(strong_equality lhs, strong_equality rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
     <dd><code>lhs.value == rhs.value</code>.</dd>
   </dl>
 
-  <pre>constexpr strong_equality operator!=(strong_equality lhs, strong_equality rhs) noexcept;</pre>
+  <pre>constexpr bool operator!=(strong_equality lhs, strong_equality rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
@@ -323,20 +323,20 @@ friend constexpr strong_equality operator!=(strong_equality lhs, strong_equality
 
 <p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.partialeq] Class <code>partial_ordering</code> section.</p>
 <blockquote class="stdins"> 
-<pre>friend constexpr partial_ordering operator==(partial_ordering lhs, partial_ordering rhs) noexcept;
-friend constexpr partial_ordering operator!=(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
+<pre>friend constexpr bool operator==(partial_ordering lhs, partial_ordering rhs) noexcept;
+friend constexpr bool operator!=(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
 </blockquote>
 
 <p>Insert the following at the end of [cmp.partialeq] Class <code>partial_ordering</code> section.</p>
 <blockquote class="stdins">
-  <pre>constexpr partial_ordering operator==(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
+  <pre>constexpr bool operator==(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
     <dd><code>lhs.value == rhs.value</code>.</dd>
   </dl>
 
-  <pre>constexpr partial_ordering operator!=(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
+  <pre>constexpr bool operator!=(partial_ordering lhs, partial_ordering rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
@@ -348,20 +348,20 @@ friend constexpr partial_ordering operator!=(partial_ordering lhs, partial_order
 
 <p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.weakeq] Class <code>weak_ordering</code> section.</p>
 <blockquote class="stdins"> 
-<pre>friend constexpr weak_ordering operator==(weak_ordering lhs, weak_ordering rhs) noexcept;
-friend constexpr weak_ordering operator!=(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
+<pre>friend constexpr bool operator==(weak_ordering lhs, weak_ordering rhs) noexcept;
+friend constexpr bool operator!=(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
 </blockquote>
 
 <p>Insert the following at the end of [cmp.weakeq] Class <code>weak_ordering</code> section.</p>
 <blockquote class="stdins">
-  <pre>constexpr weak_ordering operator==(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
+  <pre>constexpr bool operator==(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
     <dd><code>lhs.is_ordered == rhs.is_ordered &amp;&amp; (!lhs.is_ordered || lhs.value == rhs.value)</code>.</dd>
   </dl>
 
-  <pre>constexpr weak_ordering operator!=(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
+  <pre>constexpr bool operator!=(weak_ordering lhs, weak_ordering rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
@@ -372,20 +372,20 @@ friend constexpr weak_ordering operator!=(weak_ordering lhs, weak_ordering rhs) 
 
 <p>Add the following declarations at the end of the definition of the class <code></code> in [cmp.strongeq] Class <code>strong_ordering</code> section.</p>
 <blockquote class="stdins"> 
-<pre>friend constexpr strong_ordering operator==(strong_ordering lhs, strong_ordering rhs) noexcept;
-friend constexpr strong_ordering operator!=(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
+<pre>friend constexpr bool operator==(strong_ordering lhs, strong_ordering rhs) noexcept;
+friend constexpr bool operator!=(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
 </blockquote>
 
 <p>Insert the following at the end of [cmp.strongeq] Class <code>strong_ordering</code> section.</p>
 <blockquote class="stdins">
-  <pre>constexpr strong_ordering operator==(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
+  <pre>constexpr bool operator==(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
     <dd><code>lhs.value == rhs.value</code>.</dd>
   </dl>
 
-  <pre>constexpr strong_ordering operator!=(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
+  <pre>constexpr bool operator!=(strong_ordering lhs, strong_ordering rhs) noexcept;</pre>
   
   <dl class="attribute">
     <dt>Returns:</dt>
