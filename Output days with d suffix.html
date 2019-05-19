@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Output 'std::chrono::days' with 'd' suffix</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1650R0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-05-19</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Output <code>std::chrono::days</code> with 'd' suffix</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper proposes to use dedicated 'd' suffix when outputing <code>std::chrono::days</code> (e.g. '10d'),
+   instead of relying on generic version (e.g. '10[86400]s').</code>
+
+<table>
+  <tr>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+
+  <tr>
+    <td>
+<pre>std::cout &lt;&lt; (sys_days{2018y/January/18} - sys_days{2018y/January/8});
+// Prints: 10[86400]s
+</pre>
+   </td>
+    <td>
+<pre>std::cout &lt;&lt; (sys_days{2018y/January/18} - sys_days{2018y/January/8});
+// Prints: 10d
+</pre>
+   </td>
+
+</table>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>Streaming an <code>std::chorono::duration</code> specialization to the standard stream, output a number followed by this unit suffix. 
+   Currently the standard defines a set of the predefined suffixes ('h', 'min', 's', 'ns') and generic suffixes in form of '[N]s' for
+   an integral number of seconds, and '[N/M]s' for fractional ratios of seconds.</p>
+
+<p>The predefined set of units includes seconds ('s') and its derivative units ('Ks', 'ns', 'ms'), and
+   additional time units that are allowed to be used with International System of Units: minutes ('min') and hours ('h').
+   This paper proposes to extend this set to cover days unit ('d').</p>
+  
+<p>This paper is not proposing a suffix for <code>std::chrono::years</code> or <code>std::chrono::months</code>, as these
+   concepts do not represent standardized and static time intervals.</code> 
+ 
+<h3><a name="motivation.debuging">3.1. Surprising output</a></h3>
+
+<p>Standard overloads of the stream operations for the duration are intended to be used for the quick debugging logging
+   purposes.
+   However, with the current configuration the user that checks the result of the difference of the dates (in serialized representation), like:</p>
+<pre>std::cout &lt;&lt; (floor&lt;days&gt;(system_clock::now()) - sys_days(1970y/January/01d);</pre>
+ 
+<p>Will be presented with '18035[86400]s' output, which is mildly surprising in first contact
+   (the generic from is not used for other commonly occurring units minutes, seconds and milliseconds).
+   With the change proposed in this paper, `18035d` will be produced instead.</p>
+
+<h3><a name="motivation.si">3.2. Standardized and widely used</a></h3>
+
+<p>Days and the 'd' suffix is one of the time units (in addition to minutes and hours) that is not part international system of units,
+   that is <a href="https://physics.nist.gov/cuu/units/outside.html">accepted but the international committee for weights and measures to be used with si</a>,
+   due is importance and common usage.</p>
+
+<h3><a name="motivation.drawbacks">3.3. Drawbacks</a></h3>
+
+<p>For completeness the author would like to note that the change, has two minor drawbacks:</p>
+
+<p>The 'd' suffix for 'std::chrono::days' (duration) is inconsistent with the <code>d</code> User Defined Literal, that produces 'std::chrono::day'
+   (day of month). This paper does not propose any change is this regard, as the 'std::chrono::day' class is used more frequently (e.g. to produce
+   date literals like <code>2018y/March/20d</code>).</p>
+
+<p>Secondly, proposed literal 'd' for days, may be confused with existing 'ds' (deciseconds). However, the changes of such problem occurring in
+   practice are limited by infrequent usage of the second unit.</p>
+
+<h2><a name="wording">4. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n4800"></a> N4800 (C++ Working Draft, 2019-01-21).</p>
+
+<p>Add following additional item to the list in [time.duration.io] p2:</p>
+<blockquote class="std">
+  <dl clas="attribute">
+     <dd>The units suffix depends on the type <code>Period::type</code> as follows: 
+         <ul>
+           <li>[ ... ]</li>
+           <li>Otherwise, if <code>Period::type</code> is ratio&lt;3600&gt;, the suffix is "h".</li>
+           <li><ins>Otherwise, if <code>Period::type</code> is ratio&lt;86400&gt;, the suffix is "d".</ins></li>
+           <li>Otherwise, if </code>Period::type::den == 1</code>, the suffix is "[num]s".</li>
+           <li>Otherwise, the suffix is "[num/den]s".</li>
+        </li></ul>
+    </dd>
+  </dl>
+</blockquote>
+
+
+<h2><a name="implementability">5. Implementability</a></h2>
+
+<p>This change was already implemented in <a href="https://github.com/HowardHinnant/date">Howard's Hinnant Date library</a>.
+
+<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
+
+<p>Howard Hinnant, and participants of <a href="https://www.meetup.com/pl-PL/C-User-Group-Cracow/">C++ User Group Krakow</a> meeting provided invaluable feedback on this change.
+
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
+   and author's participation in standardization committee.</p>
+
+<h2><a name="literature">7. References</a></h2>
+
+<ol>
+  <li>The NIST Reference on Constatns, Units and Uncertainty: Units outside of the SI, 
+      (<a href="https://physics.nist.gov/cuu/Units/outside.html">https://physics.nist.gov/cuu/Units/outside.html</a>)</li>
+
+  <li>Howard Hinnant,
+      Date library,
+      (<a href="https://github.com/HowardHinnant/date">https://github.com/HowardHinnant/date</a>)</li>
+
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4800, <a href="https://wg21.link/n4800">https://wg21.link/n4800</a>)</li>
+</ol>
+
+
+</body></html>
