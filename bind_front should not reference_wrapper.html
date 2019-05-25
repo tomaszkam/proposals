@@ -268,6 +268,21 @@ sref.push_back('a');                                     // use of dangling refe
    becomes ill-formed. With the current behavior (unwrapping), the code that assumes propagation may lead
    to runtime bugs.</p>
 
+
+<h3><a name="design.no-side-effects">4.2. Preserving other behavior</a></h3>
+
+<p>The change proposed in this paper has no impact on user-visible behaviour of <code>std::bind_front</code> ,
+   despite the fact that functors returned by this functor will now store <code>std::reference_wrapperi&lt;T&gt;</code> instead
+   of <code>T&amp;</code>, as:
+<ul>
+  <li>functors produced by <code>std::bind_front</code> are not assignable, so the difference in assignment semantic is not visible to the user,</li>
+  <li><code>reference_wrapper</code>, like references, is required to be trivially copyable,</li>
+  <li><code>bind_front</code> is not currently usable in <code>constexpr</code> context.</li>
+</ul></p>
+
+<p>In addition the <a href="https://wg21.link/p1065">P1065: <code>constexpr <em>INVOKE</em></code></a> applies <code>constexpr</code>
+   to <code>std::reference_wrapper</code>.</p>
+
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n4810"></a> N4810 (C++ Working Draft, 2019-03-15).</p>
@@ -320,9 +335,9 @@ sref.push_back('a');                                     // use of dangling refe
       Issue 2219. <code><em>INVOKE</em></code>-ing a pointer to member with a <code>reference_wrapper</code> as the object expression,
       (LWG2219, <a href="https://wg21.link/lwg2219">https://wg21.link/lwg2219</a>)</li>
 
-  <li>Howard E. Hinnant,
-      Miscellaneous minor fixes for chrono,
-      (P1466, <a href="https://wg21.link/P1466">https://wg21.link/P1466</a>)</li>
+  <li>Barry Revzin,
+      <code>constexpr <em>INVOKE</em></code>,
+      (P1065, <a href="https://wg21.link/p1065">https://wg21.link/p1065</a>)</li>
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
