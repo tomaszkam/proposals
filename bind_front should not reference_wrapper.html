@@ -123,7 +123,7 @@ td { text-align: left; vertical-align: top;
 
   <tr>
     <td>
-      <p>Fixing code requires implementation of a custom binder.</p>
+      <p>Fixing code requires the implementation of a custom binder.</p>
     </td>
 
     <td>
@@ -190,6 +190,56 @@ auto fv = std::bind_front(&amp;functionAcceptingSpanOfIntegers, std::span(v));</
   
 
 
+<h3><a name="motivation.currying">3.2. Propagation use case: Function currying</a></h3>
+
+<p>The difference between the propagation is unwrapping semantic, is that the former support rebinding of the argument.
+   This can be best illustrated with the implementation of the functor <code>PartialApply</code> that implements function 
+   currying in C++:</p>
+
+<pre>template &lt;typename F&gt;
+struct PartialApply {
+    PartialApply(F f) : f(f) {}
+    F f;
+
+    template &lt;typename... A&gt; auto operator()(const A&amp;... a) const {
+        if constexpr (std::is_invocable&lt;F, const A&amp;...&gt;::value) {
+            return f(a...);
+        } else {
+            return bind_front(*this, a...);
+        }
+    }
+};</pre>
+
+<p>The intent of the above code is that the expression <code>PartialApply(func)(a)(b)</code> is either:</p>
+<ul>
+   <li>calling <code>func(a, b)</code> is that is well-formed,</li>
+   <li>returning callback that binds <code>func</code> with <code>a</code> and </code>b</code> and accepts consecutive arguments (<em>rebounding</em>).</p>
+</ul></p>
+
+<p>The above implementation works flawlessly in case of the propagation semantic, however, it fails in the case of unwrapping
+   is used &mdash; in the case when rebinding is performed, copy of arguments that were originally passed via <code>std::ref</code> is made.</p>
+
+<p>In the most optimistic scenario the above issue will manifest as compilation error. This happens when move only type
+   is passed by reference:</p>
+<pre>
+std::unique_ptr&lt;Thingy&gt; thingy;
+auto func = [](std::unique_ptr&lt;Thingy&gt;&amp;, int) {};
+
+PartialApply([](std::unique_ptr&lt;Thingy&gt;&amp;, int))(std::ref(thingy))(10);</pre>
+
+<p>In the case of copyable types, silently copy of the object will be created, despite the fact that it was explicitly
+   passed by reference using <code>std::ref</code>. This, of course, may have negative performance implication, but in the worst
+   case can lead to dangling references:</p>
+<pre>
+std::string str;
+auto func = [](std::string&amp; s, int) { return s; };
+
+std::string&amp; sref = PartialApply(func)(std::ref(s))(10); // sref refers to copy of str stored in PartialApply
+sref.push_back('a');                                     // use of dangling reference
+</pre>
+
+<p>Finally, the author is not aware of the way of fixing <code>PartialApply</code> than reimplementing custom
+   <code>bind_front</code> alternative that has propagation semantic.</p>
 
 <h3><a name="motivation.si">3.2. Standardized and widely used</a></h3>
 
