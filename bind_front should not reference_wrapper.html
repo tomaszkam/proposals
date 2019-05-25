@@ -121,6 +121,17 @@ td { text-align: left; vertical-align: top;
     </td>
   </tr>
 
+  <tr>
+    <td>
+      <p>Fixing code requires implementation of a custom binder.</p>
+    </td>
+
+    <td>
+      <p>Fixing code requires a cast to desired view type.</p>
+    </td>
+  </tr>
+
+
 </table>
 
 <p>Changes proposed in this paper need to be considered in the C++20 timeline, as they would constitute breaking change after the publication of standard in the current form.</p>
@@ -136,27 +147,49 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>Streaming an <code>std::chorono::duration</code> specialization to the standard stream, output a number followed by this unit suffix. 
-   Currently the standard defines a set of the predefined suffixes ('h', 'min', 's', 'ns') and generic suffixes in form of '[N]s' for
-   an integral number of seconds, and '[N/M]s' for fractional ratios of seconds.</p>
+<p>This paper discusses the behavior of the code that uses <code>std::bind_front</code> in conjunction with <code>std::reference_wrapper</code>
+   instantations. To illustrate lets consider the following code:</p>
+<pre>Thingy thingy;
+auto boundFunctor = std::bind_front(func, std::ref(thingy));</pre>
 
-<p>The predefined set of units includes seconds ('s') and its derivative units ('Ks', 'ns', 'ms'), and
-   additional time units that are allowed to be used with International System of Units: minutes ('min') and hours ('h').
-   This paper proposes to extend this set to cover days unit ('d').</p>
+<p>There are two possible and conflicting behaviors of the <code>boundFunctor()</code> invocation
+(for purpose of presentation we refer to bound <code>reference_wrapper</code> as <code>thingyRef</code>):
+<ul>
+  <li><em>unwrapping</em>: <code>func(thingyRef.get())</code>, i.e. passing <code>Thingy &amp;</code> &mdash; mimics behaviour of <code>std::bind_front</code> w.r.t. <code>reference_wrapper</code>,</li>
+  <li><em>propagation</em>: <code>func(thingyRef)</code>, i.e. passing <code>std::reference_wrapper&lt;Thingy&gt;</code> &mdash; <code>std::reference_wrapper</code> is treated as any other class.</li>
+</ul>
+The difference between above behavior is subtle and manifest itself only in specific corner case &mdash; it's is usually not observable in the user code, 
+due to the implicit conversion from <code>std::reference_wrapper&lt;Thingy&gt;</code> to <code>Thingy&amp;</code>.</p>
+
+ 
+<h3><a name="motivation.double-conversion">3.1. Unwrapping use case: Double conversion</a></h3>
+
+<p>One of the situations when the difference between unwrapping and propagation semantic is visible, is when the functor is bound
+   with the reference to the object (e.g. <code>std::reference_wrapper&lt;std::string&gt;</code>, and the code accepts an view
+   to it (e.g. <code>std::string_view</code>). To illustrate lets consider:</p>
+<pre>
+void functionAcceptingStringView(std::string_view);
+void functionAcceptingSpanOfIntegers(std::span&lt;int&gt;);
+
+std::string s; 
+auto fs = std::bind_front(&amp;functionAcceptingStringView, std::ref(s));
+std::vector&lt;int&gt; v;
+auto fv = std::bind_front(&amp;functionAcceptingSpanOfIntegers, std::ref(v));</pre>
+
+<p>With the unwrapping (current) semantic, both <code>fs()</code> and <code>fv()</code> compiles correctly, as <code>std::string_view</code> can be implicitly constructed from <code>std::string&amp;</code> and
+   <code>std::span&lt;int&gt;</code> can be implicitly constructed from <code>std::vector&lt;int&gt;&amp;</code>.
+   In case if propagation semantic was provided, both invocation would not compile, as they would require two user defined conversion to be performed:
+   <ul>
+    <li><code>std::reference_wrapper&lt;std::string&gt;</code> &rarr; <code>std::string&amp;</code> &rarr; <code>std::string_view</code> for <code>fs()</code>, and</li>
+    <li><code>std::reference_wrapper&lt;std::vector&lt;int&gt;&gt;</code> &rarr; <code>std::vector&lt;int&gt;&amp;</code> &rarr; <code>td::span&lt;int&gt;</code> for <code>fv()</code>.</li>
+  </ul>
+  However, both of above compilation issues can be easily fixed by binding the desired view type instead of using <code>std::ref</code>:</p>
+<pre>
+auto fs = std::bind_front(&amp;functionAcceptingStringView, std::string_view(s));
+auto fv = std::bind_front(&amp;functionAcceptingSpanOfIntegers, std::span(v));</pre>
   
-<p>This paper is not proposing a suffix for <code>std::chrono::years</code> or <code>std::chrono::months</code>, as these
-   concepts do not represent standardized and static time intervals.</code> 
- 
-<h3><a name="motivation.debuging">3.1. Surprising output</a></h3>
 
-<p>Standard overloads of the stream operations for the duration are intended to be used for the quick debugging logging
-   purposes.
-   However, with the current configuration the user that checks the result of the difference of the dates (in serialized representation), like:</p>
-<pre>std::cout &lt;&lt; (floor&lt;days&gt;(system_clock::now()) - sys_days(1970y/January/01d);</pre>
- 
-<p>Will be presented with '18035[86400]s' output, which is mildly surprising in first contact
-   (the generic from is not used for other commonly occurring units minutes, seconds and milliseconds).
-   With the change proposed in this paper, `18035d` will be produced instead.</p>
+
 
 <h3><a name="motivation.si">3.2. Standardized and widely used</a></h3>
 
@@ -194,7 +227,7 @@ td { text-align: left; vertical-align: top;
   </dl>
 </blockquote>
 
-<p>Update the value of the <code>__cpp_lib_chrono</code> in table "Standard library feature-test macros" of [support.limits.general] to reflect date of approval of this proposal. 
+<p>Update the value of the <code>__cpp_lib_chrono</code> in table "Standard library feature-test macros" of [support.limits.general] to reflect the date of approval of this proposal. 
    [ Note: The intention is to use the same feature test macro as <a href="https://wg21.link/P1466">P1466: Miscellaneous minor fixes for chrono</a>. ].</p>
 
 <h2><a name="implementability">5. Implementability</a></h2>
