@@ -227,9 +227,8 @@ auto func = [](std::unique_ptr&lt;Thingy&gt;&amp;, int) {};
 
 PartialApply([](std::unique_ptr&lt;Thingy&gt;&amp;, int))(std::ref(thingy))(10);</pre>
 
-<p>In the case of copyable types, silently copy of the object will be created, despite the fact that it was explicitly
-   passed by reference using <code>std::ref</code>. This, of course, may have negative performance implication, but in the worst
-   case can lead to dangling references:</p>
+<p>In the case of copyable types, silently copy of the object will be created.
+   This, of course, may have negative performance implication, but in the worst case can lead to dangling references:</p>
 <pre>
 std::string str;
 auto func = [](std::string&amp; s, int) { return s; };
@@ -241,65 +240,85 @@ sref.push_back('a');                                     // use of dangling refe
 <p>Finally, the author is not aware of the way of fixing <code>PartialApply</code> than reimplementing custom
    <code>bind_front</code> alternative that has propagation semantic.</p>
 
-<h3><a name="motivation.si">3.2. Standardized and widely used</a></h3>
+<h3><a name="motivation.lwg2219">3.3. Historical design note on <a href="https://wg21.link/lwg2219">LWG 2219</a></a></h3>
 
-<p>Days and the 'd' suffix is one of the time units (in addition to minutes and hours) that is not part international system of units,
-   that is <a href="https://physics.nist.gov/cuu/units/outside.html">accepted but the International Committee for Weights and Measures to be used with SI</a>,
-   due is importance and common usage.</p>
+<p>The prominent use case for partial function application functions (like <code>std::bind_front</code> and <code>std::bind</code>),
+   is to provide a helper to compose given method on the class, with a specific object. 
+   In case if invocation should be performed on existing object instance (not a copy), a <code>std::reference_wrapper</code> was used
+   as follows:</p>
+<pre>auto bound(&Object::method, std::ref(instance));</pre>
+    
+<p>In the time when the <code>std::bind_front</code>  was originally proposed (also applies to <code>std::bind</code>), the above code
+   to work property required unwrapping semantic (at least the for first argument).
+   This was changed with the resolution of <a href="https://wg21.link/lwg2219">LWG 2219: <code><em>INVOKE</em></code>-ing a pointer to member with a <code>reference_wrapper</code> as the object expression</a>,
+   that have introduced dedicated handling for <code>std::reference_wrapper</code> in <code><em>INVOKE</em></code>,
+   and unwrapping of <code>std::reference_wrapper</code> is no longer required to achieve this functionality.</p>
 
-<h3><a name="motivation.drawbacks">3.3. Drawbacks</a></h3>
 
-<p>For completeness the author would like to note that the change, has two minor drawbacks:</p>
+<h2><a name="design">4. Design Decisions</a></h2>
 
-<p>The 'd' suffix for 'std::chrono::days' (duration) is inconsistent with the <code>d</code> User Defined Literal, that produces 'std::chrono::day'
-   (day of month). This paper does not propose any change is this regard, as the 'std::chrono::day' class is used more frequently (e.g. to produce
-   date literals like <code>2018y/March/20d</code>).</p>
+<h3><a name="design.preffering-compliation-error">4.1. Preference for compilation errors</a></h3>
 
-<p>Secondly, proposed literal 'd' for days, may be confused with existing 'ds' (deciseconds) suffix. However, the changes of such problem occurring in
-   practice are limited by infrequent usage of the second unit.</p>
+<p>As indicated in the motivation section, the difference between unwrapping and propagation semantic manifest
+   itself in a very specific scenario. As a consequence, the user, unaware of this specific behavior,
+   may accidentally create a code that would other semantic that one currently proposed in the standard, and creating an erroneous code.
+   In that case, it would be desired that error is detected as early as possible, preferably at compile time.<p> 
+  
+<p>In light of the above, this paper proposes to switch to propagation semantic, as code that assumes unwrapping
+   becomes ill-formed. With the current behavior (unwrapping), the code that assumes propagation may lead
+   to runtime bugs.</p>
 
-<h2><a name="wording">4. Proposed Wording</a></h2>
+<h2><a name="wording">5. Proposed Wording</a></h2>
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n4810"></a> N4810 (C++ Working Draft, 2019-03-15).</p>
 
-<p>Add following additional item to the list in [time.duration.io] p2:</p>
+<p>Apply following changes to section [func.bind_front] Function template <code>bind_front</code>:</p>
 <blockquote class="std">
-  <dl clas="attribute">
-     <dd>The units suffix depends on the type <code>Period::type</code> as follows: 
-         <ul>
-           <li>[ ... ]</li>
-           <li>Otherwise, if <code>Period::type</code> is ratio&lt;3600&gt;, the suffix is "h".</li>
-           <li><ins>Otherwise, if <code>Period::type</code> is ratio&lt;86400&gt;, the suffix is "d".</ins></li>
-           <li>Otherwise, if </code>Period::type::den == 1</code>, the suffix is "[num]s".</li>
-           <li>Otherwise, the suffix is "[num/den]s".</li>
-        </li></ul>
-    </dd>
+  <pre>  template &lt;class F, class... Args&gt;
+     <em>unspecified</em> bind_front(F&amp;&amp; f, Args&amp;&amp;... args);
+  </pre>
+
+  <dl class="attribute">
+
+    <dd>In the text that follows:
+    <ul>
+      <li><code>g</code> is a value of the result of a <code>bind_front</code> invocation,</li>
+
+      <li><code>FD</code> is the type <code>decay_t&lt;F&gt;</code>,</li>
+      <li><code>fd</code> is a target object of <code>g</code> ([func.def])
+           of type <code>FD</code>
+           initialized with <em>initializer</em> <code>(std::forward&lt;F&gt;(f))</code>,</li>
+      <li><code>BoundArgs</code> is a pack that denotes <code><del>std::unwrap_­ref_­</del>decay_­t&lt;Args&gt;...</code>,</li>
+      <li><code>bound_args</code> is a pack of bound argument entities of <code>g</code> ([func.def])
+           of types <code>BoundArgs...</code> 
+           initialized with <em>initializers</em> <code>(std::forward&lt;Args&gt;(args))...</code> respectively, and</li>
+      <li><code>call_args</code> is an argument pack used in a function call expression ([expr.call]) of <code>g</code>,</li>
+    </ul>
+    <p></p></dd>
+
   </dl>
 </blockquote>
 
-<p>Update the value of the <code>__cpp_lib_chrono</code> in table "Standard library feature-test macros" of [support.limits.general] to reflect the date of approval of this proposal. 
-   [ Note: The intention is to use the same feature test macro as <a href="https://wg21.link/P1466">P1466: Miscellaneous minor fixes for chrono</a>. ].</p>
+<p>Update the value of the <code>__cpp_lib_bind_front</code> in table "Standard library feature-test macros" of [support.limits.general] to reflect the date of approval of this proposal.</p>
 
-<h2><a name="implementability">5. Implementability</a></h2>
+<h2><a name="implementability">6. Implementability</a></h2>
 
-<p>This change was already implemented in <a href="https://github.com/HowardHinnant/date">Howard's Hinnant Date library</a>.
+<p>This paper can be implemented by simply <code>unwrap_ref_decay_t</code> with <code>decay_t</code> in example implementation from "Implementability"
+   section of the <a href="https://wg21.link/p0356r5">P0365R5: Simplified partial function application</a> paper.</p>
 
-<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
 
 <p>Titus Winters and Abseil team for providing the feedback on the <code>bind_front</code> and code example that motivated creation of this paper.</code>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
    and author's participation in standardization committee.</p>
 
-<h2><a name="literature">7. References</a></h2>
+<h2><a name="literature">8. References</a></h2>
 
 <ol>
-  <li>The NIST Reference on Constatns, Units and Uncertainty: Units outside of the SI, 
-      (<a href="https://physics.nist.gov/cuu/Units/outside.html">https://physics.nist.gov/cuu/Units/outside.html</a>)</li>
-
-  <li>Howard E. Hinnant,
-      Date library,
-      (<a href="https://github.com/HowardHinnant/date">https://github.com/HowardHinnant/date</a>)</li>
+  <li>Jonathan Wakely,
+      Issue 2219. <code><em>INVOKE</em></code>-ing a pointer to member with a <code>reference_wrapper</code> as the object expression,
+      (LWG2219, <a href="https://wg21.link/lwg2219">https://wg21.link/lwg2219</a>)</li>
 
   <li>Howard E. Hinnant,
       Miscellaneous minor fixes for chrono,
@@ -308,6 +327,11 @@ sref.push_back('a');                                     // use of dangling refe
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
       (N4810, <a href="https://wg21.link/n4810">https://wg21.link/n4810</a>)</li>
+
+  <li>Tomasz Kamiński,
+      Simplified partial function application,
+      (P0356R5, <a href="https://wg21.link/p0356r5">https://wg21.link/p0356r5</a>)</li>
+
 </ol>
 
 
