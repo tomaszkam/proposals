@@ -231,7 +231,7 @@ PartialApply([](std::unique_ptr&lt;Thingy&gt;&amp;, int))(std::ref(thingy))(10);
    This, of course, may have negative performance implication, but in the worst case can lead to dangling references:</p>
 <pre>
 std::string str;
-auto func = [](std::string&amp; s, int) { return s; };
+auto func = [](std::string&amp; s, int) -&gt; std::string&amp; { return s; };
 
 std::string&amp; sref = PartialApply(func)(std::ref(s))(10); // sref refers to copy of str stored in PartialApply
 sref.push_back('a');                                     // use of dangling reference
