@@ -201,8 +201,8 @@ struct PartialApply {
     PartialApply(F f) : f(f) {}
     F f;
 
-    template &lt;typename... A&gt; auto operator()(const A&amp;... a) const {
-        if constexpr (std::is_invocable&lt;F, const A&amp;...&gt;::value) {
+    template &lt;typename... A&gt; auto operator()(A const&amp;... a) const {
+        if constexpr (std::is_invocable&lt;F const&amp;, A const&amp;...&gt;::value) {
             return f(a...);
         } else {
             return bind_front(*this, a...);
