@@ -181,7 +181,7 @@ auto fv = std::bind_front(&amp;functionAcceptingSpanOfIntegers, std::ref(v));</p
    In case if propagation semantic was provided, both invocation would not compile, as they would require two user defined conversion to be performed:
    <ul>
     <li><code>std::reference_wrapper&lt;std::string&gt;</code> &rarr; <code>std::string&amp;</code> &rarr; <code>std::string_view</code> for <code>fs()</code>, and</li>
-    <li><code>std::reference_wrapper&lt;std::vector&lt;int&gt;&gt;</code> &rarr; <code>std::vector&lt;int&gt;&amp;</code> &rarr; <code>td::span&lt;int&gt;</code> for <code>fv()</code>.</li>
+    <li><code>std::reference_wrapper&lt;std::vector&lt;int&gt;&gt;</code> &rarr; <code>std::vector&lt;int&gt;&amp;</code> &rarr; <code>std::span&lt;int&gt;</code> for <code>fv()</code>.</li>
   </ul>
   However, both of above compilation issues can be easily fixed by binding the desired view type instead of using <code>std::ref</code>:</p>
 <pre>
@@ -225,7 +225,7 @@ struct PartialApply {
 std::unique_ptr&lt;Thingy&gt; thingy;
 auto func = [](std::unique_ptr&lt;Thingy&gt;&amp;, int) {};
 
-PartialApply([](std::unique_ptr&lt;Thingy&gt;&amp;, int))(std::ref(thingy))(10);</pre>
+PartialApply(func)(std::ref(thingy))(10);</pre>
 
 <p>In the case of copyable types, silently copy of the object will be created.
    This, of course, may have negative performance implication, but in the worst case can lead to dangling references:</p>
@@ -261,7 +261,7 @@ sref.push_back('a');                                     // use of dangling refe
 
 <p>As indicated in the motivation section, the difference between unwrapping and propagation semantic manifest
    itself in a very specific scenario. As a consequence, the user, unaware of this specific behavior,
-   may accidentally create a code that would other semantic that one supplied by the standard, and creating an erroneous code.
+   may accidentally create an erroneous code that depends on semantic other that one supplied by the standard.
    In that case, it would be desired that error is detected as early as possible, preferably at compile time.<p> 
   
 <p>In light of the above, this paper proposes to switch to propagation semantic, as code that assumes unwrapping
@@ -318,7 +318,7 @@ sref.push_back('a');                                     // use of dangling refe
 
 <h2><a name="implementability">6. Implementability</a></h2>
 
-<p>This paper can be implemented by simply <code>unwrap_ref_decay_t</code> with <code>decay_t</code> in example implementation from "Implementability"
+<p>This paper can be implemented by simply replacing <code>unwrap_ref_decay_t</code> with <code>decay_t</code> in example implementation from "Implementability"
    section of the <a href="https://wg21.link/p0356r5">P0365R5: Simplified partial function application</a> paper.</p>
 
 <h2><a name="acknowledgements">7. Acknowledgements</a></h2>
