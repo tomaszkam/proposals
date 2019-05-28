@@ -246,7 +246,7 @@ sref.push_back('a');                                     // use of dangling refe
    is to provide a helper to compose given method on the class, with a specific object. 
    In case if invocation should be performed on existing object instance (not a copy), a <code>std::reference_wrapper</code> was used
    as follows:</p>
-<pre>auto bound(&Object::method, std::ref(instance));</pre>
+<pre>auto bound = std::bind_front(&Object::method, std::ref(instance));</pre>
     
 <p>In the time when the <code>std::bind_front</code>  was originally proposed (also applies to <code>std::bind</code>), the above code
    to work property required unwrapping semantic (at least the for first argument).
@@ -261,7 +261,7 @@ sref.push_back('a');                                     // use of dangling refe
 
 <p>As indicated in the motivation section, the difference between unwrapping and propagation semantic manifest
    itself in a very specific scenario. As a consequence, the user, unaware of this specific behavior,
-   may accidentally create a code that would other semantic that one currently proposed in the standard, and creating an erroneous code.
+   may accidentally create a code that would other semantic that one supplied by the standard, and creating an erroneous code.
    In that case, it would be desired that error is detected as early as possible, preferably at compile time.<p> 
   
 <p>In light of the above, this paper proposes to switch to propagation semantic, as code that assumes unwrapping
