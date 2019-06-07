@@ -88,7 +88,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="intro">1. Introduction</a></h2>
 
 <p>This paper argues that the semantic of the <code>constinit</code> keyword (as proposed in <a href="https://wg21.link/p1143r1">P1143R1: Adding the <code>constinit</code> keyword</a>)
-   are already available in C++20, via a combination of immediate functions and guaranteed copy elision.</p>
+   are already available in C++20, via a combination of <code>consteval</code> function and guaranteed copy elision.</p>
 
 <p>This paper is informative only and no action is proposed.</p>
 
@@ -99,7 +99,7 @@ td { text-align: left; vertical-align: top;
 
 <p>The semantic of the <code>constinit</code> keyword (proposed in <a href="https://wg21.link/p1143r1">P1143R1: Adding the <code>constinit</code> keyword</a>)
    &mdash; statically guaranteeing that given variable will be statically initialized, thus we will avoid problems with Static Initialization Order Fiasco &mdash;
-   can be already expressed in C++20 via a combination of immediate (<code>consteval</code>) function and guaranteed copy elision.</p>
+   can be already expressed in C++20 via a combination of <code>consteval</code> function and guaranteed copy elision.</p>
 
 <p>To illustrate instead of writing:</p>
 <pre>constinit Thingy gobal(<i>complex-initializer</i>);</pre>
@@ -107,14 +107,14 @@ td { text-align: left; vertical-align: top;
 <pre>auto global = [] () consteval { return Thingy(<i>complex-initializer</i>); } ();</pre>
 <p>[ Note: The lambda intentionally does not specify any captures, as any object referred in <code><i>complex-initializer</i></code> must have static storage duration. ]</p>
 
-<p>The above declarations are equivalent as:</p>
+<p>The above declarations are equivalent because:</p>
 <ul>
-  <li>immediately invoked lambda produces a prvalue of <code>Thingy</code> type,</li>
+  <li>immediately-invoked lambda produces a prvalue of <code>Thingy</code> type,</li>
   <li>usage of <code>consteval</code> guarantees that invocation is evaluated at compile time (or program is ill-formed),</li>
   <li>guaranteed copy elision implies that no other initialization is performed for the <code>global</code> variable.</li>
 </ul>
 
-<p>As a consequence the <code>constinit</code> keyword is providing a syntactic sugar for immediately invoked immediate lambda.</p>
+<p>As a consequence the <code>constinit</code> keyword is providing a syntactic sugar for immediately-invoked <code>consteval</code> lambda.</p>
 
 <h2><a name="acknowledgements">3. Acknowledgements</a></h2>
 
