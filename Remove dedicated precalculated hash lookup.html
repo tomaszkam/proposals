@@ -1,0 +1,424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Remove dedicated precalculated hash lookup</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D0000R0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-06-10</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Remove dedicated precalculated hash lookup</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper proposed to remove the precalculated hash lookup interface (as proposed in  <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>),
+   as this functionality can be implemented by user in less error-prone maner, via heteroneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>Contrary to information presented in the <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>,
+   the C++20 is already providing the way to efficent way to precalculated hash value for multiple lookups,
+   via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
+
+<p>To illustrate, the following code provides an type-safe way to precompute hash for the <code>std::unordered_map</code>
+   with <code>std::string</code> used as key:</p>
+<pre>
+template&lt;typename Value&gt;
+class HashedStringKey
+{
+public:
+  using value_type = Value;
+ 
+  explicit HashedStringKey(std::size_t h, value_type v)
+   : value_(std::move(v)), hash_(h)
+  {}
+
+  std::size_t hash() const
+  { return hash_; }
+
+  value_type const&amp; key() const&amp;
+  { return value_; }  
+
+  value_type&amp;&amp; key() &amp;&amp;
+  { return std::move(value_); }  
+
+  friend bool operator==(HashedStringKey const&amp; lhs, std::string_view rhs)
+  { return lhs.key() == rhs; }
+ 
+  template&lt;typename U&gt;
+  friend bool operator==(HashedStringKey const&amp; lhs, HashedStringKey&lt;U&gt; const&amp; rhs)
+  { return lhs.key() == rhs.key(); }
+
+private:
+  value_type value_;
+  std::size_t hash_;
+};
+
+struct PrecomputedStringHasher
+{
+   using transparent_key_equal = std::equal_to&lt;&gt;;
+  
+   template&lt;T&gt;
+   using precomputed_key_type = PrecomputedStringKey&lt;T&gt;;
+
+   std::size_t operator()(std::string_view sv) const
+   { return std::hash&lt;std::string_view&gt;{}(sv); }
+
+   template&lt;typename T&gt;
+   std::size_t operator()(precomputed_key_type&lt;T&gt; const&amp; v) const
+   { return v.hash(); }
+    
+   template&lt;typename T&gt;
+     requires std::is_convertible_v&lt;T, std::string_view&gt;
+   precomputed_key_type&lt;T&gt; precompute(T t) const
+   {
+     std::size_t hash = operator()(std::string_view(t));
+     return precomputed_key_type&lt;T&gt;(hash, std::move(t));
+   }
+};
+</pre>
+<p>The above interface introduces an <code>precompute</code> function that bundles given key value (regardless if it is <code>std::string</code>, <code>std::string_view</code>, or <code>char const*</code>)
+   and then an be passed to multiple <code>unordered_map</code> that reuses the same hasher. To illustrate the example from Motivation section of <a href="https://wg21.link/p0920r1">P0920R1</a>,
+   will not looks as follows:</p>
+<pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecomputedStringHasher&gt;, array_size&gt; maps;
+    
+void update(const std::string&amp; user)
+{
+  const auto hashedUser = maps.front().hash_function().precompute(user);
+  for(auto&amp; m : maps) {
+    auto it = m.find(hashedUser);
+    // ...
+  }
+}</pre>
+
+<h3><a name="motivation.errors.parity">3.1. Eliminate possibility of pairing errors</a></h3>
+
+<p>The obvious advanteage of the above solution, is that it eliminates possibility of pairing key with different hash
+   value when passed to find function. For example the following code contains undefined behaviour, due
+   paring of <code>user2</code> with <code>hash1</code>:</p>
+<pre>std::array&lt;std::unordered_map&lt;std::string, int&gt;, array_size&gt; maps;
+    
+void update(const std::string&amp; user1, const std::string&amp; user2)
+{
+  const auto hash1 = maps.front().hash_function()(user1);
+  const auto hash1 = maps.front().hash_function()(user2);
+  for(auto&amp; m : maps) {
+    auto it1 = m.find(user1, hash1);
+    auto it2 = m.find(user2, hash1); // undefined behaviour
+    // ...
+  }
+}</pre>
+
+<p>However, if such kind of errors are not possible in case of <code>PrecomptedStringHash</code>
+   as we are bunding the key value with appropariate hash:</p>
+<pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecomptedStringHash&gt;, array_size&gt; maps;
+    
+void update(const std::string&amp; user)
+{
+  const auto hashedUser1 = maps.front().hash_function().precompute(user1);
+  const auto hashedUser2 = maps.front().hash_function().precompute(user2);
+  for(auto&amp; m : maps) {
+    auto it1 = m.find(hashedUser1);
+    auto it2 = m.find(hashedUser2);
+    // ...
+  }
+}</pre>
+
+<p>The difference in above interface can be compared difference between using an range, versus passing
+   two separate iterators.</p>
+
+
+<h3><a name="motivation.error.type_sefaty">3.2. Providing type safety</a></h3>
+
+<p>Similiary to above, the current proposed interface does not provide any type safety &mdash;
+   it is possible to accidentally pass a hash of unerelated type to the <code>find</code> function,
+   and thus causing undefined behaviour.</p>
+
+<p>To illustrate, lets consider following example of correct code:</p>
+<pre>std::unordered_map&lt;std::chrono::milliseconds, int&gt; m1;
+std::unordered_map&lt;std::chrono::milliseconds, int&gt; m2;
+
+void update(std::chrono::seconds secs)
+{
+   const auto hash = m1.hash_function()(secs);
+   {
+      auto it1 = m1.find(secs, hash);
+      // ...
+   }
+   {
+      auto it2 = m2.find(secs, hash);
+      // ...
+   }
+}</pre>
+
+<p>This code will silently break (contain undefined behaviour) in situation when one of the maps
+   would be changed to use <code>std::chrono::seconds</code> as key:</p>
+<pre>std::unordered_map&lt;std::chrono::milliseconds, int&gt;&gt; m1;
+std::unordered_map&lt;std::chrono::seconds, int&gt;&gt; m2;
+
+void update(std::chrono::seconds secs)
+{
+   vconst auto hash = m1.hash_function()(secs);
+   {
+      auto it1 = m1.find(secs, hash);
+      // ...
+   }
+   {
+      auto it2 = m2.find(secs, hash); // undefined behaviour
+      // ...
+   }
+}</pre>
+<p>[ Note: That above code still compiles, as <code>std::chrono::seconds</code> are convertible to keys of both <code>m1</code> (<code>std::chrono::milliseconds</code>) and <code>m2</code> (<code>std::chrono::seconds</code>).</p>
+
+<p>However, in case if wrapper similiar to <code>PrecomptedStringHash</code> would be used (see <a href="#implementability">Implementability</a> section),
+   such mistakes would be reported as compilation error:</p>
+<pre>std::unordered_map&lt;std::chrono::milliseconds, int, PrecomputedHasherFor&lt;std::chrono::milliseconds&gt;&gt; m1;
+std::unordered_map&lt;std::chrono::seconds, int, PrecomputedHasherFor&lt;std::chrono::seconds&gt;&gt; m2;
+
+void update(std::chrono::seconds secs)
+{
+   const auto hashed = m1.hash_function().precompute(secs);
+   {
+      auto it1 = m1.find(hashed);
+      // ...
+   }
+   {
+      auto it2 = m2.find(hashed); // ill-formed
+      // ...
+   }
+}</pre>
+
+ 
+
+<h2><a name="wording">4. Proposed Wording</a></h2>
+
+
+
+<h2><a name="implementability">5. Implementability</a></h2>
+
+<p>Below you may find the general implementation of the precomputing hash wrapper, that extending any
+   existing hasher with precomputed hash lookup.</p> 
+<pre>
+template&lt;typename Value, typename Hasher&gt;
+struct HashedKey
+{
+  using value_type = Value;
+
+  template&lt;typename U&gt; 
+  explicit HashedKey(std::size_t h, U&amp;&amp; u)
+   : value_(std::forward&lt;U&gt;(u)), hash_(h)
+  {}
+
+  std::size_t hash() const
+  { return hash_; }
+
+  value_type const&amp; key() const&amp;
+  { return value_; }  
+
+  value_type&amp;&amp; key() &amp;&amp;
+  { return std::move(value_); }  
+
+private:
+  value_type value_;
+  std::size_t hash_;
+};
+
+template&lt;typename Equal, typename Hasher&gt;
+class PrecomputedHashEqual
+{
+  [[no_unique_address]] Equal equal;
+
+public:
+  using is_transparent = void;
+
+  template&lt;typename T&gt;
+  using precomputed_key_type = HashedKey&lt;T, Hasher&gt;;
+
+  PrecomputedHashEqual() = default;
+  PrecomputedHashEqual(Equal e) : equal(std::move(e)) {}
+
+  template&lt;typename T, typename U&gt;
+    requires std::is_invocable_v&lt;Equal const&amp;, T const&amp;, U const&amp;&gt;
+  decltype(auto) operator()(T const&amp; lhs, U const&amp; rhs) const
+  {
+     return equal(lhs, rhs);
+  }
+  
+  template&lt;typename T, typename U&gt;
+    requires std::is_invocable_v&lt;Equal const&amp;, T const&amp;, U const&amp;&gt;
+  decltype(auto) operator()(precomputed_key_type&lt;T&gt; const&amp; lhs, U const&amp; rhs) const
+  {
+     return equal(lhs.key(), rhs);
+  }
+
+  template&lt;typename T, typename U&gt;
+    requires std::is_invocable_v&lt;Equal const&amp;, T const&amp;, U const&amp;&gt;
+  decltype(auto) operator()(T const&amp; lhs; precomputed_key_type&lt;U&gt; const&amp; rhs) const
+  {
+     return equal(lhs, rhs.key());
+  }
+
+  template&lt;typename T, typename U&gt;
+    requires std::is_invocable_v&lt;Equal const&amp;, T const&amp;, U const&amp;&gt;
+  decltype(auto) operator()(precomputed_key_type&lt;T&gt; const&amp; lhs, precomputed_key_type&lt;U&gt; const&amp; rhs) const
+  {
+     return equal(lhs.key(), rhs.key());
+  }
+};
+
+template&lt;typename Hasher&gt;
+struct HasherEquailty
+{ using type = std::equal_to&lt;&gt;; };
+
+template&lt;typename Hasher&gt;
+struct HasherEquailty&lt;Hasher&gt;
+   requires (requires () { typename Hasher::transparent_key_equal })
+{ using type = typename Hasher::transparent_key_equal; };
+
+template&lt;typename Hasher&gt;
+class PrecomputedHasher
+{
+  [[no_unique_address]] Hasher hasher;
+
+public:
+   using transparent_key_equal = PrecomputedHashEqual&lt;HasherEquailty&lt;Hasher&gt;, Hasher&gt;;
+
+   template&lt;typename T&gt;
+   using precomputed_key_type = HashedKey&lt;T, Hasher&gt;;
+
+   PrecomputedHasher() = default;
+   PrecomputedHasher(Hasher h) : hasher(std::move(h)) {} 
+
+   template&lt;typename T&gt;
+     requires std::is_invocable_r_v&lt;std::size_t, Hasher const&amp;, T const&amp;&gt;
+   std::size_t operator()(T const&amp; t) const
+   { return hasher(t); }
+
+   template&lt;typename T&gt;
+   std::size_t operator()(precomputed_key_type&lt;T&gt; const&amp; v) const
+   { return v.hash(); }
+    
+   template&lt;typename T&gt;
+     requires std::is_invocable_r_v&lt;std::size_t, Hasher const&amp;, std::decay_t&lt;T&gt; const&amp;&gt;
+   precomputed_key_type&lt;std::decay_t&lt;T&gt;&gt; precompute(T&amp;&amp; t) const
+   {
+     std::size_t hash = operator()(std::as_const(t));
+     return precomputed_key_type&lt;std::decay_t&lt;T&gt;&gt;(hash, std::forward&lt;T&gt;(t));
+   }
+};
+
+template&lt;typename T&gt;
+using PrecomputedHasherFor = PrecomputedHasher&lt;std::hash&lt;T&gt&gt;
+</pre>
+
+With above code, the <code>PrecomputedStringHasher</code> is equivalent to <code>PrecomputedHasherFor&lt;std::string_view&gt;</code>.</p>
+
+
+<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
+
+<p>Herb Sutter for discussion and feedback on changes proposed in this document.</p> 
+
+<h2><a name="literature">7. References</a></h2>
+
+<ol>
+  <li>Herb Sutter, Jens Maurer, Walter E. Brown, 
+      "Consistent comparison" 
+      (P0515R3, <a href="http://wg21.link/p0515r3">http://wg21.link/p0515r3</a>)</li>
+
+  <li>Lawrence Crowl, 
+      "Comparison in C++" 
+      (P0100R2, <a href="http://wg21.link/p0100r2">http://wg21.link/p0100r2</a>)</li>
+
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4762, <a href="https://wg21.link/n4762">https://wg21.link/n4762</a>)</li>
+
+</ol>
+
+
+</body></html>
