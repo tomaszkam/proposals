@@ -88,7 +88,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="intro">1. Introduction</a></h2>
 
 <p>This paper proposed to remove the precalculated hash lookup interface (as proposed in  <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>),
-   as this functionality can be implemented by user in less error-prone maner, via heteroneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
+   as this functionality can be implemented by the user in less error-prone manner, via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
@@ -102,19 +102,19 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>Contrary to information presented in the <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>,
-   the C++20 is already providing the way to efficent way to precalculated hash value for multiple lookups,
+   the C++20 is already providing the way to efficient way to precalculated hash value for multiple lookups,
    via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
 
-<p>To illustrate, the following code provides an type-safe way to precompute hash for the <code>std::unordered_map</code>
+<p>To illustrate, the following code provides a type-safe way to precomputed hash for the <code>std::unordered_map</code>
    with <code>std::string</code> used as key:</p>
 <pre>
 template&lt;typename Key&gt;
-class HashedStringKey
+class PrehashedStringKey
 {
 public:
   using key_type = Key;
  
-  explicit HashedStringKey(std::size_t h, key_type v)
+  explicit PrehashedStringKey(std::size_t h, key_type v)
    : key_(std::move(v)), hash_(h)
   {}
 
@@ -127,11 +127,11 @@ public:
   key_type&amp;&amp; key() &amp;&amp;
   { return std::move(key_); }  
 
-  friend bool operator==(HashedStringKey const&amp; lhs, std::string_view rhs)
+  friend bool operator==(PrehashedStringKey const&amp; lhs, std::string_view rhs)
   { return lhs.key() == rhs; }
  
   template&lt;typename U&gt;
-  friend bool operator==(HashedStringKey const&amp; lhs, HashedStringKey&lt;U&gt; const&amp; rhs)
+  friend bool operator==(PrehashedStringKey const&amp; lhs, PrehashedStringKey&lt;U&gt; const&amp; rhs)
   { return lhs.key() == rhs.key(); }
 
 private:
@@ -143,8 +143,8 @@ struct PrecalculationEnabledStringHasher
 {
    using transparent_key_equal = std::equal_to&lt;&gt;;
   
-   template&lt;T&gt;
-   using prehashed_key_type = PrecalculationEnabledStringKey&lt;T&gt;;
+   template&lt;typename T&gt;
+   using prehashed_key_type = PrehashedStringKey&lt;T&gt;;
 
    std::size_t operator()(std::string_view sv) const
    { return std::hash&lt;std::string_view&gt;{}(sv); }
@@ -162,9 +162,9 @@ struct PrecalculationEnabledStringHasher
    }
 };
 </pre>
-<p>The above interface introduces an <code>precompute</code> function that bundles given key value (regardless if it is <code>std::string</code>, <code>std::string_view</code>, or <code>char const*</code>)
-   and then an be passed to multiple <code>unordered_map</code> that reuses the same hasher. To illustrate the example from Motivation section of <a href="https://wg21.link/p0920r1">P0920R1</a>,
-   will now looks as follows:</p>
+<p>The above interface introduces a <code>precompute</code> function that bundles given key value (regardless if it is <code>std::string</code>, <code>std::string_view</code>, or <code>char const*</code>)
+   and then can be passed to multiple <code>unordered_map</code> that reuses the same hasher. To illustrate the example the from Motivation section of <a href="https://wg21.link/p0920r1">P0920R1</a>,
+   will now look as follows:</p>
 <pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecalculationEnabledStringHasher&gt;, array_size&gt; maps;
     
 void update(const std::string&amp; user)
@@ -176,10 +176,10 @@ void update(const std::string&amp; user)
   }
 }</pre>
 
-<h3><a name="motivation.errors.parity">3.1. Eliminate possibility of pairing errors</a></h3>
+<h3><a name="motivation.errors.parity">3.1. Eliminate the possibility of pairing errors</a></h3>
 
-<p>The obvious advanteage of the above solution, is that it eliminates possibility of pairing key with different hash
-   value when passed to find function. For example the following code contains undefined behaviour, due
+<p>The obvious advantage of the above solution is that it eliminates the possibility of pairing key with incorrect hash
+   value when passed to <code>find</code> function. For example, the following code contains undefined behaviour, due
    paring of <code>user2</code> with <code>hash1</code>:</p>
 <pre>std::array&lt;std::unordered_map&lt;std::string, int&gt;, array_size&gt; maps;
     
@@ -194,8 +194,8 @@ void update(const std::string&amp; user1, const std::string&amp; user2)
   }
 }</pre>
 
-<p>However, if such kind of errors are not possible in case of <code>PrecomptedStringHash</code>
-   as we are bunding the key value with appropariate hash:</p>
+<p>However, such kind of error is not possible in case of <code>PrecomptedStringHash</code>
+   as we are bundling the key value with the appropriate hash:</p>
 <pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecomptedStringHash&gt;, array_size&gt; maps;
     
 void update(const std::string&amp; user)
@@ -209,14 +209,14 @@ void update(const std::string&amp; user)
   }
 }</pre>
 
-<p>The difference in above interface can be compared difference between using an range, versus passing
-   two separate iterators.</p>
+<p>The difference in the above interface can be compared with the difference between using a range,
+   versus passing two separate iterators.</p>
 
 
-<h3><a name="motivation.error.type_sefaty">3.2. Providing type safety</a></h3>
+<h3><a name="motivation.error.type_sefaty">3.2. Providing type-safety</a></h3>
 
-<p>Similiary to above, the current proposed interface does not provide any type safety &mdash;
-   it is possible to accidentally pass a hash of unerelated type to the <code>find</code> function,
+<p>Similarly to above, the currently proposed interface does not provide any type-safety &mdash;
+   it is possible to accidentally pass a hash of unrelated type to the <code>find</code> function,
    and thus causing undefined behaviour.</p>
 
 <p>To illustrate, lets consider following example of correct code:</p>
@@ -236,7 +236,7 @@ void update(std::chrono::seconds secs)
    }
 }</pre>
 
-<p>This code will silently break (contain undefined behaviour) in situation when one of the maps
+<p>This code will silently break (undefined behaviour) in situation when one of the maps
    would be changed to use <code>std::chrono::seconds</code> as key:</p>
 <pre>std::unordered_map&lt;std::chrono::milliseconds, int&gt;&gt; m1;
 std::unordered_map&lt;std::chrono::seconds, int&gt;&gt; m2;
@@ -256,7 +256,7 @@ void update(std::chrono::seconds secs)
 <p>[ Note: That above code still compiles, as <code>std::chrono::seconds</code> are convertible to keys of both i
      <code>m1</code> (<code>std::chrono::milliseconds</code>) and <code>m2</code> (<code>std::chrono::seconds</code>).</p>
 
-<p>However, in case if wrapper similiar to <code>PrecomptedStringHash</code> would be used (see <a href="#implementability">Implementability</a> section),
+<p>However, in case if wrapper similar to <code>PrecomptedStringHash</code> would be used (see <a href="#implementability">Implementability</a> section),
    such mistakes would be reported as compilation error:</p>
 <pre>std::unordered_map&lt;std::chrono::milliseconds, int, PrecalculationEnabledHasherFor&lt;std::chrono::milliseconds&gt;&gt; m1;
 std::unordered_map&lt;std::chrono::seconds, int, PrecalculationEnabledHasherFor&lt;std::chrono::seconds&gt;&gt; m2;
@@ -277,23 +277,23 @@ void update(std::chrono::seconds secs)
  
 <h3><a name="motivation.summary">3.4. Summary</a></h3>
 
-<p>Examples presented above show that the "power user" that need to squize the extra performance from
-   lookup of multiple unordered map with the same hashes (type and state), are already able to achieve
-   that goal via use of custom hasher that provides precomputed lookup.</p>
+<p>Examples presented above show that the "power user" that need to squeeze the extra performance from
+   lookup of multiple <code>unordered_map</code> with the same hashes (type and state) are already able to achieve
+   that goal via custom hasher that provides precomputed lookup.</p>
 
-<p>In addition with this customized implementation, each of the implementer can take a different 
-   apporach regarding the unavoidable safety versus speed tradeoff for the solution, e.g.:</p>
+<p>In addition, with this customized implementation, each user can take a different 
+   approach regarding the unavoidable safety versus speed trade-off for the solution, e.g.:</p>
 <ul>
-  <li>always compare <code>state</code> of hasher in <code>precompute</code> method,</li> 
+  <li>always compare the state of hasher in <code>precompute</code> method,</li> 
   <li>store reference to key instead of copy in <code>prehashed_key</code>.</li>
 </ul>
 <p>making the solution more fitting to the specific use case.</p>
 
-<p>Finally, the hashed based solution, makes it possible to localize the usage error-prone
+<p>Finally, the hashed based solution makes it possible to localize the usage error-prone
    interface to only specific part of the code. This is not possible if the lookup mechanism
    is included as part of the <code>unordered_map</code> interface.</p>
 
-<p>In light of above author believes that dedicated precalcualted lookup interface shall be removed
+<p>In light of the above author believes that dedicated precalculated lookup interface shall be removed
    from the standard, in favor of custom user-provided implementation, that suits their need.</p>
 
 
@@ -303,16 +303,16 @@ void update(std::chrono::seconds secs)
 
 <h2><a name="implementability">5. Implementability</a></h2>
 
-<p>Below you may find the general implementation of the precomputing hash wrapper, that extending any
-   existing hasher with prehashed hash lookup.</p> 
+<p>Below you may find the general implementation of the hash wrapper, that allow to extend any
+   existing hasher with precalculated hash lookup functionality.</p> 
 <pre>
 template&lt;typename Key, typename Hasher&gt;
-struct HashedKey
+struct PrehashedKey
 {
   using key_type = Key;
 
   template&lt;typename U&gt; 
-  explicit HashedKey(std::size_t h, U&amp;&amp; u)
+  explicit PrehashedKey(std::size_t h, U&amp;&amp; u)
    : key_(std::forward&lt;U&gt;(u)), hash_(h)
   {}
 
@@ -339,7 +339,7 @@ public:
   using is_transparent = void;
 
   template&lt;typename T&gt;
-  using prehashed_key_type = HashedKey&lt;T, Hasher&gt;;
+  using prehashed_key_type = PrehashedKey&lt;T, Hasher&gt;;
 
   PrecalculationEnabledHashEqual() = default;
   PrecalculationEnabledHashEqual(Equal e) : equal(std::move(e)) {}
@@ -391,7 +391,7 @@ public:
    using transparent_key_equal = PrecalculationEnabledHashEqual&lt;HasherEquailty&lt;Hasher&gt;, Hasher&gt;;
 
    template&lt;typename T&gt;
-   using prehashed_key_type = HashedKey&lt;T, Hasher&gt;;
+   using prehashed_key_type = PrehashedKey&lt;T, Hasher&gt;;
 
    PrecalculationEnabledHasher() = default;
    PrecalculationEnabledHasher(Hasher h) : hasher(std::move(h)) {} 
