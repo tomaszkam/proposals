@@ -423,7 +423,7 @@ public:
 
   template&lt;typename T, typename U&gt;
     requires std::is_invocable_v&lt;Equal const&amp;, T const&amp;, U const&amp;&gt;
-  decltype(auto) operator()(T const&amp; lhs; prehashed_key_type&lt;U&gt; const&amp; rhs) const
+  decltype(auto) operator()(T const&amp; lhs, prehashed_key_type&lt;U&gt; const&amp; rhs) const
   {
      return equal(lhs, rhs.key());
   }
@@ -441,8 +441,8 @@ struct HasherEquailty
 { using type = std::equal_to&lt;&gt;; };
 
 template&lt;typename Hasher&gt;
+  requires (requires () { typename Hasher::transparent_key_equal; })
 struct HasherEquailty&lt;Hasher&gt;
-   requires (requires () { typename Hasher::transparent_key_equal })
 { using type = typename Hasher::transparent_key_equal; };
 
 template&lt;typename Hasher&gt;
@@ -478,7 +478,7 @@ public:
 };
 
 template&lt;typename T&gt;
-using PrecalculationEnabledHasherFor = PrecalculationEnabledHasher&lt;std::hash&lt;T&gt&gt;
+using PrecalculationEnabledHasherFor = PrecalculationEnabledHasher&lt;std::hash&lt;T&gt;&gt;;
 </pre>
 
 With above code, the <code>PrecalculationEnabledStringHasher</code> is equivalent to <code>PrecalculationEnabledHasherFor&lt;std::string_view&gt;</code>.</p>
