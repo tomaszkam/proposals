@@ -90,6 +90,9 @@ td { text-align: left; vertical-align: top;
 <p>This paper proposed to remove the precalculated hash lookup interface (as proposed in  <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>),
    as this functionality can be implemented by the user in less error-prone manner, via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
 
+<p>[ Note: The implementation of hasher from this paper are included only to illustrate how precalculated hash lookup can be implemented. 
+     They are not proposed for standardization. ]</p>
+
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="history">2. Revision history</a></h2>
@@ -337,9 +340,8 @@ std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
    expensive than rehashing of a key), and can be eliminated in case of stateless hasher
    object.</p>
 
-<p>Secondly, we can turn it hasher state mismatch into compilation error, by using
-   different hasher (and <code>PrehashedKey</code>) for each container. This can
-   be achieved by adding otherwise unused tag template parameter to
+<p>Secondly, we can mitigate hasher state mismatch errors, by using different hasher (and <code>PrehashedKey</code>) for each 
+   container definition. This can be achieved by adding an otherwise unused tag template parameter to
    <code>PrecalculationEnabledHasher</code> and <code>PrehashedKey</code>.</p>
 
 <h3><a name="motivation.summary">3.4. Summary</a></h3>
@@ -353,7 +355,7 @@ std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
 <ul>
   <li>always compare the state of hasher in <code>precompute</code> method,</li> 
   <li>store reference to key instead of copy in <code>prehashed_key</code>,</li>
-  <li>use different hasher for each container (via adding tag template paramter).</li>
+  <li>use different hasher for each container definition (via tagging).</li>
 </ul>
 <p>making the solution more fitting to the specific use case.</p>
 
