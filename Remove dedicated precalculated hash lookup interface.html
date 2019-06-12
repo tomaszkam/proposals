@@ -102,11 +102,11 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>Contrary to information presented in the <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>,
-   the C++20 is already providing the way to efficient way to precalculated hash value for multiple lookups,
+   the C++20 is already providing efficient way to precalculate hash value for multiple lookups,
    via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
 
-<p>To illustrate, the following code provides a type-safe way to precomputed hash for the <code>std::unordered_map</code>
-   with <code>std::string</code> used as key:</p>
+<p>To illustrate, the following code provides a type-safe implementation for the <code>std::unordered_map</code>
+   with <code>std::string</code> key:</p>
 <pre>
 template&lt;typename Key&gt;
 class PrehashedStringKey
@@ -162,8 +162,8 @@ struct PrecalculationEnabledStringHasher
    }
 };
 </pre>
-<p>The above interface introduces a <code>precompute</code> function that bundles given key value (regardless if it is <code>std::string</code>, <code>std::string_view</code>, or <code>char const*</code>)
-   and then can be passed to multiple <code>unordered_map</code> that reuses the same hasher. To illustrate the example the from Motivation section of <a href="https://wg21.link/p0920r1">P0920R1</a>,
+<p>The above interface introduces a <code>precompute</code> function that bundles given key value (regardless if it is <code>std::string</code>, <code>std::string_view</code>, or <code>char const*</code>),
+   that can be used with multiple <code>unordered_map</code> that uses the same hasher. To illustrate the example the from Motivation section of <a href="https://wg21.link/p0920r1">P0920R1</a>,
    will now look as follows:</p>
 <pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecalculationEnabledStringHasher&gt;, array_size&gt; maps;
     
@@ -194,9 +194,9 @@ void update(const std::string&amp; user1, const std::string&amp; user2)
   }
 }</pre>
 
-<p>However, such kind of error is not possible in case of <code>PrecomptedStringHash</code>
+<p>However, such kind of error is not possible in case of <code>PrehashedStringKey</code>
    as we are bundling the key value with the appropriate hash:</p>
-<pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecomptedStringHash&gt;, array_size&gt; maps;
+<pre>std::array&lt;std::unordered_map&lt;std::string, int, PrecalculationEnabledStringHasher&gt;, array_size&gt; maps;
     
 void update(const std::string&amp; user)
 {
@@ -210,12 +210,12 @@ void update(const std::string&amp; user)
 }</pre>
 
 <p>The difference in the above interface can be compared with the difference between using a range,
-   versus passing two separate iterators.</p>
+   versus passing iterator/sentinel as separate arguments.</p>
 
 
-<h3><a name="motivation.error.type_safety">3.2. Providing type-safety</a></h3>
+<h3><a name="motivation.error.type_safety">3.2. Providing type-safety for key</a></h3>
 
-<p>Similarly to above, the currently proposed interface does not provide any type-safety &mdash;
+<p>Similarly to above, the currently proposed interface does not provide type-safety for key &mdash;
    it is possible to accidentally pass a hash of unrelated type to the <code>find</code> function,
    and thus causing undefined behaviour.</p>
 
@@ -254,7 +254,7 @@ void update(std::chrono::seconds secs)
    }
 }</pre>
 <p>[ Note: That above code still compiles, as <code>std::chrono::seconds</code> are convertible to keys of both i
-     <code>m1</code> (<code>std::chrono::milliseconds</code>) and <code>m2</code> (<code>std::chrono::seconds</code>).</p>
+     <code>m1</code> (<code>std::chrono::milliseconds</code>) and <code>m2</code> (<code>std::chrono::seconds</code>). ]</p>
 
 <p>However, in case if wrapper similar to <code>PrecomptedStringHash</code> would be used (see <a href="#implementability">Implementability</a> section),
    such mistakes would be reported as compilation error:</p>
@@ -276,8 +276,8 @@ void update(std::chrono::seconds secs)
 
 <h3><a name="motivation.error.mixing_hashers">3.3. Mixing different hashers</a></h3>
  
-<p>Another drawback of current interface, is that it allows silently mixing of <code>unordered_map</code>, that use 
-   different hashers. This applies both for the type of the hasher and its eventual state.</p>
+<p>Another drawback of current interface, is that it allows silently mixing of <code>unordered_map</code> instances,
+   that use  different hashers. This applies both for the type of the hasher and its state.</p>
 
 <p>To illustrate, following code contains undefined behavior, due hash mismatch:</p>
 <pre>std::unordered_map&lt;std::string, int, MurmurHash&gt; m1;
@@ -315,16 +315,15 @@ void update(std::string const&amp; secs)
 }</pre>
 
 <p>However, all of above does not address the possibility of using hasher of the same type,
-   but having different state [ Note: This is not an issue is all hasher use the same program-wide
-   state. ].</p>
+   but having different state. [ Note: This is not an issue is all hasher use the same program-wide
+   state. ]</p>
 
 <p>One of the possible options is to introduce a check to the <code>find</code> method,
    that will rehash the object and compare it with the provided hash value. However, such
-   solution eliminates are possible performance improvements of this feature, making
-   it more suited for the debug builds.</p>
+   solution eliminates are performance gains of this feature, making it more suited for the debug builds.</p>
 
 <p>Use of the <code>PrehashedKey</code> approach, provides other alternative: 
-   storing  the state of the hasher (salt) in key/hash bundle, and validating it inside
+   storing the state of the hasher (salt) in key/hash bundle, and validating it inside
    <code>operator()</code>:</p>
 <pre>template&lt;typename T&gt;
 std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
@@ -342,7 +341,7 @@ std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
 
 <p>Examples presented above show that the "power user" that need to squeeze the extra performance from
    lookup of multiple <code>unordered_map</code> with the same hashes (type and state) are already able to achieve
-   that goal via custom hasher that provides precomputed lookup.</p>
+   that goal via custom hasher.</p>
 
 <p>In addition, with this customized implementation, each user can take a different 
    approach regarding the unavoidable safety versus speed trade-off for the solution, e.g.:</p>
@@ -485,8 +484,6 @@ With above code, the <code>PrecalculationEnabledStringHasher</code> is equivalen
 
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
-
-<!--p>Herb Sutter for discussion and feedback on changes proposed in this document.</p--> 
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
    and author's participation in standardization committee.</p>
