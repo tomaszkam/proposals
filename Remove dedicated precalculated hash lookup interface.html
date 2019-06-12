@@ -322,8 +322,8 @@ void update(std::string const&amp; secs)
    that will rehash the object and compare it with the provided hash value. However, such
    solution eliminates are performance gains of this feature, making it more suited for the debug builds.</p>
 
-<p>Use of the <code>PrehashedKey</code> approach, provides other alternative: 
-   storing the state of the hasher (salt) in key/hash bundle, and validating it inside
+<p>Use of the <code>PrehashedKey</code> approach, provides  alternative solution. 
+   Firstly, we can store the state of the hasher (salt) in key/hash bundle, and validating it inside
    <code>operator()</code>:</p>
 <pre>template&lt;typename T&gt;
 std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
@@ -337,6 +337,11 @@ std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
    expensive than rehashing of a key), and can be eliminated in case of stateless hasher
    object.</p>
 
+<p>Secondly, we can turn it hasher state mismatch into compilation error, by using
+   different hasher (and <code>PrehashedKey</code>) for each container. This can
+   be achieved by adding otherwise unused tag template parameter to
+   <code>PrecalculationEnabledHasher</code> and <code>PrehashedKey</code>.</p>
+
 <h3><a name="motivation.summary">3.4. Summary</a></h3>
 
 <p>Examples presented above show that the "power user" that need to squeeze the extra performance from
@@ -347,7 +352,8 @@ std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
    approach regarding the unavoidable safety versus speed trade-off for the solution, e.g.:</p>
 <ul>
   <li>always compare the state of hasher in <code>precompute</code> method,</li> 
-  <li>store reference to key instead of copy in <code>prehashed_key</code>.</li>
+  <li>store reference to key instead of copy in <code>prehashed_key</code>,</li>
+  <li>use different hasher for each container (via adding tag template paramter).</li>
 </ul>
 <p>making the solution more fitting to the specific use case.</p>
 
