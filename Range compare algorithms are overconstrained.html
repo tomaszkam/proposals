@@ -777,17 +777,17 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
 
 <p>Replace <code>IndirectRelation</code> entry in Index of library names with <code>IndirectBinaryPredicate</code>.</p>
 
-<h2><a name="implementability">6. Implementability</a></h2>
+<h2><a name="implementability">5. Implementability</a></h2>
 
-<p>This paper can be implemented by simply replacing <code>unwrap_ref_decay_t</code> with <code>decay_t</code> in example implementation from "Implementability"
-   section of the <a href="https://wg21.link/p0356r5">P0365R5: Simplified partial function application</a> paper.</p>
+<p>Implementation of the changes proposed in this paper, may be found in <a href="https://github.com/CaseyCarter/cmcstl2/pull/310">following pull request</a>
+   for <a href="https://github.com/CaseyCarter/cmcstl2">cmcstl2</a>.</p>
 
-<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
    and author's participation in standardization committee.</p>
 
-<h2><a name="literature">8. References</a></h2>
+<h2><a name="literature">7. References</a></h2>
 
 <ol>
   <li>Eric Niebler,
@@ -797,6 +797,14 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
       (N4810, <a href="https://wg21.link/n4810">https://wg21.link/n4810</a>)</li>
+
+ <li>Casey Carter et al.,
+     "cmcstl2",
+     (<a href="https://github.com/CaseyCarter/cmcstl2">https://github.com/CaseyCarter/cmcstl2</a>)</li>
+
+<li>Tomasz Kamiński,
+    "Implemented changes from P1716",
+     (Pull request #310, <a href="https://github.com/CaseyCarter/cmcstl2/pull/310">https://github.com/CaseyCarter/cmcstl2/pull/310</a>)</li>
 
 </ol>
 
