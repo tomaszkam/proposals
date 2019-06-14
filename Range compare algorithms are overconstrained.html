@@ -90,14 +90,13 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>In this paper we argue that the <code>ranges</code> version of the compare algorithm (like <code>equal</code>, 
-   <code>mismatch</code>, <code>search</code>) are over-constrained (their require validity of the invocation
+<p>In this paper, we argue that the <code>ranges</code> version of the compare algorithm (like <code>equal</code>, 
+   <code>mismatch</code>, <code>search</code>) are over-constrained (they impose the validity of invocations
    that are never used). Thus they compare limited functionality in comparison to their STL1 counterparts.</code>
 
-<p>To address above issues we propose the replace the <code>IndirectRelation&lt;T, U&gt;</code> constrain 
-   with the new <code>IndirectBinaryPredicate&lt;T, U&gt;</code> constrain, that requires only that
-   <code>pred(t, u)</code> is well-formed (and drop unecessary <code>pred(t, t)</code>, <code>pred(u, t)</code>
-   and <code>pred(u, u)</code> requirements.</p>
+<p>To address above issues we propose the replace the <code>IndirectRelation&lt;T, U&gt;</code> concept
+   with the  <code>IndirectBinaryPredicate&lt;T, U&gt;</code>, that requires only that <code>pred(*t, *u)</code> is well-formed
+   (and drop unnecessary <code>pred(*t, *t)</code>, <code>pred(*u, *t)</code> and <code>pred(*u, *u)</code> requirements).</p>
 
 <p>Changes proposed in this paper need to be considered in the C++20 timeline, as they would constitute breaking change after the publication of standard in the current form.</p>
 
@@ -123,20 +122,20 @@ td { text-align: left; vertical-align: top;
   <li><code>f(*u, *u)</code>.</li>
 </ul>
 <p>[ Note: For implicitly we ignore the projection functionality. ]</p>
-<p>Out of the above only the second (<code>f(*t, *u)</code> expression is required for implementation of the algorithms.</p>
+<p>Out of the above only the second (<code>f(*t, *u)</code>) expression is required for the implementation of the algorithms.</p>
 
-<p>As consequence of the above decision, the code that was working correctly with the STL1 version of the algorithm:</p>
+<p>As consequence of the above decision, the code that was working correctly with the non-range version of the algorithm:</p>
 <pre>std::vector&lt;std::string&gt; texts;
-std::vector&lt;std::size_T&gt; lenghts;
+std::vector&lt;std::size_T&gt; lengths;
 
 auto [ti, si] = std::mismatch(texts.begin(), texts.end(),
-                              lenghts.begin(), lenghts.end(),
+                              lengths.begin(), lengths.end(),
                               [](std::string const&amp; text, std::size_t lenght) { return text.size() == lenght; });</pre>
 <p>will not longer work, when migrated to <code>ranges</code> version:</p>
 <pre>auto [ti, si] = std::ranges::mismatch(text, lengts, [](std::string const&amp; text, std::size_t lenght) { return text.size() == lenght; });</pre>
    
-<p>The other example of limitation of the expressiveness of the current specification is the 
-   <a href="https://github.com/ericniebler/stl2/issues/599">reported by Eric Niebler on the github page</a>, that lead to creation
+<p>The other example of the limitation of the expressiveness of the current specification is the 
+   <a href="https://github.com/ericniebler/stl2/issues/599">issue reported by Eric Niebler on the github page</a>, that lead to the creation
    of this paper.</p>
 <blockquote cite="https://github.com/ericniebler/stl2/issues/599">
 The range-v3 calendar example has the following:
@@ -144,7 +143,7 @@ The range-v3 calendar example has the following:
 This compiles in master but not in the deep-integration branch where mismatch is (properly) constrained with <code>IndirectRelation</code>.
 </blockquote>
 
-<p>To address above issue we propose to replace <code>IndirectRelation</code> constrain with the <code>IndirectBinaryPredicate</code>
+<p>To address the above issue we propose to replace <code>IndirectRelation</code> constrain with the <code>IndirectBinaryPredicate</code>
    (that will impose only <code>f(*t, *t)</code>) in the following algorithms:</p>
 <ul>
   <li><code>find</code>,</li>
@@ -169,7 +168,7 @@ This compiles in master but not in the deep-integration branch where mismatch is
 <h3><a name="motivation.overconstrained.specification">3.1. Specification requirements</a></h3>
 
 <p>Constrains currently placed on the compare algorithms are over-constrained in context of their specification. Majority
-   of the algorithms are defined to find (or just inform about existence) an pair of iterators <code>i1</code> (pointing into
+   of the algorithms are defined to find (or just inform about existence) a pair of iterators <code>i1</code> (pointing into
    first range) and <code>i2</code> (pointing into second range), for which the following expression:</p>
 <pre>invoke(pred, invoke(proj1, *i1), invoke(proj2, *i2))</pre>
 <p>returns either <code>true</code> or <code>false</code> value. [ Note: Rest of them are defined in terms of other
@@ -232,8 +231,8 @@ template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
      </p></dd>
 </blockquote>
 
-<p>Due above, the non-range version of the algorithms are more general and applicable, than their <code>ranges</code>
-   counterpart. In addition this unnecessary complicates the migration of the code to rangified version of STL.</p>
+<p>Due above, the non-range versions of the algorithms are more general and applicable, than their <code>ranges</code>
+   counterpart. In additioni, this unnecessary complicate the migration of the code to the rangified version of STL.</p>
 
 <h2><a name="wording">4. Proposed Wording</a></h2>
 
