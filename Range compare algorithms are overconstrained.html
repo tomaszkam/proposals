@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>ranges compare algorithm are over-constrained</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-06-14</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+  <tr>
+    <th></th><th> </th><td><address>Casey Carter &lt;casey at carter dot net&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title"><code>ranges</code> compare algorithm are over-constrained</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>In this paper we argue that the <code>ranges</code> version of the compare algorithm (like <code>equal</code>, 
+   <code>mismatch</code>, <code>search</code>) are over-constrained (their require validity of the invocation
+   that are never used). Thus they compare limited functionality in comparison to their STL1 counterparts.</code>
+
+<p>To address above issues we propose the replace the <code>IndirectRelation&lt;T, U&gt;</code> constrain 
+   with the new <code>IndirectBinaryPredicate&lt;T, U&gt;</code> constrain, that requires only that
+   <code>pred(t, u)</code> is well-formed (and drop unecessary <code>pred(t, t)</code>, <code>pred(u, t)</code>
+   and <code>pred(u, u)</code> requirements.</p>
+
+<p>Changes proposed in this paper need to be considered in the C++20 timeline, as they would constitute breaking change after the publication of standard in the current form.</p>
+
+<!--h2><a name="toc">Table of contents</a></h2-->
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>With the current specification the <code>range</code> version of the compare algorithm (like <code>equal</code>, <code>mismatch</code>,
+   <code>is_permutation</code>), are requiring that the provided functor <code>f</code> models the <code>IndirectRelation&lt;T, U&gt;</code> &mdash;
+   that implies that given the pair of iterator <code>t</code> of type <code>T</code> and <code>u</code> of type <code>U</code>,
+   the following expression needs to be well-formed:</p>
+<ul>
+  <li><code>f(*t, *t)</code>,</li>
+  <li><code>f(*t, *u)</code>,</li>
+  <li><code>f(*u, *t)</code>,</li>
+  <li><code>f(*u, *u)</code>.</li>
+</ul>
+<p>[ Note: For implicitly we ignore the projection functionality. ]</p>
+<p>Out of the above only the second (<code>f(*t, *u)</code> expression is required for implementation of the algorithms.</p>
+
+<p>As consequence of the above decision, the code that was working correctly with the STL1 version of the algorithm:</p>
+<pre>std::vector&lt;std::string&gt; texts;
+std::vector&lt;std::size_T&gt; lenghts;
+
+auto [ti, si] = std::mismatch(texts.begin(), texts.end(),
+                              lenghts.begin(), lenghts.end(),
+                              [](std::string const&amp; text, std::size_t lenght) { return text.size() == lenght; });</pre>
+<p>will not longer work, when migrated to <code>ranges</code> version:</p>
+<pre>auto [ti, si] = std::ranges::mismatch(text, lengts, [](std::string const&amp; text, std::size_t lenght) { return text.size() == lenght; });</pre>
+   
+<p>The other example of limitation of the expressiveness of the current specification is the 
+   <a href="https://github.com/ericniebler/stl2/issues/599">reported by Eric Niebler on the github page</a>, that lead to creation
+   of this paper.</p>
+<blockquote cite="https://github.com/ericniebler/stl2/issues/599">
+The range-v3 calendar example has the following:
+<pre>mismatch(rng-of-iterators, rng-of-sentinels, std::not_equal_to<>{})</pre>
+This compiles in master but not in the deep-integration branch where mismatch is (properly) constrained with <code>IndirectRelation</code>.
+</blockquote>
+
+<p>To address above issue we propose to replace <code>IndirectRelation</code> constrain with the <code>IndirectBinaryPredicate</code>
+   (that will impose only <code>f(*t, *t)</code>) in the following algorithms:</p>
+<ul>
+  <li><code>find</code>,</li>
+  <li><code>find_first_of</code>,</li>
+  <li><code>adjacent_find</code>,</li>
+  <li><code>mismatch</code>,</li>
+  <li><code>replace</code> and <code>replace_copy</code>,</li>
+  <li><code>remove</code> and <code>remove_copy</code>,</li>
+  <li><code>unique</code> and <code>unique_copy</code>.</li>
+</ul>
+<p>In addition we propose to change <code>IndirectlyComparable</code> to be refiment of <code>IndirectBinaryPredicate</code>
+   instead of <code>IndirectRelation</code>, thus addressing:</p>
+<ul>
+  <li><code>split_view</code>,</li>
+  <li><code>find_end</code>,</li>
+  <li><code>equal</code>,</li>
+  <li><code>is_permutation</code>,</li>
+  <li><code>serach</code>,</li>
+  <li><code>serach_n</code>.</li>
+</ul>
+
+<h3><a name="motivation.overconstrained.specification">3.1. Specification requirements</a></h3>
+
+<p>Constrains currently placed on the compare algorithms are over-constrained in context of their specification. Majority
+   of the algorithms are defined to find (or just inform about existence) an pair of iterators <code>i1</code> (pointing into
+   first range) and <code>i2</code> (pointing into second range), for which the following expression:</p>
+<pre>invoke(pred, invoke(proj1, *i1), invoke(proj2, *i2))</pre>
+<p>returns either <code>true</code> or <code>false</code> value. [ Note: Rest of them are defined in terms of other
+   compare algorithms. ]</p>
+
+<p>To illustrate: the specification of <code>serach</code> from <a href="http://eel.is/c++draft/alg.search#3">[alg.search]</a>:<p>
+<blockquote class="std" cite="http://eel.is/c++draft/alg.search#3">
+<pre>
+template&lt;ForwardIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2,
+         Sentinel&lt;I2&gt; S2, class Pred = ranges::equal_to,
+         class Proj1 = identity, class Proj2 = identity&gt;
+  requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;
+  constexpr subrange&lt;I1&gt;
+    ranges::search(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = {},
+                   Proj1 proj1 = {}, Proj2 proj2 = {});
+template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
+         class Proj1 = identity, class Proj2 = identity&gt;
+  requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;
+  constexpr safe_subrange_t&lt;R1&gt;
+    ranges::search(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
+                   Proj1 proj1 = {}, Proj2 proj2 = {});
+</pre>
+  <dl class="attribute">
+
+    <dt>Returns:</dt> 
+    <dd><p>&nbsp;</p>
+     <ul>
+       <li><code>{i, i + (last2 - first2)}</code>, where <code>i</code> is the first iterator in the range <code>[first1, last1 - (last2 - first2))</code>
+          such that for every non-negative integer <code>n</code> less than <code>last2 - first2</code> the condition
+          <pre>bool(invoke(pred, invoke(proj1, *(i + n)), invoke(proj2, *(first2 + n))))</pre>
+          is true</li>
+       <li>Returns <code>{last1, last1}</code> if no such iterator exists.</li>
+     </ul>
+   <p></p></dd>
+
+   <dt>Complexity:</dt>
+   <dd><p>At most <code>(last1 - first1) * (last2 - first2)</code> applications of the corresponding predicate and projections.</p></dd>
+
+  </dl>
+</blockquote>
+
+<p>To implement above specification only the invocation of <code>f(proj1(*i1), proj2(*i2))</code> is required,
+   and any other combinations of argument (like <code>f(proj(*i1), proj1(*i1))</code>) is unnecessary.</p>
+
+
+<h3><a name="motivation.overconstrained.stl1">3.1. Non-range specification</a></h3>
+
+<p>The old non-range algorithms are constrained using the <code>BinaryPredicate</code> requirements, that was implied
+   by the template parameter. Per <a href="http://eel.is/c++draft/algorithms.requirements#8">[algorithms.requirements]</a>,
+   this only requires the predicate to be invocable with iterators provided in order of their occurrence in range
+   signature:</p>
+
+<blockquote class="std" cite="http://eel.is/c++draft/algorithms.requirements#8">
+   <dl class="attribute">
+     <dd><p>
+       When not otherwise constrained, the <code>BinaryPredicate</code> parameter is used whenever an algorithm expects a function object that when applied
+       to the result of dereferencing two corresponding iterators or to dereferencing an iterator and type <code>T</code> when <code>T</code> is part of the signature returns a value testable as <code>true</code>.
+       In other words, if an algorithm takes <code>BinaryPredicate</code> <code>binary_pred</code> as its argument and <code>first1</code> and <code>first2</code> as its iterator arguments 
+       with respective value types <code>T1</code> and <code>T2</code>, it should work correctly in the construct <code>binary_pred(*first1, *first2)</code> contextually converted to <code>bool</code> ([conv]).
+     </p></dd>
+</blockquote>
+
+<p>Due above, the non-range version of the algorithms are more general and applicable, than their <code>ranges</code>
+   counterpart. In addition this unnecessary complicates the migration of the code to rangified version of STL.</p>
+
+<h2><a name="wording">4. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n4810"></a> N4810 (C++ Working Draft, 2019-03-15).</p>
+
+<p>Apply following changes to section [func.bind_front] Function template <code>bind_front</code>:</p>
+
+<h2><a name="implementability">6. Implementability</a></h2>
+
+<p>This paper can be implemented by simply replacing <code>unwrap_ref_decay_t</code> with <code>decay_t</code> in example implementation from "Implementability"
+   section of the <a href="https://wg21.link/p0356r5">P0365R5: Simplified partial function application</a> paper.</p>
+
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
+   and author's participation in standardization committee.</p>
+
+<h2><a name="literature">8. References</a></h2>
+
+<ol>
+  <li>Eric Niebler,
+      "[Indirect]Relation + non-comparable sentinels and input iterators == :-(",
+      (Issue 599, <a href="https://github.com/ericniebler/stl2/issues/599">https://github.com/ericniebler/stl2/issues/599</a>)</li>
+
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4810, <a href="https://wg21.link/n4810">https://wg21.link/n4810</a>)</li>
+
+</ol>
+
+
+</body></html>
