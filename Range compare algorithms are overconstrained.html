@@ -565,7 +565,7 @@ template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
     unique_copy(I first, S last, O result, C comp = {}, Proj proj = {});
 
 template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
   requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
           (ForwardIterator&lt;iterator_t&lt;R&gt;&gt; ||
            (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
@@ -762,7 +762,7 @@ template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
     ranges::unique_copy(I first, S last, O result, C comp = {}, Proj proj = {});
 
 template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
   requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
           (ForwardIterator&lt;iterator_t&lt;R&gt;&gt; ||
            (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
@@ -775,7 +775,7 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
 
 <p>Update the value of the <code>__cpp_ranges</code> in table "Standard library feature-test macros" of [support.limits.general] to reflect the date of approval of this proposal.</p>
 
-<p>Replace <code>IndirectRelation</code> entry in Index of library names with <code>IndirectBinaryPredicate</code>.</p>
+<p>Replace <code>IndirectRelation</code> entry in "Index of library names" with <code>IndirectBinaryPredicate</code>.</p>
 
 <h2><a name="implementability">5. Implementability</a></h2>
 
