@@ -272,7 +272,7 @@ template&lt;class R, class T, class U&gt;
 </pre>
 
   <dl class="attribute">
-    <dd>A <code>Relation</code> satisfies <code>StrictWeakOrder</code> only if it imposes an equivalence relation on its arguments.</dd>
+    <dd>A <code>Relation</code> satisfies <code>EquivalenceRelation</code> only if it imposes an equivalence relation on its arguments.</dd>
   </dl>
 </blockquote>
 
@@ -283,10 +283,8 @@ template&lt;class R, class T, class U&gt;
 template&lt;class F, class I1, class I2<del> = I1</del>&gt;
   concept Indirect<ins>BinaryPredicate</ins><del>Relation</del> = <em>see below</em>;
 
-<ins>
-template&lt;class F, class I1, class I2i = I1&gt;
-  concept IndirectEquivalenceRelation = <em>see below</em>;
-</ins>
+<ins>template&lt;class F, class I1, class I2i = I1&gt;
+  concept IndirectEquivalenceRelation = <em>see below</em>;</ins>
 
 template&lt;class F, class I1, class I2 = I1&gt;
   concept IndirectStrictWeakOrder = <em>see below</em>;
@@ -308,8 +306,7 @@ template&lt;class F, class I1, class I2<del> = I1</del>&gt;
     <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
     <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
 
-<ins>
-template&lt;class F, class I1, class I2 = I1&gt;
+<ins>template&lt;class F, class I1, class I2 = I1&gt;
   concept IndirectEquivalenceRelation =
     Readable&lt;I1&gt; &amp;&amp; Readable&lt;I2&gt; &amp;&amp;
     CopyConstructible&lt;F&gt; &amp;&amp;
@@ -317,8 +314,7 @@ template&lt;class F, class I1, class I2 = I1&gt;
     EquivalenceRelation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
     EquivalenceRelation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
     EquivalenceRelation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    EquivalenceRelation&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
-</ins>
+    EquivalenceRelation&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;</ins>
 
 template&lt;class F, class I1, class I2 = I1&gt;
   concept IndirectStrictWeakOrder =
