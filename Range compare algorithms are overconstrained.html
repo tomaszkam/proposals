@@ -879,7 +879,7 @@ template&lt;Permutable I, Sentinel&lt;I&gt; S, class Proj = identity,
   constexpr I ranges::unique(I first, S last, C comp = {}, Proj proj = {});
 
 template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
   requires Permutable&lt;iterator_t&lt;R&gt;&gt;
   constexpr safe_iterator_t&lt;R&gt;
     ranges::unique(R&amp;&amp; r, C comp = {}, Proj proj = {});
