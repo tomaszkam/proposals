@@ -112,7 +112,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>With the current specification the <code>range</code> version of the compare algorithm (like <code>equal</code>, <code>mismatch</code>,
-   <code>is_permutation</code>), are requiring that the provided functor <code>f</code> models the <code>IndirectRelation&lt;T, U&gt;</code> &mdash;
+   <code>search</code>), are requiring that the provided functor <code>f</code> models the <code>IndirectRelation&lt;T, U&gt;</code> &mdash;
    that implies that given the pair of iterator <code>t</code> of type <code>T</code> and <code>u</code> of type <code>U</code>,
    the following expression needs to be well-formed:</p>
 <ul>
@@ -170,7 +170,31 @@ This compiles in master but not in the deep-integration branch where mismatch is
   <li><code>is_permutation</code>.</li>
 </ul>
 
-<h3><a name="motivation.overconstrained.specification">3.1. Specification requirements</a></h3>
+<h3><a name="motivation.binary_predicate">3.2. <code>BinaryPredicate</code> vs <code>EquivalenceRelation</code></a></h3>
+
+<p>Above we propose to replace <code>IndirectRelation</code> with either <code>IndirectBinaryPredicate</code> or
+   <code>IndirectEquivalenceRelation</code>, depending on the algorithm.
+   This may lead to the question, if we should not use <code>IndirectEquivalenceRelation</code> for each
+   of the algorithms &mdash; the predicates presented in examples from the above section,
+   seem to model equivalence, but only lack overloads for other argument types combinations.</p>
+
+<p>Such approach will however silently prevent the some frequent usages of the compare algorithms like:</p>
+<pre>
+  // searching for first inversion in range
+  auto it = std::ranges::adjacent_find(vec, std::greater{});
+
+  auto searchPattern = [](std::string_view text, std::string_view pattern) { std::ranges::search(text, pattern); };
+  // checking if all patterns can be found with in coresponding corpus
+  std::ranges::equal(texts, patterns, searchPattern);
+</pre>
+<p>If these algorithms would be constrained with <code>IndirectEquivalenceRelation</code> the above
+   code would still compile (all syntactic requirement as met as comparators are homogeneous), however,
+   the code will have undefined behaviour &mdash; both <code>std::greater&lt;&gt;</code> and
+   <code>serachPattern</code> does not meet the semantic requirements for equivalence relation, 
+   as they are not symmetric.</p>
+  
+
+<h3><a name="motivation.overconstrained.specification">3.2. Specification requirements</a></h3>
 
 <p>Constrains currently placed on the compare algorithms are over-constrained in context of their specification. Majority
    of the algorithms are defined to find (or just inform about existence) a pair of iterators <code>i1</code> (pointing into
@@ -219,7 +243,7 @@ template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
    and any other combinations of argument (like <code>f(proj(*i1), proj1(*i1))</code>) is unnecessary.</p>
 
 
-<h3><a name="motivation.overconstrained.stl1">3.1. Non-range specification</a></h3>
+<h3><a name="motivation.overconstrained.stl1">3.3. Non-range specification</a></h3>
 
 <p>The old non-range algorithms are constrained using the <code>BinaryPredicate</code> requirements, that was implied
    by the template parameter. Per <a href="http://eel.is/c++draft/algorithms.requirements#8">[algorithms.requirements]</a>,
@@ -721,21 +745,6 @@ template&lt;ForwardRange R, class Proj = identity,
 </pre>
 </blockquote>
 
-<p>Apply following changes to section [alg.count] Count:</p>
-<blockquote class="std">
-<pre>
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
-  constexpr iter_difference_t&lt;I&gt;
-    ranges::count(I first, S last, const T&amp; value, Proj proj = {});
-
-template&lt;InputRange R, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
-  constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
-    ranges::count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
-</pre>
-</blockquote>
-
 <p>Apply following changes to section [alg.is.permutation] Is permutation:</p>
 <blockquote class="std">
 <pre>
@@ -757,6 +766,20 @@ template&lt;ForwardRange R1, ForwardRange R2, <del>class Pred = ranges::equal_to
 </pre>
 </blockquote>
 
+<p>Apply following changes to section [alg.count] Count:</p>
+<blockquote class="std">
+<pre>
+template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+  constexpr iter_difference_t&lt;I&gt;
+    ranges::count(I first, S last, const T&amp; value, Proj proj = {});
+
+template&lt;InputRange R, class T, class Proj = identity&gt;
+  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+  constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
+    ranges::count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
+</pre>
+</blockquote>
 
 <p>Apply following changes to section [alg.mismatch] Mismatch:</p>
 <blockquote class="std">
