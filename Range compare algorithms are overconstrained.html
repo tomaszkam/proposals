@@ -164,7 +164,7 @@ This compiles in master but not in the deep-integration branch where mismatch is
   <li><code>serach_n</code>.</li>
 </ul>
 <p>Finally, we introduce the <code>EquivalenceRelation</code> (and <code>IndirectEquivalenceRelation</code>) to
-   correctly constrain following algorithms (that imposed this requirement in non-range version):</p>
+   correctly constrain following algorithms (thier impose this requirement in non-range version):</p>
 <ul>
   <li><code>unique</code> and <code>unique_copy</code>,</li>
   <li><code>is_permutation</code>.</li>
@@ -235,9 +235,11 @@ template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
        with respective value types <code>T1</code> and <code>T2</code>, it should work correctly in the construct <code>binary_pred(*first1, *first2)</code> contextually converted to <code>bool</code> ([conv]).
      </p></dd>
 </blockquote>
+<p>[ Note: <code>is_permutation</code>, <code>unique</code> and <code>unique_copy</code> imposes additional requirement
+     on predicate: it should impose equivalence relation on the arguments. ]</p>
 
 <p>Due above, the non-range versions of the algorithms are more general and applicable, than their <code>ranges</code>
-   counterpart. In additioni, this unnecessary complicate the migration of the code to the rangified version of STL.</p>
+   counterpart. In addition, this unnecessary complicate the migration of the code to the rangified version of STL.</p>
 
 <h2><a name="wording">4. Proposed Wording</a></h2>
 
