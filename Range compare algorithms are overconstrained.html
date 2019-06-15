@@ -121,7 +121,7 @@ td { text-align: left; vertical-align: top;
   <li><code>f(*u, *t)</code>,</li>
   <li><code>f(*u, *u)</code>.</li>
 </ul>
-<p>[ Note: For implicitly we ignore the projection functionality. ]</p>
+<p>[ Note: For simplicitly we ignore the projection functionality. ]</p>
 <p>Out of the above only the second (<code>f(*t, *u)</code>) expression is required for the implementation of the algorithms.</p>
 
 <p>As consequence of the above decision, the code that was working correctly with the non-range version of the algorithm:</p>
@@ -152,8 +152,7 @@ This compiles in master but not in the deep-integration branch where mismatch is
   <li><code>count</code>,</li>
   <li><code>mismatch</code>,</li>
   <li><code>replace</code> and <code>replace_copy</code>,</li>
-  <li><code>remove</code> and <code>remove_copy</code>,</li>
-  <li><code>unique</code> and <code>unique_copy</code>.</li>
+  <li><code>remove</code> and <code>remove_copy</code>.</li>
 </ul>
 <p>In addition we propose to change <code>IndirectlyComparable</code> to be refiment of <code>IndirectBinaryPredicate</code>
    instead of <code>IndirectRelation</code>, thus addressing:</p>
@@ -161,9 +160,14 @@ This compiles in master but not in the deep-integration branch where mismatch is
   <li><code>split_view</code>,</li>
   <li><code>find_end</code>,</li>
   <li><code>equal</code>,</li>
-  <li><code>is_permutation</code>,</li>
   <li><code>serach</code>,</li>
   <li><code>serach_n</code>.</li>
+</ul>
+<p>Finally, we introduce the <code>EquivalenceRelation</code> (and <code>IndirectEquivalenceRelation</code>) to
+   correctly constrain following algorithms (that imposed this requirement in non-range version):</p>
+<ul>
+  <li><code>unique</code> and <code>unique_copy</code>,</li>
+  <li><code>is_permutation</code>.</li>
 </ul>
 
 <h3><a name="motivation.overconstrained.specification">3.1. Specification requirements</a></h3>
@@ -239,13 +243,57 @@ template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n4810"></a> N4810 (C++ Working Draft, 2019-03-15).</p>
 
+<p>Apply following changes to [concepts.syn] Header <code>&lt;concepts&gt;</code> synopsis:</p>
+<blockquote class="std">
+<pre>
+// [concept.relation], concept Relation
+template&lt;class R, class T, class U&gt;
+  concept Relation = &lt;em&gt;see below&lt;/em&gt;;
+
+<ins>
+// [concept.equivalencerelation], concept EquivalenceRelation
+template&lt;class R, class T, class U&gt;
+  concept EquivalenceRelation = &lt;em&gt;see below&lt;/em&gt;;
+</ins>
+
+// [concept.strictweakorder], concept StrictWeakOrder
+template&lt;class R, class T, class U&gt;
+  concept StrictWeakOrder = &lt;em&gt;see below&lt;/em&gt;;
+</pre>
+</blockquote>
+
+<p>Insert following section after [oncept.relation] Concept <code>EquivalenceRelation</code>:</p>
+<blockquote class="stdins"> 
+<h4><a name="concept.equivalencerelation">Concept <code>EquivalenceRelation</code> <span style="float:right">[concept.equivalencerelation]</span></a></h4>
+
+<pre>
+template&lt;class R, class T, class U&gt;
+  concept EquivalenceRelation = Relation&lt;R, T, U&gt;;
+</pre>
+
+  <dl class="attribute">
+    <dd>A <code>Relation</code> satisfies <code>StrictWeakOrder</code> only if it imposes an equivalence relation on its arguments.</dd>
+  </dl>
+</blockquote>
+
+
 <p>Apply following changes to section [iterator.synopsis] Header <code>&lt;iterator&gt;</code> synopsis:</p>
 <blockquote class="std">
 <pre>
 template&lt;class F, class I1, class I2<del> = I1</del>&gt;
   concept Indirect<ins>BinaryPredicate</ins><del>Relation</del> = <em>see below</em>;
+
+<ins>
+template&lt;class F, class I1, class I2i = I1&gt;
+  concept IndirectEquivalenceRelation = <em>see below</em>;
+</ins>
+
+template&lt;class F, class I1, class I2 = I1&gt;
+  concept IndirectStrictWeakOrder = <em>see below</em>;
+
 </pre>
 </blockquote>
+
 
 <p>Apply following changes to section [indirectcallable.indirectinvocable] Indirect callables:</p>
 <blockquote class="std">
@@ -259,6 +307,28 @@ template&lt;class F, class I1, class I2<del> = I1</del>&gt;
     <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
     <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
     <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
+
+<ins>
+template&lt;class F, class I1, class I2 = I1&gt;
+  concept IndirectEquivalenceRelation =
+    Readable&lt;I1&gt; &amp;&amp; Readable&lt;I2&gt; &amp;&amp;
+    CopyConstructible&lt;F&gt; &amp;&amp;
+    EquivalenceRelation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    EquivalenceRelation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    EquivalenceRelation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    EquivalenceRelation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    EquivalenceRelation&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
+</ins>
+
+template&lt;class F, class I1, class I2 = I1&gt;
+  concept IndirectStrictWeakOrder =
+    Readable&lt;I1&gt; &amp;&amp; Readable&lt;I2&gt; &amp;&amp;
+    CopyConstructible&lt;F&gt; &amp;&amp;
+    StrictWeakOrder&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    StrictWeakOrder&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    StrictWeakOrder&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    StrictWeakOrder&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    StrictWeakOrder&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
 </pre>
 </blockquote>
 
@@ -403,6 +473,27 @@ template&lt;InputRange R1, InputRange R2,
 
 namespace ranges {
 
+template&lt;ForwardIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2,
+         Sentinel&lt;I2&gt; S2, <del>class Pred = ranges::equal_to,</del> class Proj1 = identity, class Proj2 = identity&gt;<ins>,</ins>
+         <ins>IndirectEquivalenceRelation&lt;projected&lt;I1, Proj1&gt;, projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</del>
+  constexpr bool is_permutation(I1 first1, S1 last1, I2 first2, S2 last2,
+                                Pred pred = {},
+                                Proj1 proj1 = {}, Proj2 proj2 = {});
+
+template&lt;ForwardRange R1, ForwardRange R2, <del>class Pred = ranges::equal_to,</del>
+         class Proj1 = identity, class Proj2 = identity<ins>,</ins>
+         <ins>IndirectEquivalenceRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;, projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</del>
+  constexpr bool is_permutation(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
+                                Proj1 proj1 = {}, Proj2 proj2 = {});
+
+}
+
+[...]
+
+namespace ranges {
+
 template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T1, class T2, class Proj = identity&gt;
   requires Writable&lt;I, const T2&amp;&gt; &amp;&amp;
            Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
@@ -537,11 +628,11 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
 namespace ranges {
 
 template&lt;Permutable I, Sentinel&lt;I&gt; S, class Proj = identity,
-  Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+  Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
   constexpr I unique(I first, S last, C comp = {}, Proj proj = {});
 
 template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
   requires Permutable&lt;iterator_t&lt;R&gt;&gt;
   constexpr safe_iterator_t&lt;R&gt;
     unique(R&amp;&amp; r, C comp = {}, Proj proj = {});
@@ -556,7 +647,7 @@ template&lt;class I, class O&gt;
 using unique_copy_result = copy_result&lt;I, O&gt;;
 
 template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
-         class Proj = identity, Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         class Proj = identity, Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
   requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
            (ForwardIterator&lt;I&gt; ||
             (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;I&gt;, iter_value_t&lt;O&gt;&gt;) ||
@@ -565,7 +656,7 @@ template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
     unique_copy(I first, S last, O result, C comp = {}, Proj proj = {});
 
 template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
   requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
           (ForwardIterator&lt;iterator_t&lt;R&gt;&gt; ||
            (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
@@ -646,6 +737,28 @@ template&lt;InputRange R, class T, class Proj = identity&gt;
     ranges::count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 </pre>
 </blockquote>
+
+<p>Apply following changes to section [alg.is.permutation] Is permutation:</p>
+<blockquote class="std">
+<pre>
+template&lt;ForwardIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2,
+         Sentinel&lt;I2&gt; S2, <del>class Pred = ranges::equal_to,</del> class Proj1 = identity, class Proj2 = identity&gt;<ins>,</ins>
+         <ins>IndirectEquivalenceRelation&lt;projected&lt;I1, Proj1&gt;, projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</del>
+  constexpr bool ranges::is_permutation(I1 first1, S1 last1, I2 first2, S2 last2,
+                                        Pred pred = {},
+                                        Proj1 proj1 = {}, Proj2 proj2 = {});
+
+template&lt;ForwardRange R1, ForwardRange R2, <del>class Pred = ranges::equal_to,</del>
+         class Proj1 = identity, class Proj2 = identity<ins>,</ins>
+         <ins>IndirectEquivalenceRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;, projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</del>
+  constexpr bool ranges::is_permutation(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
+                                        Proj1 proj1 = {}, Proj2 proj2 = {});
+
+</pre>
+</blockquote>
+
 
 <p>Apply following changes to section [alg.mismatch] Mismatch:</p>
 <blockquote class="std">
@@ -741,11 +854,11 @@ template&lt;InputRange R, WeaklyIncrementable O, class T, class Proj = identity&
 <blockquote class="std">
 <pre>
 template&lt;Permutable I, Sentinel&lt;I&gt; S, class Proj = identity,
-  Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+  Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
   constexpr I ranges::unique(I first, S last, C comp = {}, Proj proj = {});
 
 template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
   requires Permutable&lt;iterator_t&lt;R&gt;&gt;
   constexpr safe_iterator_t&lt;R&gt;
     ranges::unique(R&amp;&amp; r, C comp = {}, Proj proj = {});
@@ -753,7 +866,7 @@ template&lt;ForwardRange R, class Proj = identity,
 [...]
 
 template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
-         class Proj = identity, Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         class Proj = identity, Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
   requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
            (ForwardIterator&lt;I&gt; ||
             (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;I&gt;, iter_value_t&lt;O&gt;&gt;) ||
@@ -762,7 +875,7 @@ template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
     ranges::unique_copy(I first, S last, O result, C comp = {}, Proj proj = {});
 
 template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; C = ranges::equal_to&gt;
+         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
   requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
           (ForwardIterator&lt;iterator_t&lt;R&gt;&gt; ||
            (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
