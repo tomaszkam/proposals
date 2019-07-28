@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1716R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1716R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-06-15</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-07-15</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -100,6 +100,16 @@ td { text-align: left; vertical-align: top;
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.2. Revision 1</a></h3>
+
+<p>Included alternative names for proposed concepts that are constient with <a href="http://wg21.link/p1754r0">P1754<a>:
+<ul>
+  <li><code>equivalence_relation</code> instead of <code>EquivalenceRelation</code>,</li>
+  <li><code>indirect_equivalence_relation</code> instead of <code>IndirectEquivalenceRelation</code>,</li>
+  <li><code>indirect_binary_predicate</code> instead of <code>IndirectBinaryPredicate</code>.</li>
+</ul>
+</p>
 
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
@@ -266,22 +276,30 @@ template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n4810"></a> N4810 (C++ Working Draft, 2019-03-15).</p>
 
+<p>If this paper is accepted in combination with <a href="wg21.link/p1754r0"/>P1754: Rename concepts to standard_case for C++20, while we still can</a>,
+   rename concept introduced in this paper as follows::</p>
+ <ul>
+  <li><code>EquivalenceRelation</code> to <code>equivalence_relation</code>,</li>
+  <li><code>IndirectEquivalenceRelation</code> to <code>indirect_equivalence_relation</code>,</li>
+  <li><code>IndirectBinaryPredicate</code> to <code>indirect_binary_predicate</code>.</li>
+</ul>
+
 <p>Apply following changes to [concepts.syn] Header <code>&lt;concepts&gt;</code> synopsis:</p>
 <blockquote class="std">
 <pre>
 // [concept.relation], concept Relation
 template&lt;class R, class T, class U&gt;
-  concept Relation = &lt;em&gt;see below&lt;/em&gt;;
+  concept Relation = <em>see below</em>;
 
 <ins>
 // [concept.equivalencerelation], concept EquivalenceRelation
 template&lt;class R, class T, class U&gt;
-  concept EquivalenceRelation = &lt;em&gt;see below&lt;/em&gt;;
+  concept EquivalenceRelation = <em>see below</em>;
 </ins>
 
 // [concept.strictweakorder], concept StrictWeakOrder
 template&lt;class R, class T, class U&gt;
-  concept StrictWeakOrder = &lt;em&gt;see below&lt;/em&gt;;
+  concept StrictWeakOrder = <em>see below</em>;
 </pre>
 </blockquote>
 
@@ -306,7 +324,7 @@ template&lt;class R, class T, class U&gt;
 template&lt;class F, class I1, class I2<del> = I1</del>&gt;
   concept Indirect<ins>BinaryPredicate</ins><del>Relation</del> = <em>see below</em>;
 
-<ins>template&lt;class F, class I1, class I2i = I1&gt;
+<ins>template&lt;class F, class I1, class I2 = I1&gt;
   concept IndirectEquivalenceRelation = <em>see below</em>;</ins>
 
 template&lt;class F, class I1, class I2 = I1&gt;
@@ -922,7 +940,11 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
   <li>Eric Niebler,
       "[Indirect]Relation + non-comparable sentinels and input iterators == :-(",
       (Issue 599, <a href="https://github.com/ericniebler/stl2/issues/599">https://github.com/ericniebler/stl2/issues/599</a>)</li>
-
+	  
+ <li>Herb Sutter et al.,
+     "Rename concepts to standard_case for C++20, while we still can"
+     (P1754R0, <a href="https://wg21.link/p1754r0">https://wg21.link/p1754r0</a>)</li>
+	  
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
       (N4810, <a href="https://wg21.link/n4810">https://wg21.link/n4810</a>)</li>
@@ -931,7 +953,7 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
      "cmcstl2",
      (<a href="https://github.com/CaseyCarter/cmcstl2">https://github.com/CaseyCarter/cmcstl2</a>)</li>
 
-<li>Tomasz Kamiński,
+ <li>Tomasz Kamiński,
     "Implemented changes from P1716",
      (Pull request #310, <a href="https://github.com/CaseyCarter/cmcstl2/pull/310">https://github.com/CaseyCarter/cmcstl2/pull/310</a>)</li>
 
