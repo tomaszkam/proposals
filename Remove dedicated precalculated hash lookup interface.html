@@ -70,13 +70,13 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1661R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1661R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-06-13</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-07-17</td>
   </tr>
   <tr>
-    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -87,7 +87,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper proposed to remove the precalculated hash lookup interface (as proposed in  <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>),
+<p>This paper proposed to remove the precalculated hash lookup interface (as proposed in  <a href="https://wg21.link/p0920r2">P0920R2: Precalculated hash values in lookup</a>),
    as this functionality can be implemented by the user in less error-prone manner, via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
 
 <p>[ Note: The implementation of hashers from this paper are included only to illustrate how precalculated hash lookup can be implemented.
@@ -97,6 +97,14 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="history">2. Revision history</a></h2>
 
+<h3><a name="history.r0">2.2. Revision 1</a></h3>
+
+<ul>
+  <li>Changed audience to LWG.</li>
+  <li>Updated links to most recent revision (R2) of P0920.</li>
+</ul>
+
+
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
 <p>Initial revision.</p>
@@ -104,7 +112,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>Contrary to information presented in the <a href="https://wg21.link/p0920r1">P0920R1: Precalculated hash values in lookup</a>,
+<p>Contrary to information presented in the <a href="https://wg21.link/p0920r2">P0920R2: Precalculated hash values in lookup</a>,
    the C++20 is already providing efficient way to precalculate hash value for multiple lookups,
    via heterogeneous lookup for unordered containers (<a href="https://wg21.link/p0919r3">P0919R3</a>).</p>
 
@@ -369,7 +377,7 @@ std::size_t operator()(prehashed_key_type&lt;T&gt; const&amp; v) const
 
 <h2><a name="wording">4. Proposed Wording</a></h2>
 
-<p>Revert the changes introduced in by <a href="https://wg21.link/p0920r1">P0920R1</a>.</p>
+<p>Revert the changes introduced in by <a href="https://wg21.link/p0920r2">P0920R2</a>.</p>
 
 <h2><a name="implementability">5. Implementability</a></h2>
 
@@ -501,7 +509,7 @@ With above code, the <code>PrecalculationEnabledStringHasher</code> is equivalen
 <ol>
   <li>Mateusz Pusz,
       "Precalculated hash values in lookup"
-      (P0920R1, <a href="http://wg21.link/p0920r1">http://wg21.link/p0920r1</a>)</li>
+      (P0920R2, <a href="http://wg21.link/p0920r2">http://wg21.link/p0920r2</a>)</li>
 
   <li>Mateusz Pusz,
       "Heterogeneous lookup for unordered containers"
