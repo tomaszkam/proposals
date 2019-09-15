@@ -70,13 +70,13 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1716R1</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1716R2</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-07-15</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-08-25</td>
   </tr>
   <tr>
-    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -91,19 +91,27 @@ td { text-align: left; vertical-align: top;
    <code>mismatch</code>, <code>search</code>) are over-constrained (they impose the validity of invocations
    that are never used). Thus they compare limited functionality in comparison to their STL1 counterparts.</code>
 
-<p>To address above issues we propose the replace the <code>IndirectRelation&lt;T, U&gt;</code> concept
-   with the  <code>IndirectBinaryPredicate&lt;T, U&gt;</code>, that requires only that <code>pred(*t, *u)</code> is well-formed
+<p>To address above issues we propose the replace the <code>indirect_relation&lt;T, U&gt;</code> concept
+   with the  <code>indirect_binary_predicate&lt;T, U&gt;</code>, that requires only that <code>pred(*t, *u)</code> is well-formed
    (and drop unnecessary <code>pred(*t, *t)</code>, <code>pred(*u, *t)</code> and <code>pred(*u, *u)</code> requirements).</p>
 
-<p>Changes proposed in this paper need to be considered in the C++20 timeline, as they would constitute breaking change after the publication of standard in the current form.</p>
+<p>This paper was reviewed by LEWG and was fowarded to LWG for inclusion for C++20, during the Cologne meeting.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
 <h2><a name="history">2. Revision history</a></h2>
 
-<h3><a name="history.r0">2.2. Revision 1</a></h3>
+<h3><a name="history.r2">2.3. Revision 2</a></h3>
 
-<p>Included alternative names for proposed concepts that are constient with <a href="http://wg21.link/p1754r0">P1754<a>:
+<ul>
+  <li>Rebased wording on <a href="http://wg21.link/n4830">N4830 (C++ Working Draft, 2019-08-15)</a> and changed concepts names to <code>snake_case</code>.</li>
+  <li>Changed audience to Library Working Group.</p>
+</ul>
+</p>
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<p>Included alternative names for proposed concepts that are constient with <a href="http://wg21.link/p1754r1">P1754<a>:
 <ul>
   <li><code>equivalence_relation</code> instead of <code>EquivalenceRelation</code>,</li>
   <li><code>indirect_equivalence_relation</code> instead of <code>IndirectEquivalenceRelation</code>,</li>
@@ -119,7 +127,7 @@ td { text-align: left; vertical-align: top;
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>With the current specification the <code>range</code> version of the compare algorithm (like <code>equal</code>, <code>mismatch</code>,
-   <code>search</code>), are requiring that the provided functor <code>f</code> models the <code>IndirectRelation&lt;T, U&gt;</code> &mdash;
+   <code>search</code>), are requiring that the provided functor <code>f</code> models the <code>indirect_relation&lt;T, U&gt;</code> &mdash;
    that implies that given the pair of iterator <code>t</code> of type <code>T</code> and <code>u</code> of type <code>U</code>,
    the following expression needs to be well-formed:</p>
 <ul>
@@ -147,10 +155,10 @@ auto [ti, si] = std::mismatch(texts.begin(), texts.end(),
 <blockquote cite="https://github.com/ericniebler/stl2/issues/599">
 The range-v3 calendar example has the following:
 <pre>mismatch(rng-of-iterators, rng-of-sentinels, std::not_equal_to<>{})</pre>
-This compiles in master but not in the deep-integration branch where mismatch is (properly) constrained with <code>IndirectRelation</code>.
+This compiles in master but not in the deep-integration branch where mismatch is (properly) constrained with <code>indirect_relation</code>.
 </blockquote>
 
-<p>To address the above issue we propose to replace <code>IndirectRelation</code> constrain with the <code>IndirectBinaryPredicate</code>
+<p>To address the above issue we propose to replace <code>indirect_relation</code> constrain with the <code>indirect_binary_predicate</code>
    (that will impose only <code>f(*t, *t)</code>) in the following algorithms:</p>
 <ul>
   <li><code>find</code>,</li>
@@ -161,8 +169,8 @@ This compiles in master but not in the deep-integration branch where mismatch is
   <li><code>replace</code> and <code>replace_copy</code>,</li>
   <li><code>remove</code> and <code>remove_copy</code>.</li>
 </ul>
-<p>In addition we propose to change <code>IndirectlyComparable</code> to be refiment of <code>IndirectBinaryPredicate</code>
-   instead of <code>IndirectRelation</code>, thus addressing:</p>
+<p>In addition we propose to change <code>indirectly_comparable</code> to be refiment of <code>indirect_binary_predicate</code>
+   instead of <code>indirect_relation</code>, thus addressing:</p>
 <ul>
   <li><code>split_view</code>,</li>
   <li><code>find_end</code>,</li>
@@ -170,18 +178,18 @@ This compiles in master but not in the deep-integration branch where mismatch is
   <li><code>serach</code>,</li>
   <li><code>serach_n</code>.</li>
 </ul>
-<p>Finally, we introduce the <code>EquivalenceRelation</code> (and <code>IndirectEquivalenceRelation</code>) to
+<p>Finally, we introduce the <code>equivalence_relation</code> (and <code>indirect_equivalence_relation</code>) to
    correctly constrain following algorithms (thier impose this requirement in non-range version):</p>
 <ul>
   <li><code>unique</code> and <code>unique_copy</code>,</li>
   <li><code>is_permutation</code>.</li>
 </ul>
 
-<h3><a name="motivation.binary_predicate">3.2. <code>BinaryPredicate</code> vs <code>EquivalenceRelation</code></a></h3>
+<h3><a name="motivation.binary_predicate">3.2. <code>binary_predicate</code> vs <code>equivalence_relation</code></a></h3>
 
-<p>Above we propose to replace <code>IndirectRelation</code> with either <code>IndirectBinaryPredicate</code> or
-   <code>IndirectEquivalenceRelation</code>, depending on the algorithm.
-   This may lead to the question, if we should not use <code>IndirectEquivalenceRelation</code> for each
+<p>Above we propose to replace <code>indirect_relation</code> with either <code>indirect_binary_predicate</code> or
+   <code>indirect_equivalence_relation</code>, depending on the algorithm.
+   This may lead to the question, if we should not use <code>indirect_equivalence_relation</code> for each
    of the algorithms &mdash; the predicates presented in examples from the above section,
    seem to model equivalence, but only lack overloads for other argument types combinations.</p>
 
@@ -194,7 +202,7 @@ This compiles in master but not in the deep-integration branch where mismatch is
   // checking if all patterns can be found with in coresponding corpus
   std::ranges::equal(texts, patterns, searchPattern);
 </pre>
-<p>If these algorithms would be constrained with <code>IndirectEquivalenceRelation</code> the above
+<p>If these algorithms would be constrained with <code>indirect_equivalence_relation</code> the above
    code would still compile (all syntactic requirement as met as comparators are homogeneous), however,
    the code will have undefined behaviour &mdash; both <code>std::greater&lt;&gt;</code> and
    <code>serachPattern</code> does not meet the semantic requirements for equivalence relation, 
@@ -213,16 +221,16 @@ This compiles in master but not in the deep-integration branch where mismatch is
 <p>To illustrate: the specification of <code>serach</code> from <a href="http://eel.is/c++draft/alg.search#3">[alg.search]</a>:<p>
 <blockquote class="std" cite="http://eel.is/c++draft/alg.search#3">
 <pre>
-template&lt;ForwardIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2,
-         Sentinel&lt;I2&gt; S2, class Pred = ranges::equal_to,
+template&lt;forward_iterator I1, sentinel_for&lt;I1&gt; S1, forward_iterator I2,
+         sentinel_for&lt;I2&gt; S2, class Pred = ranges::equal_to,
          class Proj1 = identity, class Proj2 = identity&gt;
-  requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;
+  requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;
   constexpr subrange&lt;I1&gt;
     ranges::search(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = {},
                    Proj1 proj1 = {}, Proj2 proj2 = {});
-template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
+template&lt;forward_range R1, forward_range R2, class Pred = ranges::equal_to,
          class Proj1 = identity, class Proj2 = identity&gt;
-  requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;
+  requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;
   constexpr safe_subrange_t&lt;R1&gt;
     ranges::search(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
                    Proj1 proj1 = {}, Proj2 proj2 = {});
@@ -274,46 +282,38 @@ template&lt;ForwardRange R1, ForwardRange R2, class Pred = ranges::equal_to,
 
 <h2><a name="wording">4. Proposed Wording</a></h2>
 
-<p>The proposed wording changes refer to <a href="http://wg21.link/n4810"></a> N4810 (C++ Working Draft, 2019-03-15).</p>
-
-<p>If this paper is accepted in combination with <a href="wg21.link/p1754r0"/>P1754: Rename concepts to standard_case for C++20, while we still can</a>,
-   rename concept introduced in this paper as follows::</p>
- <ul>
-  <li><code>EquivalenceRelation</code> to <code>equivalence_relation</code>,</li>
-  <li><code>IndirectEquivalenceRelation</code> to <code>indirect_equivalence_relation</code>,</li>
-  <li><code>IndirectBinaryPredicate</code> to <code>indirect_binary_predicate</code>.</li>
-</ul>
+<p>The proposed wording changes refer to <a href="http://wg21.link/n4830">N4830 (C++ Working Draft, 2019-08-15)</a>.</p>
 
 <p>Apply following changes to [concepts.syn] Header <code>&lt;concepts&gt;</code> synopsis:</p>
 <blockquote class="std">
 <pre>
-// [concept.relation], concept Relation
+// [concept.relation], concept relation
 template&lt;class R, class T, class U&gt;
-  concept Relation = <em>see below</em>;
+  concept relation = <em>see below</em>;
 
 <ins>
-// [concept.equivalencerelation], concept EquivalenceRelation
+// [concept.equivalencerelation], concept equivalence_relation
 template&lt;class R, class T, class U&gt;
-  concept EquivalenceRelation = <em>see below</em>;
+  concept equivalence_relation = <em>see below</em>;
 </ins>
 
-// [concept.strictweakorder], concept StrictWeakOrder
+// [concept.strictweakorder], concept strict_weak_order
 template&lt;class R, class T, class U&gt;
-  concept StrictWeakOrder = <em>see below</em>;
+  concept strict_weak_order = <em>see below</em>;
 </pre>
 </blockquote>
 
-<p>Insert following section after [oncept.relation] Concept <code>EquivalenceRelation</code>:</p>
+<p>Insert following section after [concept.relation] Concept <code>equivalence_relation</code>:</p>
 <blockquote class="stdins"> 
-<h4><a name="concept.equivalencerelation">Concept <code>EquivalenceRelation</code> <span style="float:right">[concept.equivalencerelation]</span></a></h4>
+<h4><a name="concept.equivalencerelation">Concept <code>equivalence_relation</code> <span style="float:right">[concept.equivalencerelation]</span></a></h4>
 
 <pre>
 template&lt;class R, class T, class U&gt;
-  concept EquivalenceRelation = Relation&lt;R, T, U&gt;;
+  concept equivalence_relation = relation&lt;R, T, U&gt;;
 </pre>
 
   <dl class="attribute">
-    <dd>A <code>Relation</code> satisfies <code>EquivalenceRelation</code> only if it imposes an equivalence relation on its arguments.</dd>
+    <dd>A <code>relation</code> satisfies <code>equivalence_relation</code> only if it imposes an equivalence relation on its arguments.</dd>
   </dl>
 </blockquote>
 
@@ -322,13 +322,13 @@ template&lt;class R, class T, class U&gt;
 <blockquote class="std">
 <pre>
 template&lt;class F, class I1, class I2<del> = I1</del>&gt;
-  concept Indirect<ins>BinaryPredicate</ins><del>Relation</del> = <em>see below</em>;
+  concept indirect_<ins>binary_predicate</ins><del>relation</del> = <em>see below</em>;
 
 <ins>template&lt;class F, class I1, class I2 = I1&gt;
-  concept IndirectEquivalenceRelation = <em>see below</em>;</ins>
+  concept indirect_equivalence_relation = <em>see below</em>;</ins>
 
 template&lt;class F, class I1, class I2 = I1&gt;
-  concept IndirectStrictWeakOrder = <em>see below</em>;
+  concept indirect_strict_weak_order = <em>see below</em>;
 
 </pre>
 </blockquote>
@@ -338,44 +338,44 @@ template&lt;class F, class I1, class I2 = I1&gt;
 <blockquote class="std">
 <pre>
 template&lt;class F, class I1, class I2<del> = I1</del>&gt;
-  concept Indirect<ins>BinaryPredicate</ins><del>Relation</del> =
-    Readable&lt;I1&gt; &amp;&amp; Readable&lt;I2&gt; &amp;&amp;
-    CopyConstructible&lt;F&gt; &amp;&amp;
-    <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
-    <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
-    <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    <ins>Predicate</ins><del>Relation</del>&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
+  concept indirect_<ins>binary_predicate</ins><del>relation</del> =
+    readable&lt;I1&gt; &amp;&amp; readable&lt;I2&gt; &amp;&amp;
+    copy_constructible&lt;F&gt; &amp;&amp;
+    <ins>predicate</ins><del>relation</del>&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    <ins>predicate</ins><del>relation</del>&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    <ins>predicate</ins><del>relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    <ins>predicate</ins><del>relation</del>&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    <ins>predicate</ins><del>relation</del>&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
 
 <ins>template&lt;class F, class I1, class I2 = I1&gt;
-  concept IndirectEquivalenceRelation =
-    Readable&lt;I1&gt; &amp;&amp; Readable&lt;I2&gt; &amp;&amp;
-    CopyConstructible&lt;F&gt; &amp;&amp;
-    EquivalenceRelation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
-    EquivalenceRelation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    EquivalenceRelation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
-    EquivalenceRelation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    EquivalenceRelation&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;</ins>
+  concept indirect_equivalence_relation =
+    readable&lt;I1&gt; &amp;&amp; readable&lt;I2&gt; &amp;&amp;
+    copy_constructible&lt;F&gt; &amp;&amp;
+    equivalence_relation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    equivalence_relation&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    equivalence_relation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    equivalence_relation&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    equivalence_relation&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;</ins>
 
 template&lt;class F, class I1, class I2 = I1&gt;
-  concept IndirectStrictWeakOrder =
-    Readable&lt;I1&gt; &amp;&amp; Readable&lt;I2&gt; &amp;&amp;
-    CopyConstructible&lt;F&gt; &amp;&amp;
-    StrictWeakOrder&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
-    StrictWeakOrder&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    StrictWeakOrder&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
-    StrictWeakOrder&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
-    StrictWeakOrder&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
+  concept indirect_strict_weak_order =
+    readable&lt;I1&gt; &amp;&amp; readable&lt;I2&gt; &amp;&amp;
+    copy_constructible&lt;F&gt; &amp;&amp;
+    strict_weak_order&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    strict_weak_order&lt;F&amp;, iter_value_t&lt;I1&gt;&amp;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    strict_weak_order&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_value_t&lt;I2&gt;&amp;&gt; &amp;&amp;
+    strict_weak_order&lt;F&amp;, iter_reference_t&lt;I1&gt;, iter_reference_t&lt;I2&gt;&gt; &amp;&amp;
+    strict_weak_order&lt;F&amp;, iter_common_reference_t&lt;I1&gt;, iter_common_reference_t&lt;I2&gt;&gt;;
 </pre>
 </blockquote>
 
-<p>Apply following changes to section [alg.req.ind.cmp] Concept <code>IndirectlyComparable</code>:</p>
+<p>Apply following changes to section [alg.req.ind.cmp] Concept <code>indirectly_comparable</code>:</p>
 <blockquote class="std">
 <pre>
 template&lt;class I1, class I2, class R, class P1 = identity, 
         class P2 = identity&gt;
-   concept IndirectlyComparable 
-      = Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;R, projected&lt;I1, P1&gt;, projected&lt;I2, P2&gt;&gt;;
+   concept indirectly_comparable 
+      = indirect_<ins>binary_predicate</ins><del>relation</del>&lt;R, projected&lt;I1, P1&gt;, projected&lt;I2, P2&gt;&gt;;
 </pre>
 </blockquote>
 
@@ -385,30 +385,30 @@ template&lt;class I1, class I2, class R, class P1 = identity,
 <pre>
 namespace ranges {
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
   constexpr I find(I first, S last, const T&amp; value, Proj proj = {});
 
-template&lt;InputRange R, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+template&lt;input_range R, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
   constexpr safe_iterator_t&lt;R&gt;
      find(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
 constexpr I find_if(I first, S last, Pred pred, Proj proj = {});
 
-template&lt;InputRange R, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+template&lt;input_range R, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
 constexpr safe_iterator_t&lt;R&gt;
   find_if(R&amp;&amp; r, Pred pred, Proj proj = {});
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
 constexpr I find_if_not(I first, S last, Pred pred, Proj proj = {});
 
-template&lt;InputRange R, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+template&lt;input_range R, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
 constexpr safe_iterator_t&lt;R&gt;find_if_not(R&amp;&amp; r, Pred pred, Proj proj = {});
 
 }
@@ -417,19 +417,19 @@ constexpr safe_iterator_t&lt;R&gt;find_if_not(R&amp;&amp; r, Pred pred, Proj pro
 
 namespace ranges {
 
-template&lt;InputIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2, Sentinel&lt;I2&gt; S2,
+template&lt;input_iterator I1, sentinel_for&lt;I1&gt; S1, forward_iterator I2, sentinel_for&lt;I2&gt; S2,
          <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-         <del>IndirectRelation&lt;projected&lt;I1, Proj1&gt;,</del>
+         <del>indirect_relation&lt;projected&lt;I1, Proj1&gt;,</del>
                           <del>projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
   constexpr I1 find_first_of(I1 first1, S1 last1, I2 first2, S2 last2,
                              Pred pred = {},
                              Proj1 proj1 = {}, Proj2 proj2 = {});
 
-template&lt;InputRange R1, ForwardRange R2, <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-        <del>IndirectRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
+template&lt;input_range R1, forward_range R2, <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
+        <del>indirect_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
                          <del>projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
   constexpr safe_iterator_t&lt;R1&gt;
     find_first_of(R1&amp;&amp; r1, R2&amp;&amp; r2,
                   Pred pred = {},
@@ -441,13 +441,13 @@ template&lt;InputRange R1, ForwardRange R2, <ins>class Pred = ranges::equal_to,<
 
 namespace ranges {
 
-template&lt;ForwardIterator I, Sentinel&lt;I&gt; S, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
+template&lt;forward_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
+         indirect_<ins>binary_predicate</ins><del>relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
   constexpr I adjacent_find(I first, S last, Pred pred = {},
                             Proj proj = {});
 
-template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
+template&lt;forward_range R, class Proj = identity,
+         indirect_<ins>binary_predicate</ins><del>relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
   constexpr safe_iterator_t&lt;R&gt;
     adjacent_find(R&amp;&amp; r, Pred pred = {}, Proj proj = {});
 
@@ -457,23 +457,23 @@ template&lt;ForwardRange R, class Proj = identity,
 
 namespace ranges {
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
   constexpr iter_difference_t&lt;I&gt;
     count(I first, S last, const T&amp; value, Proj proj = {});
 
-template&lt;InputRange R, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+template&lt;input_range R, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
   constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
     count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
   constexpr iter_difference_t&lt;I&gt;
     count_if(I first, S last, Pred pred, Proj proj = {});
 
-template&lt;InputRange R, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+template&lt;input_range R, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
   constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
     count_if(R&amp;&amp; r, Pred pred, Proj proj = {});
 
@@ -485,21 +485,21 @@ namespace ranges {
 
 [...]
 
-template&lt;InputIterator I1, Sentinel&lt;I1&gt; S1, InputIterator I2, Sentinel&lt;I2&gt; S2,
+template&lt;input_iterator I1, sentinel_for&lt;I1&gt; S1, input_iterator I2, sentinel_for&lt;I2&gt; S2,
          <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-         <del>IndirectRelation&lt;projected&lt;I1, Proj1&gt;,</del>
+         <del>indirect_relation&lt;projected&lt;I1, Proj1&gt;,</del>
                           <del>projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
   constexpr mismatch_result&lt;I1, I2&gt;
     mismatch(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = {},
              Proj1 proj1 = {}, Proj2 proj2 = {});
 
 
-template&lt;InputRange R1, InputRange R2,
+template&lt;input_range R1, input_range R2,
          <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-         <del>IndirectRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
+         <del>indirect_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
                           <del>projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
   constexpr mismatch_result&lt;safe_iterator_t&lt;R1&gt;, safe_iterator_t&lt;R2&gt;&gt;
     mismatch(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},i
              Proj1 proj1 = {}, Proj2 proj2 = {});
@@ -510,18 +510,18 @@ template&lt;InputRange R1, InputRange R2,
 
 namespace ranges {
 
-template&lt;ForwardIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2,
-         Sentinel&lt;I2&gt; S2, <del>class Pred = ranges::equal_to,</del> class Proj1 = identity, class Proj2 = identity&gt;<ins>,</ins>
-         <ins>IndirectEquivalenceRelation&lt;projected&lt;I1, Proj1&gt;, projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
-  <del>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</del>
+template&lt;forward_iterator I1, sentinel_for&lt;I1&gt; S1, forward_iterator I2,
+         sentinel_for&lt;I2&gt; S2, <del>class Pred = ranges::equal_to,</del> class Proj1 = identity, class Proj2 = identity&gt;<ins>,</ins>
+         <ins>indirect_equivalence_relation&lt;projected&lt;I1, Proj1&gt;, projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</del>
   constexpr bool is_permutation(I1 first1, S1 last1, I2 first2, S2 last2,
                                 Pred pred = {},
                                 Proj1 proj1 = {}, Proj2 proj2 = {});
 
-template&lt;ForwardRange R1, ForwardRange R2, <del>class Pred = ranges::equal_to,</del>
+template&lt;forward_range R1, forward_range R2, <del>class Pred = ranges::equal_to,</del>
          class Proj1 = identity, class Proj2 = identity<ins>,</ins>
-         <ins>IndirectEquivalenceRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;, projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
-  <del>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</del>
+         <ins>indirect_equivalence_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;, projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</del>
   constexpr bool is_permutation(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
                                 Proj1 proj1 = {}, Proj2 proj2 = {});
 
@@ -531,26 +531,26 @@ template&lt;ForwardRange R1, ForwardRange R2, <del>class Pred = ranges::equal_to
 
 namespace ranges {
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T1, class T2, class Proj = identity&gt;
-  requires Writable&lt;I, const T2&amp;&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T1, class T2, class Proj = identity&gt;
+  requires writable&lt;I, const T2&amp;&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
   constexpr I
     replace(I first, S last, const T1&amp; old_value, const T2&amp; new_value, Proj proj = {});
 
-template&lt;InputRange R, class T1, class T2, class Proj = identity&gt;
-  requires Writable&lt;iterator_t&lt;R&gt;, const T2&amp;&gt; &amp;&amp;
-    Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
+template&lt;input_range R, class T1, class T2, class Proj = identity&gt;
+  requires writable&lt;iterator_t&lt;R&gt;, const T2&amp;&gt; &amp;&amp;
+    indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
 constexpr safe_iterator_t&lt;R&gt;
   replace(R&amp;&amp; r, const T1&amp; old_value, const T2&amp; new_value, Proj proj = {});
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
-  requires Writable&lt;I, const T&amp;&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+  requires writable&lt;I, const T&amp;&gt;
   constexpr I replace_if(I first, S last, Pred pred, const T&amp; new_value, Proj proj = {});
 
-template&lt;InputRange R, class T, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
-requires Writable&lt;iterator_t&lt;R&gt;, const T&amp;&gt;
+template&lt;input_range R, class T, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+requires writable&lt;iterator_t&lt;R&gt;, const T&amp;&gt;
   constexpr safe_iterator_t&lt;R&gt;replace_if(R&amp;&amp; r, Pred pred, const T&amp; new_value, Proj proj = {});
 
 }
@@ -562,18 +562,18 @@ namespace ranges {
 template&lt;class I, class O&gt;
 using replace_copy_result = copy_result&lt;I, O&gt;;
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T1, class T2, OutputIterator&lt;const T2&amp;&gt; O,
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T1, class T2, output_iterator&lt;const T2&amp;&gt; O,
          class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
+  requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
 constexpr replace_copy_result&lt;I, O&gt;
   replace_copy(I first, S last, O result, const T1&amp; old_value, const T2&amp; new_value,
                Proj proj = {});
 
-template&lt;InputRange R, class T1, class T2, OutputIterator&lt;const T2&amp;&gt; O,
+template&lt;input_range R, class T1, class T2, output_iterator&lt;const T2&amp;&gt; O,
          class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
   constexpr replace_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     replace_copy(R&amp;&amp; r, O result, const T1&amp; old_value, const T2&amp; new_value,
                  Proj proj = {});
@@ -581,16 +581,16 @@ template&lt;InputRange R, class T1, class T2, OutputIterator&lt;const T2&amp;&gt
 template&lt;class I, class O&gt;
   using replace_copy_if_result = copy_result&lt;I, O&gt;;
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, OutputIterator&lt;const T&amp;&gt; O,
-          class Proj = identity, IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
-  requires IndirectlyCopyable&lt;I, O&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, output_iterator&lt;const T&amp;&gt; O,
+          class Proj = identity, indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+  requires indirectly_copyable&lt;I, O&gt;
   constexpr replace_copy_if_result&lt;I, O&gt;
     replace_copy_if(I first, S last, O result, Pred pred, const T&amp; new_value,
                     Proj proj = {});
 
-template&lt;InputRange R, class T, OutputIterator&lt;const T&amp;&gt; O, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt;
+template&lt;input_range R, class T, output_iterator&lt;const T&amp;&gt; O, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt;
   constexpr replace_copy_if_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     replace_copy_if(R&amp;&amp; r, O result, Pred pred, const T&amp; new_value,
                     Proj proj = {});
@@ -601,24 +601,24 @@ template&lt;InputRange R, class T, OutputIterator&lt;const T&amp;&gt; O, class P
 
 namespace ranges {
 
-template&lt;Permutable I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
-  constexpr I remove(I first, S last, const T&amp; value, Proj proj = {});
+template&lt;permutable I, sentinel_for&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+  constexpr subrange&lt;I&gt; remove(I first, S last, const T&amp; value, Proj proj = {});
 
-template&lt;ForwardRange R, class T, class Proj = identity&gt;
-  requires Permutable&lt;iterator_t&lt;R&gt;&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
-constexpr safe_iterator_t&lt;R&gt;
+template&lt;forward_range R, class T, class Proj = identity&gt;
+  requires permutable&lt;iterator_t&lt;R&gt;&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+constexpr safe_subrange_t&lt;R&gt;
   remove(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 
-template&lt;Permutable I, Sentinel&lt;I&gt; S, class Proj = identity,
-  IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
-  constexpr I remove_if(I first, S last, Pred pred, Proj proj = {});
+template&lt;permutable I, sentinel_for&lt;I&gt; S, class Proj = identity,
+  indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+  constexpr subrange&lt;I&gt; remove_if(I first, S last, Pred pred, Proj proj = {});
 
-template&lt;ForwardRange R, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
-  requires Permutable&lt;iterator_t&lt;R&gt;&gt;
-  constexpr safe_iterator_t&lt;R&gt;
+template&lt;forward_range R, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+  requires permutable&lt;iterator_t&lt;R&gt;&gt;
+  constexpr safe_subrange_t&lt;R&gt;
     remove_if(R&amp;&amp; r, Pred pred, Proj proj = {});
 
 }
@@ -630,31 +630,31 @@ namespace ranges {
 template&lt;class I, class O&gt;
 using remove_copy_result = copy_result&lt;I, O&gt;;
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O, class T,
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, weakly_incrementable O, class T,
          class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+  requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
   constexpr remove_copy_result&lt;I, O&gt;
     remove_copy(I first, S last, O result, const T&amp; value, Proj proj = {});
 
-template&lt;InputRange R, WeaklyIncrementable O, class T, class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+template&lt;input_range R, weakly_incrementable O, class T, class Proj = identity&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
   constexpr remove_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     remove_copy(R&amp;&amp; r, O result, const T&amp; value, Proj proj = {});
 
 template&lt;class I, class O&gt;
   using remove_copy_if_result = copy_result&lt;I, O&gt;;
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
-         class Proj = identity, IndirectUnaryPredicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
-  requires IndirectlyCopyable&lt;I, O&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, weakly_incrementable O,
+         class Proj = identity, indirect_unary_predicate&lt;projected&lt;I, Proj&gt;&gt; Pred&gt;
+  requires indirectly_copyable&lt;I, O&gt;
   constexpr remove_copy_if_result&lt;I, O&gt;
     remove_copy_if(I first, S last, O result, Pred pred, Proj proj = {});
 
-template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         IndirectUnaryPredicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt;
+template&lt;input_range R, weakly_incrementable O, class Proj = identity,
+         indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt;
   constexpr remove_copy_if_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     remove_copy_if(R&amp;&amp; r, O result, Pred pred, Proj proj = {});
 
@@ -664,13 +664,13 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
 
 namespace ranges {
 
-template&lt;Permutable I, Sentinel&lt;I&gt; S, class Proj = identity,
-  Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
+template&lt;permutable I, sentinel_for&lt;I&gt; S, class Proj = identity,
+  indirect<ins>_equivalence</ins>_relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
   constexpr I unique(I first, S last, C comp = {}, Proj proj = {});
 
-template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
-  requires Permutable&lt;iterator_t&lt;R&gt;&gt;
+template&lt;forward_range R, class Proj = identity,
+         indirect<ins>_equivalence</ins>_relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
+  requires permutable&lt;iterator_t&lt;R&gt;&gt;
   constexpr safe_iterator_t&lt;R&gt;
     unique(R&amp;&amp; r, C comp = {}, Proj proj = {});
 
@@ -683,21 +683,21 @@ namespace ranges {
 template&lt;class I, class O&gt;
 using unique_copy_result = copy_result&lt;I, O&gt;;
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
-         class Proj = identity, Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
-  requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
-           (ForwardIterator&lt;I&gt; ||
-            (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;I&gt;, iter_value_t&lt;O&gt;&gt;) ||
-            IndirectlyCopyableStorable&lt;I, O&gt;)
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, weakly_incrementable O,
+         class Proj = identity, indirect<ins>_equivalence</ins>_relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
+  requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
+           (forward_iterator&lt;I&gt; ||
+            (input_iterator&lt;O&gt; &amp;&amp; same_as&lt;iter_value_t&lt;I&gt;, iter_value_t&lt;O&gt;&gt;) ||
+            indirectly_copyable_storable&lt;I, O&gt;)
   constexpr unique_copy_result&lt;I, O&gt;
     unique_copy(I first, S last, O result, C comp = {}, Proj proj = {});
 
-template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
-          (ForwardIterator&lt;iterator_t&lt;R&gt;&gt; ||
-           (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
-            IndirectlyCopyableStorable&lt;iterator_t&lt;R&gt;, O&gt;)
+template&lt;input_range R, weakly_incrementable O, class Proj = identity,
+         indirect<ins>_equivalence</ins>_relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
+          (forward_iterator&lt;iterator_t&lt;R&gt;&gt; ||
+           (input_iterator&lt;O&gt; &amp;&amp; same_as&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
+            indirectly_copyable_storable&lt;iterator_t&lt;R&gt;, O&gt;)
   constexpr unique_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     unique_copy(R&amp;&amp; r, O result, C comp = {}, Proj proj = {});
 
@@ -708,12 +708,12 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
 <p>Apply following changes to section [alg.find] Find:</p>
 <blockquote class="std">
 <pre>
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
   constexpr I ranges::find(I first, S last, const T&amp; value, Proj proj = {});
 
-template&lt;InputRange R, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+template&lt;input_range R, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
   constexpr safe_iterator_t&lt;R&gt;
      ranges::find(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 </pre>
@@ -722,19 +722,19 @@ template&lt;InputRange R, class T, class Proj = identity&gt;
 <p>Apply following changes to section [alg.find.first.of] Find first:</p>
 <blockquote class="std">
 <pre>
-template&lt;InputIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2, Sentinel&lt;I2&gt; S2,
+template&lt;input_iterator I1, sentinel_for&lt;I1&gt; S1, forward_iterator I2, sentinel_for&lt;I2&gt; S2,
          <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-         <del>IndirectRelation&lt;projected&lt;I1, Proj1&gt;,</del>
+         <del>indirect_relation&lt;projected&lt;I1, Proj1&gt;,</del>
                           <del>projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
   constexpr I1 ranges::find_first_of(I1 first1, S1 last1, I2 first2, S2 last2,
                                      Pred pred = {},
                                      Proj1 proj1 = {}, Proj2 proj2 = {});
 
-template&lt;InputRange R1, ForwardRange R2, <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-        <del>IndirectRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
+template&lt;input_range R1, forward_range R2, <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
+        <del>indirect_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
                          <del>projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
   constexpr safe_iterator_t&lt;R1&gt;
     ranges::find_first_of(R1&amp;&amp; r1, R2&amp;&amp; r2,
                           Pred pred = {},
@@ -743,54 +743,33 @@ template&lt;InputRange R1, ForwardRange R2, <ins>class Pred = ranges::equal_to,<
 </pre>
 </blockquote>
 
-
 <p>Apply following changes to section [alg.adjacent.find] Adjacent find:</p>
 <blockquote class="std">
 <pre>
-template&lt;ForwardIterator I, Sentinel&lt;I&gt; S, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
+template&lt;forward_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
+         indirect_<ins>binary_predicate</ins><del>relation</del>&lt;projected&lt;I, Proj&gt;<ins>, projected&lt;I, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
   constexpr I ranges::adjacent_find(I first, S last, Pred pred = {},
                                     Proj proj = {});
 
-template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
+template&lt;forward_range R, class Proj = identity,
+         indirect_<ins>binary_predicate</ins><del>relation</del>&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;<ins>, projected&lt;iterator_t&lt;R&gt;, Proj&gt;</ins>&gt; Pred = ranges::equal_to&gt;
   constexpr safe_iterator_t&lt;R&gt;
     ranges::adjacent_find(R&amp;&amp; r, Pred pred = {}, Proj proj = {});
 
 </pre>
 </blockquote>
 
-<p>Apply following changes to section [alg.is.permutation] Is permutation:</p>
-<blockquote class="std">
-<pre>
-template&lt;ForwardIterator I1, Sentinel&lt;I1&gt; S1, ForwardIterator I2,
-         Sentinel&lt;I2&gt; S2, <del>class Pred = ranges::equal_to,</del> class Proj1 = identity, class Proj2 = identity&gt;<ins>,</ins>
-         <ins>IndirectEquivalenceRelation&lt;projected&lt;I1, Proj1&gt;, projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
-  <del>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</del>
-  constexpr bool ranges::is_permutation(I1 first1, S1 last1, I2 first2, S2 last2,
-                                        Pred pred = {},
-                                        Proj1 proj1 = {}, Proj2 proj2 = {});
-
-template&lt;ForwardRange R1, ForwardRange R2, <del>class Pred = ranges::equal_to,</del>
-         class Proj1 = identity, class Proj2 = identity<ins>,</ins>
-         <ins>IndirectEquivalenceRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;, projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
-  <del>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</del>
-  constexpr bool ranges::is_permutation(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
-                                        Proj1 proj1 = {}, Proj2 proj2 = {});
-
-</pre>
-</blockquote>
 
 <p>Apply following changes to section [alg.count] Count:</p>
 <blockquote class="std">
 <pre>
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
   constexpr iter_difference_t&lt;I&gt;
     ranges::count(I first, S last, const T&amp; value, Proj proj = {});
 
-template&lt;InputRange R, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+template&lt;input_range R, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
   constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
     ranges::count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 </pre>
@@ -799,56 +778,77 @@ template&lt;InputRange R, class T, class Proj = identity&gt;
 <p>Apply following changes to section [alg.mismatch] Mismatch:</p>
 <blockquote class="std">
 <pre>
-template&lt;InputIterator I1, Sentinel&lt;I1&gt; S1, InputIterator I2, Sentinel&lt;I2&gt; S2,
+template&lt;input_iterator I1, sentinel_for&lt;I1&gt; S1, input_iterator I2, sentinel_for&lt;I2&gt; S2,
          <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-         <del>IndirectRelation&lt;projected&lt;I1, Proj1&gt;,</del>
+         <del>indirect_relation&lt;projected&lt;I1, Proj1&gt;,</del>
                           <del>projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
   constexpr mismatch_result&lt;I1, I2&gt;
     ranges::mismatch(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = {},
                      Proj1 proj1 = {}, Proj2 proj2 = {});
 
 
-template&lt;InputRange R1, InputRange R2,
+template&lt;input_range R1, input_range R2,
          <ins>class Pred = ranges::equal_to,</ins> class Proj1 = identity, class Proj2 = identity,
-         <del>IndirectRelation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
+         <del>indirect_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
                           <del>projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
-  <ins>requires IndirectlyComparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
+  <ins>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
   constexpr mismatch_result&lt;safe_iterator_t&lt;R1&gt;, safe_iterator_t&lt;R2&gt;&gt;
     ranges::mismatch(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},i
                      Proj1 proj1 = {}, Proj2 proj2 = {});
 </pre>
 </blockquote>
 
+<p>Apply following changes to section [alg.is.permutation] Is permutation:</p>
+<blockquote class="std">
+<pre>
+template&lt;forward_iterator I1, sentinel_for&lt;I1&gt; S1, forward_iterator I2,
+         sentinel_for&lt;I2&gt; S2, <del>class Pred = ranges::equal_to,</del> class Proj1 = identity, class Proj2 = identity&gt;<ins>,</ins>
+         <ins>indirect_equivalence_relation&lt;projected&lt;I1, Proj1&gt;, projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</del>
+  constexpr bool ranges::is_permutation(I1 first1, S1 last1, I2 first2, S2 last2,
+                                        Pred pred = {},
+                                        Proj1 proj1 = {}, Proj2 proj2 = {});
+
+template&lt;forward_range R1, forward_range R2, <del>class Pred = ranges::equal_to,</del>
+         class Proj1 = identity, class Proj2 = identity<ins>,</ins>
+         <ins>indirect_equivalence_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;, projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</ins>&gt;
+  <del>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</del>
+  constexpr bool ranges::is_permutation(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
+                                        Proj1 proj1 = {}, Proj2 proj2 = {});
+
+</pre>
+</blockquote>
+
 <p>Apply following changes to section [alg.replace] Replace:</p>
 <blockquote class="std">
 <pre>
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T1, class T2, class Proj = identity&gt;
-  requires Writable&lt;I, const T2&amp;&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T1, class T2, class Proj = identity&gt;
+  requires writable&lt;I, const T2&amp;&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
   constexpr I
     ranges::replace(I first, S last, const T1&amp; old_value, const T2&amp; new_value, Proj proj = {});
 
-template&lt;InputRange R, class T1, class T2, class Proj = identity&gt;
-  requires Writable&lt;iterator_t&lt;R&gt;, const T2&amp;&gt; &amp;&amp;
-    Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
+template&lt;input_range R, class T1, class T2, class Proj = identity&gt;
+  requires writable&lt;iterator_t&lt;R&gt;, const T2&amp;&gt; &amp;&amp;
+    indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
 constexpr safe_iterator_t&lt;R&gt;
   ranges::replace(R&amp;&amp; r, const T1&amp; old_value, const T2&amp; new_value, Proj proj = {});
 
 [...]
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, class T1, class T2, OutputIterator&lt;const T2&amp;&gt; O,
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T1, class T2, output_iterator&lt;const T2&amp;&gt; O,
          class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
+  requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
 constexpr replace_copy_result&lt;I, O&gt;
   ranges::replace_copy(I first, S last, O result, const T1&amp; old_value, const T2&amp; new_value,
                        Proj proj = {});
 
-template&lt;InputRange R, class T1, class T2, OutputIterator&lt;const T2&amp;&gt; O,
+template&lt;input_range R, class T1, class T2, output_iterator&lt;const T2&amp;&gt; O,
          class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
   constexpr replace_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     ranges::replace_copy(R&amp;&amp; r, O result, const T1&amp; old_value, const T2&amp; new_value,
                          Proj proj = {});
@@ -858,28 +858,28 @@ template&lt;InputRange R, class T1, class T2, OutputIterator&lt;const T2&amp;&gt
 <p>Apply following changes to section [alg.remove] Remove:</p>
 <blockquote class="std">
 <pre>
-template&lt;Permutable I, Sentinel&lt;I&gt; S, class T, class Proj = identity&gt;
-  requires Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
-  constexpr I ranges::remove(I first, S last, const T&amp; value, Proj proj = {});
+template&lt;permutable I, sentinel_for&lt;I&gt; S, class T, class Proj = identity&gt;
+  requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+  constexpr subrange&lt;I&gt; ranges::remove(I first, S last, const T&amp; value, Proj proj = {});
 
-template&lt;ForwardRange R, class T, class Proj = identity&gt;
-  requires Permutable&lt;iterator_t&lt;R&gt;&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
-constexpr safe_iterator_t&lt;R&gt;
+template&lt;forward_range R, class T, class Proj = identity&gt;
+  requires permutable&lt;iterator_t&lt;R&gt;&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+constexpr safe_subrange_t&lt;R&gt;
   ranges::remove(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 
 [...]
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O, class T,
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, weakly_incrementable O, class T,
          class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
+  requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
   constexpr remove_copy_result&lt;I, O&gt;
     ranges::remove_copy(I first, S last, O result, const T&amp; value, Proj proj = {});
 
-template&lt;InputRange R, WeaklyIncrementable O, class T, class Proj = identity&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
-           Indirect<ins>BinaryPredicate</ins><del>Relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
+template&lt;input_range R, weakly_incrementable O, class T, class Proj = identity&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
+           indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
   constexpr remove_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     ranges::remove_copy(R&amp;&amp; r, O result, const T&amp; value, Proj proj = {});
 </pre>
@@ -889,33 +889,33 @@ template&lt;InputRange R, WeaklyIncrementable O, class T, class Proj = identity&
 <p>Apply following changes to section [alg.unique] Unique:</p>
 <blockquote class="std">
 <pre>
-template&lt;Permutable I, Sentinel&lt;I&gt; S, class Proj = identity,
-  Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
+template&lt;permutable I, sentinel_for&lt;I&gt; S, class Proj = identity,
+  indirect<ins>_equivalence</ins>_relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
   constexpr I ranges::unique(I first, S last, C comp = {}, Proj proj = {});
 
-template&lt;ForwardRange R, class Proj = identity,
-         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
-  requires Permutable&lt;iterator_t&lt;R&gt;&gt;
+template&lt;forward_range R, class Proj = identity,
+         indirect<ins>_equivalence</ins>_relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
+  requires permutable&lt;iterator_t&lt;R&gt;&gt;
   constexpr safe_iterator_t&lt;R&gt;
     ranges::unique(R&amp;&amp; r, C comp = {}, Proj proj = {});
 
 [...]
 
-template&lt;InputIterator I, Sentinel&lt;I&gt; S, WeaklyIncrementable O,
-         class Proj = identity, Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
-  requires IndirectlyCopyable&lt;I, O&gt; &amp;&amp;
-           (ForwardIterator&lt;I&gt; ||
-            (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;I&gt;, iter_value_t&lt;O&gt;&gt;) ||
-            IndirectlyCopyableStorable&lt;I, O&gt;)
+template&lt;input_iterator I, sentinel_for&lt;I&gt; S, weakly_incrementable O,
+         class Proj = identity, indirect<ins>_equivalence</ins>_relation&lt;projected&lt;I, Proj&gt;&gt; C = ranges::equal_to&gt;
+  requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
+           (forward_iterator&lt;I&gt; ||
+            (input_iterator&lt;O&gt; &amp;&amp; same_as&lt;iter_value_t&lt;I&gt;, iter_value_t&lt;O&gt;&gt;) ||
+            indirectly_copyable_storable&lt;I, O&gt;)
   constexpr unique_copy_result&lt;I, O&gt;
     ranges::unique_copy(I first, S last, O result, C comp = {}, Proj proj = {});
 
-template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
-         Indirect<ins>Equivalence</ins>Relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
-  requires IndirectlyCopyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
-          (ForwardIterator&lt;iterator_t&lt;R&gt;&gt; ||
-           (InputIterator&lt;O&gt; &amp;&amp; Same&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
-            IndirectlyCopyableStorable&lt;iterator_t&lt;R&gt;, O&gt;)
+template&lt;input_range R, weakly_incrementable O, class Proj = identity,
+         indirect<ins>_equivalence</ins>_relation&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; C = ranges::equal_to&gt;
+  requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
+          (forward_iterator&lt;iterator_t&lt;R&gt;&gt; ||
+           (input_iterator&lt;O&gt; &amp;&amp; same_as&lt;iter_value_t&lt;iterator_t&lt;R&gt;&gt;, iter_value_t&lt;O&gt;&gt;) ||
+            indirectly_copyable_storable&lt;iterator_t&lt;R&gt;, O&gt;)
   constexpr unique_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     ranges::unique_copy(R&amp;&amp; r, O result, C comp = {}, Proj proj = {});
 </pre>
@@ -940,14 +940,14 @@ template&lt;InputRange R, WeaklyIncrementable O, class Proj = identity,
   <li>Eric Niebler,
       "[Indirect]Relation + non-comparable sentinels and input iterators == :-(",
       (Issue 599, <a href="https://github.com/ericniebler/stl2/issues/599">https://github.com/ericniebler/stl2/issues/599</a>)</li>
-	  
+ 
  <li>Herb Sutter et al.,
      "Rename concepts to standard_case for C++20, while we still can"
-     (P1754R0, <a href="https://wg21.link/p1754r0">https://wg21.link/p1754r0</a>)</li>
+     (P1754R1, <a href="https://wg21.link/p1754r1">https://wg21.link/p1754r1</a>)</li>
 	  
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
-      (N4810, <a href="https://wg21.link/n4810">https://wg21.link/n4810</a>)</li>
+      (N4830, <a href="https://wg21.link/n4830">https://wg21.link/n4830</a>)</li>
 
  <li>Casey Carter et al.,
      "cmcstl2",
