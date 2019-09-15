@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Rename 'condition_variable_any' interruptible wait methods</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1869R0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-09-15</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Rename <code>condition_variable_any</code> interruptible wait methods</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper proposes small improved to the <code>condition_variable_any</code> interruptible wait interface
+   (accepting <code>stop_token</code>), that makes them more consistent with the rest of the standard and
+   more ergonomic to use.</p>
+
+<table>
+  <tr>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+
+  <tr>
+    <td>
+<pre>cv.wait_until(lock, [&cont] {
+   return cont.empty(); i
+}, stop_token);</pre>
+    </td>
+
+    <td>
+<pre>cv.wait_on(lock, stop_token, [&cont] {
+   return cont.empty(); 
+});</pre>
+   </td>
+  </tr>
+
+  <tr>
+    <td>
+<pre>cv.wait_until(lock, time_point, [&cont] {
+   return cont.empty();
+}, stop_token);</pre>
+    </td>
+
+    <td>
+<pre>cv.wait_on_until(lock, stop_token, time_point, [&cont] {
+   return cont.empty(); 
+});</pre>
+   </td>
+  </tr>
+
+  <tr>
+    <td>
+<pre>cv.wait_for(lock, 10s, [&cont] {
+   return cont.empty();
+}, stop_token);</pre>
+    </td>
+
+    <td>
+<pre>cv.wait_on_for(lock, stop_token, 10s, [&cont] {
+   return cont.empty(); 
+});</pre>
+   </td>
+  </tr>
+
+</table>
+
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>Currently, the <code>condition_variable_any</code> interruptible wait methods, i.e. once that are accepting <code>stop_token</code>,
+are defined as follows:</p>
+<pre>
+template&lt;class Lock, class Predicate&gt;
+  bool wait_until(Lock&amp; lock, Predicate pred, stop_token stoken);
+template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
+  bool wait_until(Lock&amp; lock, const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+                  Predicate pred, stop_token stoken);
+template&lt;class Lock, class Rep, class Period, class Predicate&gt;
+  bool wait_for(Lock&amp; lock, const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+                Predicate pred, stop_token stoken);
+</pre>
+<p>The paper proposes to adjust their names and signatures to make them more consistent with the rest of the "[thread] Thread support library",
+   by using <code>wait_on</code> prefix and placing <code>stop_token</code> as the second argument (thus making <code>pred</code> last).</p>
+<pre>
+template&lt;class Lock, class Predicate&gt;
+  bool wait_on(Lock&amp; lock, stop_token stoken, Predicate pred);
+template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
+  bool wait_on_until(Lock&amp; lock, stop_token stoken, const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+                     Predicate pred);
+template&lt;class Lock, class Rep, class Period, class Predicate&gt;
+  bool wait_on_for(Lock&amp; lock, stop_token stoken, const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+                   Predicate pred);
+</pre>
+<p>
+
+<h3><a name="motivation.until_suffix">3.1. Standard reserve's <code>_until</code> prefix for functions with absolute timeouts</a></h3>
+
+<p>In the <a href="http://eel.is/c++draft/thread#req.timing-4">[thread.req.timing] Timing specifications p4</a> the standard explicitly
+   states that the <code>_until</code> prefix is used with functions that accept <code>time_point</code> as argument:</p>
+<blockquote class="std">
+  <dl clas="attribute">
+     <dd>The functions whose names end in <code>_until</code> take an argument that specifies a time point.
+         These functions produce absolute timeouts. Implementations should use the clock specified in the time point to measure time for these functions.</dd>
+  </dl>
+</blockquote>
+
+<p>Out of 13 function using <code>_until</code> suffix, that are defined in the <a href="http://eel.is/c++draft/thread"/>[thread] Thread support library</a></p>
+<ol>
+  <li><code>this_thread::sleep_until</code>,</li>
+  <li><code>timed_mutex::try_lock_until</code>,</li>
+  <li><code>recursive_timed_mutex::try_lock_until</code>,</li>
+  <li><code>shared_timed_mutex::try_lock_until</code>,</li>
+  <li><code>shared_timed_mutex::try_lock_until</code>,</li>
+  <li><code>unique_lock::try_lock_until</code>,</li>
+  <li><code>shared_lock::try_lock_until</code>,</li>
+  <li><code>condition_variable::wait_until</code> (x2),</li>
+  <li><code>condition_variable_any::wait_until</code> (x4).</li>
+</ol>
+<p>only the <code>condition_variable_any::wait_until</code> method does not accept the <code>time_point</code> argument:</p>
+<pre>
+template&lt;class Lock, class Predicate&gt;
+  bool wait_until(Lock&amp; lock, Predicate pred, stop_token stoken);
+</pre>
+
+<p>This paper addresses above inconsistency and conflicting wording, by renaming the method to <code>wait_on</code>.</p>
+
+<h3><a name="motivation.predicate">3.2. Predicate as last argument</a></h3>
+
+<p>Similarly to above, pre-existing non-interruptible waits methods, accept the predicate as the last argument (after
+   lock and optional <code>time_point</code>/<code>duration</code> argument). This allows invocations,
+   that uses lambda as the predicate, to be nicely formatted:</p>
+<pre>
+cv.wait_for(lock, 10s, [&cont] {
+  return cont.empty();
+});</pre>
+
+<p>However, the newly introduced interruptible, places the additional <code>stop_token</code> argument, after
+   the predicate:</p>
+<pre>
+cv.wait_for(lock, 10s, [&cont] {
+  return cont.empty();
+}, stop_token);</pre>
+
+<p>This paper moves the <code>stop_token</code> to second the position, thus allowing:</p>
+<pre>
+cv.wait_on_for(lock, stop_token, 10s, [&cont] {
+  return cont.empty();
+});</pre>
+
+<h2><a name="wording">4. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n4830">N4830 (C++ Working Draft, 2019-08-15)</a>.</p>
+
+<p>Apply following changes to [thread.condition.condvarany] Class <code>condition_variable_any</code>:</p>
+<blockquote class="std">
+<pre>
+// [thread.condvarany.intwait], interruptible waits
+template&lt;class Lock, class Predicate&gt;
+  bool wait_<ins>on</ins><del>until</del>(Lock&amp; lock, <ins>stop_token stoken, </ins>Predicate pred<del>, stop_token stoken</del>);
+template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
+  bool wait<ins>_on</ins>_until(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+                  Predicate pred<del>, stop_token stoken</del>);
+template&lt;class Lock, class Rep, class Period, class Predicate&gt;
+  bool wait<ins>_on</ins>_for(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+                Predicate pred<del>, stop_token stoken</del>);
+</pre>
+</blockquote>
+
+<p>Apply following changes to [thread.condvarany.intwait] Interruptible waits:</p>
+<blockquote class="std">
+<pre>
+template&lt;class Lock, class Predicate&gt;
+  bool wait_<ins>on</ins><del>until</del>(Lock&amp; lock, <ins>stop_token stoken, </ins>Predicate pred<del>, stop_token stoken</del>);
+</pre>
+
+[...]
+
+<pre>
+template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
+  bool wait<ins>_on</ins>_until(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+                  Predicate pred<del>, stop_token stoken</del>);
+</pre>
+
+[...]
+
+<pre>
+template&lt;class Lock, class Rep, class Period, class Predicate&gt;
+  bool wait<ins>_on</ins>_for(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+                Predicate pred<del>, stop_token stoken</del>);
+</pre>
+</blockquote>
+
+<p>Update the value of the <code>__cpp_lib_jthread</code> in table "Standard library feature-test macros" of [support.limits.general] to reflect the date of approval of this proposal.</p>
+
+<h2><a name="acknowledgements">5. Acknowledgements</a></h2>
+
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
+   and author's participation in standardization committee.</p>
+
+<h2><a name="literature">6. References</a></h2>
+
+<ol>
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4830, <a href="https://wg21.link/n4830">https://wg21.link/n4830</a>)</li>
+</ol>
+
+
+</body></html>
