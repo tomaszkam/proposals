@@ -73,13 +73,16 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1869R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-09-15</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-09-17</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+  <tr>
+    <th>                     </th><th> </th><td><address>Michał Dominiak &lt;griwes at griwes dot info&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -100,7 +103,7 @@ td { text-align: left; vertical-align: top;
   <tr>
     <td>
 <pre>cv.wait_until(lock, [&cont] {
-   return cont.empty(); i
+   return cont.empty();
 }, stop_token);</pre>
     </td>
 
@@ -151,7 +154,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>Currently, the <code>condition_variable_any</code> interruptible wait methods, i.e. once that are accepting <code>stop_token</code>,
+<p>Currently, the <code>condition_variable_any</code> interruptible wait methods, i.e. ones that are accepting <code>stop_token</code>,
 are defined as follows:</p>
 <pre>
 template&lt;class Lock, class Predicate&gt;
@@ -218,8 +221,8 @@ cv.wait_for(lock, 10s, [&cont] {
   return cont.empty();
 });</pre>
 
-<p>However, the newly introduced interruptible, places the additional <code>stop_token</code> argument, after
-   the predicate:</p>
+<p>However, the newly introduced interruptible waits, places the additional <code>stop_token</code> argument,
+   after the predicate:</p>
 <pre>
 cv.wait_for(lock, 10s, [&cont] {
   return cont.empty();
