@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1716R2</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-09-15</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-10-06</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
@@ -409,7 +409,7 @@ constexpr I find_if_not(I first, S last, Pred pred, Proj proj = {});
 
 template&lt;input_range R, class Proj = identity,
          indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
-constexpr safe_iterator_t&lt;R&gt;find_if_not(R&amp;&amp; r, Pred pred, Proj proj = {});
+constexpr safe_iterator_t&lt;R&gt; find_if_not(R&amp;&amp; r, Pred pred, Proj proj = {});
 
 }
 
@@ -464,7 +464,7 @@ template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = ide
 
 template&lt;input_range R, class T, class Proj = identity&gt;
   requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
-  constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
+  constexpr range_difference_t&lt;R&gt;
     count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 
 template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
@@ -474,7 +474,7 @@ template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class Proj = identity,
 
 template&lt;input_range R, class Proj = identity,
          indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
-  constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
+  constexpr range_difference_t&lt;R&gt;
     count_if(R&amp;&amp; r, Pred pred, Proj proj = {});
 
 }
@@ -501,7 +501,7 @@ template&lt;input_range R1, input_range R2,
                           <del>projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
   <ins>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
   constexpr mismatch_result&lt;safe_iterator_t&lt;R1&gt;, safe_iterator_t&lt;R2&gt;&gt;
-    mismatch(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},i
+    mismatch(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},
              Proj1 proj1 = {}, Proj2 proj2 = {});
 
 }
@@ -551,7 +551,7 @@ template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = ide
 template&lt;input_range R, class T, class Proj = identity,
          indirect_unary_predicate&lt;projected&lt;iterator_t&lt;R&gt;, Proj&gt;&gt; Pred&gt;
 requires writable&lt;iterator_t&lt;R&gt;, const T&amp;&gt;
-  constexpr safe_iterator_t&lt;R&gt;replace_if(R&amp;&amp; r, Pred pred, const T&amp; new_value, Proj proj = {});
+  constexpr safe_iterator_t&lt;R&gt; replace_if(R&amp;&amp; r, Pred pred, const T&amp; new_value, Proj proj = {});
 
 }
 
@@ -770,12 +770,12 @@ template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T, class Proj = ide
 
 template&lt;input_range R, class T, class Proj = identity&gt;
   requires indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
-  constexpr iter_difference_t&lt;iterator_t&lt;R&gt;&gt;
+  constexpr range_difference_t&lt;R&gt;
     ranges::count(R&amp;&amp; r, const T&amp; value, Proj proj = {});
 </pre>
 </blockquote>
 
-<p>Apply following changes to section [alg.mismatch] Mismatch:</p>
+<p>Apply following changes to section [mismatch] Mismatch:</p>
 <blockquote class="std">
 <pre>
 template&lt;input_iterator I1, sentinel_for&lt;I1&gt; S1, input_iterator I2, sentinel_for&lt;I2&gt; S2,
@@ -783,7 +783,7 @@ template&lt;input_iterator I1, sentinel_for&lt;I1&gt; S1, input_iterator I2, sen
          <del>indirect_relation&lt;projected&lt;I1, Proj1&gt;,</del>
                           <del>projected&lt;I2, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
   <ins>requires indirectly_comparable&lt;I1, I2, Pred, Proj1, Proj2&gt;</ins>
-  constexpr mismatch_result&lt;I1, I2&gt;
+  constexpr ranges::mismatch_result&lt;I1, I2&gt;
     ranges::mismatch(I1 first1, S1 last1, I2 first2, S2 last2, Pred pred = {},
                      Proj1 proj1 = {}, Proj2 proj2 = {});
 
@@ -793,7 +793,7 @@ template&lt;input_range R1, input_range R2,
          <del>indirect_relation&lt;projected&lt;iterator_t&lt;R1&gt;, Proj1&gt;,</del>
                           <del>projected&lt;iterator_t&lt;R2&gt;, Proj2&gt;&gt; Pred = ranges::equal_to</del>&gt;
   <ins>requires indirectly_comparable&lt;iterator_t&lt;R1&gt;, iterator_t&lt;R2&gt;, Pred, Proj1, Proj2&gt;</ins>
-  constexpr mismatch_result&lt;safe_iterator_t&lt;R1&gt;, safe_iterator_t&lt;R2&gt;&gt;
+  constexpr ranges::mismatch_result&lt;safe_iterator_t&lt;R1&gt;, safe_iterator_t&lt;R2&gt;&gt;
     ranges::mismatch(R1&amp;&amp; r1, R2&amp;&amp; r2, Pred pred = {},i
                      Proj1 proj1 = {}, Proj2 proj2 = {});
 </pre>
@@ -841,7 +841,7 @@ template&lt;input_iterator I, sentinel_for&lt;I&gt; S, class T1, class T2, outpu
          class Proj = identity&gt;
   requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
            indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T1*&gt;
-constexpr replace_copy_result&lt;I, O&gt;
+constexpr ranges::replace_copy_result&lt;I, O&gt;
   ranges::replace_copy(I first, S last, O result, const T1&amp; old_value, const T2&amp; new_value,
                        Proj proj = {});
 
@@ -849,7 +849,7 @@ template&lt;input_range R, class T1, class T2, output_iterator&lt;const T2&amp;&
          class Proj = identity&gt;
   requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
            indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T1*&gt;
-  constexpr replace_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
+  constexpr ranges::replace_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     ranges::replace_copy(R&amp;&amp; r, O result, const T1&amp; old_value, const T2&amp; new_value,
                          Proj proj = {});
 </pre>
@@ -874,13 +874,13 @@ template&lt;input_iterator I, sentinel_for&lt;I&gt; S, weakly_incrementable O, c
          class Proj = identity&gt;
   requires indirectly_copyable&lt;I, O&gt; &amp;&amp;
            indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;I, Proj&gt;, const T*&gt;
-  constexpr remove_copy_result&lt;I, O&gt;
+  constexpr ranges::remove_copy_result&lt;I, O&gt;
     ranges::remove_copy(I first, S last, O result, const T&amp; value, Proj proj = {});
 
 template&lt;input_range R, weakly_incrementable O, class T, class Proj = identity&gt;
   requires indirectly_copyable&lt;iterator_t&lt;R&gt;, O&gt; &amp;&amp;
            indirect_<ins>binary_predicate</ins><del>relation</del>&lt;ranges::equal_to, projected&lt;iterator_t&lt;R&gt;, Proj&gt;, const T*&gt;
-  constexpr remove_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
+  constexpr ranges::remove_copy_result&lt;safe_iterator_t&lt;R&gt;, O&gt;
     ranges::remove_copy(R&amp;&amp; r, O result, const T&amp; value, Proj proj = {});
 </pre>
 </blockquote>
