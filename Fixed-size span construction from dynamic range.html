@@ -1,0 +1,513 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none; 
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Fixed-size 'span' construction from dynamic-size range</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1976R0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-11-08</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Fixed-size <code>span</code> construction from dynamic range</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper provides more detailed explanation of <a href="https://github.com/cplusplus/nbballot/issues/246">PL250 NB issue</a>.
+   We explore issues with construction of fixed-size <code>span</code> construction from the range
+   with the dynamic size. This constructor are source of the undefined behavior, without providing
+   any synctatic suggestion on the user side.</p>
+
+<p>To resolve the issues, we present tree options:</p>
+<ul>
+  <li>A. Separate fixed-size and dynamic <code>span</code> (remove fixed-size <code>span</code> for C++20)</li>
+  <li>B. Disabling constructors</li>
+  <li>C. Making constructors explicit (PL250 proposed resolution)</li>
+</ul>
+
+<p>Per LEWG guidance in Belfast, the proposed resolution follows the option C (PL250 guidance) and marks the fixed-spize <code>span</code> constructors
+   from dynamic-size range explicit.</p>
+  
+
+<h2><a name="history">2. Revision history</a></h2>
+   
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>   
+   
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>The resolution of <a href="https://wg21.link/lwg3101">the LWG issue 3101</a> prevents user from running
+   into accidental undefined-behavior when the <code>span</code> with fixed size is constructed from the
+   range with the size that is not know at compile time. To illustrate:</p>
+<pre>void processFixed(std::span&lt;int, 5&gt;);
+
+std::vector&lt;int&gt; v;
+</pre>
+
+<p>With the above declaration the following invocation is ill-formed:</p>
+<pre>processFixed(v); // <font color="orange">ill-formed</font></pre> 
+<p>Before the resolution of the issues, the above code was having undefined-behavior if the <code>v.size()</code> was
+   different than <code>5</code> (size of <code>span</code> in declaration of <code>processFixed</code>).</p>
+   
+<p>However, the proposed resolution does not prevent the accidental undefined-behavior in situation when
+   <code>(iterator, size)</code> or the <code>(iterator, sentinel)</code> constructor is used:</p>
+<pre>void processFixed({v.data(), v.size()}); // <font color="red">undefined-behavior</font> if v.size() != 5
+void processFixed({v.begin(), v.end()}); // <font color="red">undefined-behavior</font> if v.size() != 5</pre>
+
+<h3><a name="motivation.remove">3.2. Option A: Separate fixed-size and dynamic-size <code>span</code> (remove fixed-size <code>span</code> for C++20)</a></h3>
+
+<p>One of the option of resolving the issue is to separate the fixed-size and dynamic-size <code>span</code>
+   into separate template. As it is to late for the C++20 for the introduction of the new template,
+   such change would imply removal of the fixed-size <code>span</code> version of the span
+   from the standard.</p>
+   
+<p>As consequence, the <code>span</code> template would become dynamicly sized, and would accept
+   single type as template parameter:<p>
+<pre>template&lt;class T&gt; span;</pre>
+
+<p>Futhermore it would allow us to explore extending <code><i>fixed-span</i></code> construction
+   to handle user-defined fixed-size ranges. Currently the standard regonizes only native arrays (<code>T[N]</code>),
+   <code>std::array&lt;T, N&gt;</code> and fixed-size <code>std::span&lt;T, N&gt;</code> (where <code>N != std::dynamic-extent</code>)
+   as fixed-size range. The appropariate trait was proposed in 
+   <a href="https://wg21.link/p1419">A SFINAE-friendly trait to determine the extent of statically sized containers</a>.</p>
+
+<h3><a name="motivation.disabling">3.2. Option B: Disabling constructors</a></h3>
+
+<p>We can follow the direction of <a href="https://wg21.link/lwg3101">the LWG issue 3101</a> and
+   disable these constructor from particpating from the overload resolution entirelly. That would
+   prevent the constructing the fixed-span from the dynamic range, and require the 
+   user to <code>first&lt;N&gt;()</code>/<code>last&lt;N&gt;</code>/<code>subspan&lt;P, N&gt;</code> 
+   methods explicitly.</p>   
+<pre>void processFixed(std::span(v).first&lt;5&gt;());      // <font color="red">undefined-behavior</font> if v.size() < 5
+void processFixed(std::span(v).last&lt;5&gt;());       // <font color="red">undefined-behavior</font> if v.size() < 5
+void processFixed(std::span(v).subspan&lt;1, 5&gt;()); // <font color="red">undefined-behavior</font> if v.size() < 6 = 1 + 5</pre>
+<p>[ Note: Lack of template parameter for <code>span</code> in above examples is intentional - they use deduction guides. ]</p>
+   
+<p>Tony Tables for option B.</p>
+<table>
+  <tr>
+    <th>Before</th>
+    <th>After: Option B</th>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+<pre>void processFixed(std::span&lt;int, 5&gt;);
+void processDynamic(std::span&lt;int&gt;);</pre>
+	</td>
+  </tr>
+  
+  <tr>
+    <td colspan="2">
+      <p>Dynamic range with different size</p>
+	</td>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>std::vector&lt;int&gt; v3(3);
+processFixed(v3);                                             // <font color="orange">ill-formed</font>
+processFixed({v3.data(), v3.data() + 3});                     // <font color="red">undefined-behavior</font>
+processFixed({v3.data(), 3});                                 // <font color="red">undefined-behavior</font>
+
+processFixed(span&lt;int, 5&gt;(v3));                               // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), v3.data() + 3});         // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), 3});                     // <font color="red">undefined-behavior</font>
+
+processFixed(span&lt;int&gt;(v3).first&lt;5&gt;());                       // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), v3.data() + 3}.first&lt;5&gt;()); // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), 3}.first&lt;5&gt;());             // <font color="red">undefined-behavior</font></pre>
+
+    </td>
+
+    <td>
+<pre> 
+processFixed(v3);                                             // <font color="orange">ill-formed</font>
+processFixed({v3.data(), v3.data() + 3});                     // <font color="orange">ill-formed</font>
+processFixed({v3.data(), 3});                                 // <font color="orange">ill-formed</font>
+
+processFixed(span&lt;int, 5&gt;(v3));                               // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), v3.data() + 3});         // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), 3});                     // <font color="orange">ill-formed</font>
+
+processFixed(span&lt;int&gt;(v3).first&lt;5&gt;());                       // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), v3.data() + 3}.first&lt;5&gt;()); // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), 3}.first&lt;5&gt;());             // <font color="red">undefined-behavior</font></pre>
+   </td>
+  </tr>
+  
+  <tr>
+    <td colspan="2">
+      <p>Dynamic range with matching size</p>
+	</td>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>std::vector&lt;int&gt; v5(5);
+processFixed(v5);                                             // <font color="orange">ill-formed</font>
+processFixed({v5.data(), v5.data() + 5});                     // <font color="green">ok</font>
+processFixed({v5.data(), 5});                                 // <font color="green">ok</font>
+
+processFixed(span&lt;int, 5&gt;(v5));                               // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), v5.data() + 5});         // <font color="green">ok</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), 5});                     // <font color="green">ok</font>
+
+processFixed(span&lt;int&gt;(v5).first&lt;5&gt;());                       // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <font color="green">ok</font></pre>
+
+    </td>
+
+    <td>
+<pre> 
+processFixed(v5);                                             // <font color="orange">ill-formed</font>
+processFixed({v5.data(), v5.data() + 5});                     // <font color="orange">ill-formed</font>
+processFixed({v5.data(), 5});                                 // <font color="orange">ill-formed</font>
+
+processFixed(span&lt;int, 5&gt;(v5));                               // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), v5.data() + 5});         // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), 5});                     // <font color="orange">ill-formed</font>
+
+processFixed(span&lt;int&gt;(v5).first&lt;5&gt;());                       // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <font color="green">ok</font></pre>
+   </td>
+  </tr>
+</table>
+
+<h3><a name="motivation.explicit">3.3. Option C: Making constructors explicit</a></h3>
+
+<p>This is original resolution proposed in <a href="https://github.com/cplusplus/nbballot/issues/246">PL250</a>.</p>
+
+<p>The construction of the fixed-sized <code>span</code> from the dynamicly sized range, is 
+   not indentity operation - this operation assumes additional semantic property of the type
+   (size of the range). Such conversion between semantically different types, should not be
+   implicit. We can resolve the problem, by makrking all of such constructor explicit, as follows:</p>
+
+<table>
+  <tr>
+    <td>Destination/Source</td>
+	<th>Fixed</th>
+	<th>Dynamic</th>
+  </tr>
+  
+  <tr>
+    <th>Fixed</th>
+	<td>implicit (ill-formed if source.size() != dest.size())</td>
+	<td>explicit (undefined-behavior if source.size() != dest.size())</td>
+  </tr>
+  
+  <tr>
+    <th>Dynamic</th>
+	<td>implicit (always ok)</td>
+	<td>implicit (always ok)</td>
+  </tr>
+</table>
+
+<p>Tony Tables for option C.</p>
+<table>
+  <tr>
+    <th>Before</th>
+    <th>After: Option C</th>
+  </tr>
+
+  <tr>
+    <td colspan="2">
+<pre>void processFixed(std::span&lt;int, 5&gt;);
+void processDynamic(std::span&lt;int&gt;);</pre>
+	</td>
+  </tr>
+  
+  <tr>
+    <td colspan="2">
+      <p>Dynamic range with different size</p>
+	</td>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>std::vector&lt;int&gt; v3(3);
+processFixed(v3);                                             // <font color="orange">ill-formed</font>
+processFixed({v3.data(), v3.data() + 3});                     // <font color="red">undefined-behavior</font>
+processFixed({v3.data(), 3});                                 // <font color="red">undefined-behavior</font>
+
+processFixed(span&lt;int, 5&gt;(v3));                               // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), v3.data() + 3});         // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), 3});                     // <font color="red">undefined-behavior</font>
+
+processFixed(span&lt;int&gt;(v3).first&lt;5&gt;());                       // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), v3.data() + 3}.first&lt;5&gt;()); // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), 3}.first&lt;5&gt;());             // <font color="red">undefined-behavior</font></pre>
+    </td>
+
+    <td>
+<pre> 
+processFixed(v3);                                             // <font color="orange">ill-formed</font>
+processFixed({v3.data(), v3.data() + 3});                     // <font color="orange">ill-formed</font>
+processFixed({v3.data(), 3});                                 // <font color="orange">ill-formed</font>
+
+processFixed(span&lt;int, 5&gt;(v3));                               // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), v3.data() + 3});         // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int, 5&gt;{v3.data(), 3});                     // <font color="red">undefined-behavior</font>
+
+processFixed(span&lt;int&gt;(v3).first&lt;5&gt;());                       // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), v3.data() + 3}.first&lt;5&gt;()); // <font color="red">undefined-behavior</font>
+processFixed(span&lt;int&gt;{v3.data(), 3}.first&lt;5&gt;());             // <font color="red">undefined-behavior</font></pre>
+   </td>
+  </tr>
+  
+  <tr>
+    <td colspan="2">
+      <p>Dynamic range with matching size</p>
+	</td>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>std::vector&lt;int&gt; v5(5);
+processFixed(v5);                                             // <font color="orange">ill-formed</font>
+processFixed({v5.data(), v5.data() + 5});                     // <font color="green">ok</font>
+processFixed({v5.data(), 5});                                 // <font color="green">ok</font>
+
+processFixed(span&lt;int, 5&gt;(v5));                               // <font color="orange">ill-formed</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), v5.data() + 5});         // <font color="green">ok</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), 5});                     // <font color="green">ok</font>
+
+processFixed(span&lt;int&gt;(v5).first&lt;5&gt;());                       // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <font color="green">ok</font></pre>
+    </td>
+
+    <td>
+<pre> 
+processFixed(v5);                                             // <font color="orange">ill-formed</font>
+processFixed({v5.data(), v5.data() + 5});                     // <font color="orange">ill-formed</font>
+processFixed({v5.data(), 5});                                 // <font color="orange">ill-formed</font>
+
+processFixed(span&lt;int, 5&gt;(v5));                               // <font color="green">ok</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), v5.data() + 5});         // <font color="green">ok</font>
+processFixed(span&lt;int, 5&gt;{v5.data(), 5});                     // <font color="green">ok</font>
+
+processFixed(span&lt;int&gt;(v5).first&lt;5&gt;());                       // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); // <font color="green">ok</font>
+processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <font color="green">ok</font></pre>
+   </td>
+  </tr>
+</table>
+
+<h3><a name="motivation.dynamic">3.4. No impact on dynamic-sized span</a></h3>
+ 
+<p>All proposed options (including removal) does not have any impact on the construction of the
+   dynamic-sized span (i.e. <code>span&lt;T&gt;</code>). The construction changes affect only
+   cases when <code>N != std::dynamic-extent</code>.</p>
+
+   
+<h3><a name="motivation.initialization">3.5. Option B vs C: Impact on initialization</a></h3>
+
+<p>The major difference between the option B and option C, is the impact the impact on the initialization
+   of the span variables. Some of the readers, may consider the difference between various syntaxes
+   and their meaning two subtle.</p>
+   
+<p>Tony Tables for initialization.</p>
+<table>
+  <tr>
+    <th>Option B</th>
+    <th>Option C</th>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>std::vector&lt;int&gt; v3(3);
+
+span&lt;int, 5&gt; s = v3;                             // <font color="orange">ill-formed</font>
+span&lt;int, 5&gt; s(v3);                              // <font color="orange">ill-formed</font>
+auto s = span&lt;int, 5&gt;(v3);                       // <font color="orange">ill-formed</font>
+
+span&lt;int, 5&gt; s = {v3.data(), v3.data() + 3};     // <font color="orange">ill-formed</font>
+span&lt;int, 5&gt; s{v3.data(), v3.data() + 3};        // <font color="orange">ill-formed</font>
+auto s = span&lt;int, 5&gt;{v3.data(), v3.data() + 3}; // <font color="orange">ill-formed</font></pre>
+    </td>
+
+    <td>
+<pre> 
+ 
+span&lt;int, 5&gt; s = v3;                             // <font color="orange">ill-formed</font>
+span&lt;int, 5&gt; s(v3);                              // <font color="red">undefined-behavior</font>
+auto s = span&lt;int, 5&gt;(v3);                       // <font color="red">undefined-behavior</font>
+
+span&lt;int, 5&gt; s = {v3.data(), v3.data() + 3};     // <font color="orange">ill-formed</font>
+span&lt;int, 5&gt; s{v3.data(), v3.data() + 3};        // <font color="red">undefined-behavior</font>
+auto s = span&lt;int, 5&gt;{v3.data(), v3.data() + 3}; // <font color="red">undefined-behavior</font></pre>
+   </td>
+  </tr>
+
+</table>
+
+<h3><a name="motivation.fixed-sized">3.6. Option B and C: Construction from fixed-sized range</a></h3>
+ 
+<p>Neither option B nor C, proposes any change to the behavior of the construction of
+   the fixed-size <code>span</code> from the ranges that are recognized by the
+   standard as fixed-size: native arrays (<code>T[N]</code>),
+   <code>std::array&lt;T, N&gt;</code> and fixed-size <code>std::span&lt;T, N&gt;</code> (where <code>N != std::dynamic-extent</code>).
+   The construction is implicit if size of the source is the same as the size of destination,
+   ill-formed otherwise.</p>
+
+<pre>void processFixed(span&lt;int, 5&gt;);
+
+std::array&lt;int, 3&gt; a3;
+std::array&lt;int, 5&gt; a5;
+
+processFixed(a3); // <font color="orange">ill-formed</font>
+processFixed(a5); // <font color="green">ok</font>
+
+std::span&lt;int, 3&gt; s3(a3);
+std::span&lt;int, 5&gt; s5(a5);
+
+processFixed(s3); // <font color="orange">ill-formed</font>
+processFixed(s5); // <font color="green">ok</font></pre> 
+
+<h3><a name="motivation.p1394">3.7. Option B and C: Impact of the P1394</a></h3>
+  
+<p>The <a href="https://wg21.link/p1394">P1394: Range constructor for <code>std::span</code></a>
+   (that is targeting C++20) generalized the constructor of the span.</p>
+   
+<p>The <code>Container</code> constructor was replaced with the <code>Range</code> constructor,
+   that have the same constrain (i.e. it is disabled for fixed-size <code>span</code>),
+   so the original example remain ill-formed:</p>
+<pre>processFixed(v); // <font color="orange">ill-formed</font></pre> 
+ 
+<p>In addition it replaces the <code>(pointer, size)</code> and <code>(pointer, pointer)</code>
+   constructor, with more general <code>(iterator, size)</code> and <code>(iterator, sentinel)</code>.
+   As consequence in addition the undefined-behavior is exposed in more situations:</p>
+<pre>void processFixed({v.begin(), v.size()}); // <font color="red">undefined-behavior</font> if v.size() != 5
+void processFixed({v.begin(), v.end()});  // <font color="red">undefined-behavior</font> if v.size() != 5</pre>
+<p>in addition to:</p>
+<pre>void processFixed({v.data(), v.size()});            // <font color="red">undefined-behavior</font> if v.size() != 5
+void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefined-behavior</font> if v.size() != 5</pre>
+ 
+<p>Changes presented in this paper still apply after signature changes from P1394.</p>
+
+<h2><a name="impact">4. Impact and Implementability</a></h2>
+
+<p>As the <code>std:span</code> was introduced in C++20, the changes introduce in these paper (regardless of the selected option)
+   cannot break existing code. In addition, all pesented options do not affect uses of <code>span</code> with the dynamic size.</p>
+   
+<p>The implementation of the option A requires duplicating a constrain:</br>
+   Constrains: <code>extent == dynamic_extent</code> is <code>true</code>.</br>
+   that is already present in <code>Container</code>/<code>Range</code> constructor
+   (<a href="http://eel.is/c++draft/span.cons#14.1">[span.cons] p14.1</a>) to 3 additional constuctors.
+   In can be implemented using the SFINAE tricks (<code>std::enable_if</code>) or <code>requires</code> clause.</p>
+
+<p>The implementation of the option B mostly requires adding an conditional explicit
+   specifier to 4 constuctors:</p>
+<pre>explicit(extent != dynamic_extent)</pre>
+   
+<h2><a name="wording">5. Proposed Wording</a></h2>
+
+<p>To be created after specific option is selected.</p>
+
+<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
+
+<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+
+<p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
+   and author's participation in standardization committee.</p>
+   
+<h2><a name="literature">7. References</a></h2>
+
+<ol>
+  <li>Poland,
+      "PL250 22.07.3.2 [span.cons] size mismatch for fixed-sized span",
+	  (PL250, <a href="https://github.com/cplusplus/nbballot/issues/246">https://github.com/cplusplus/nbballot/issues/246</a>)</li>
+
+  <li>Stephan T. Lavavej,
+      "span's Container constructors need another constraint",
+	  (LWG3103, <a href="https://wg21.link/lwg3101">https://wg21.link/lwg3103</a>)</li>
+		
+  <li>Corentin Jabot, Casey Carter,
+      "Range constructor for <code>std::span</code>",
+	  (P1394R4, <a href="https://wg21.link/p1394r4">https://wg21.link/p1394r4</a>)</li>
+		 
+  <li>Corentin Jabot, Casey Carter,
+      "A SFINAE-friendly trait to determine the extent of statically sized containers"
+      (P1419R0, <a href="https://wg21.link/p1419r0">https://wg21.link/p1419r0</a>)</li>
+</ol>
+
+
+</body></html>
