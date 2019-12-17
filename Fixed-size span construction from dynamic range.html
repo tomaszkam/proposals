@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html class="gr__open-std_org"><head>
+<html class="gr__open-std_org gr__isocpp_org"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <style type="text/css">
@@ -70,7 +70,7 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1976R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1976R0</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-11-08</td>
@@ -137,8 +137,8 @@ void processFixed({v.begin(), v.end()}); // <font color="red">undefined-behavior
    from the standard.</p>
    
 <p>As consequence, the <code>span</code> template would become dynamicly sized, and would accept
-   single type as template parameter:<p>
-<pre>template&lt;class T&gt; span;</pre>
+   single type as template parameter:</p><p>
+</p><pre>template&lt;class T&gt; span;</pre>
 
 <p>Futhermore it would allow us to explore extending <code><i>fixed-span</i></code> construction
    to handle user-defined fixed-size ranges. Currently the standard regonizes only native arrays (<code>T[N]</code>),
@@ -153,14 +153,14 @@ void processFixed({v.begin(), v.end()}); // <font color="red">undefined-behavior
    prevent the constructing the fixed-span from the dynamic range, and require the 
    user to <code>first&lt;N&gt;()</code>/<code>last&lt;N&gt;</code>/<code>subspan&lt;P, N&gt;</code> 
    methods explicitly.</p>   
-<pre>void processFixed(std::span(v).first&lt;5&gt;());      // <font color="red">undefined-behavior</font> if v.size() < 5
-void processFixed(std::span(v).last&lt;5&gt;());       // <font color="red">undefined-behavior</font> if v.size() < 5
-void processFixed(std::span(v).subspan&lt;1, 5&gt;()); // <font color="red">undefined-behavior</font> if v.size() < 6 = 1 + 5</pre>
+<pre>void processFixed(std::span(v).first&lt;5&gt;());      // <font color="red">undefined-behavior</font> if v.size() &lt; 5
+void processFixed(std::span(v).last&lt;5&gt;());       // <font color="red">undefined-behavior</font> if v.size() &lt; 5
+void processFixed(std::span(v).subspan&lt;1, 5&gt;()); // <font color="red">undefined-behavior</font> if v.size() &lt; 6 = 1 + 5</pre>
 <p>[ Note: Lack of template parameter for <code>span</code> in above examples is intentional - they use deduction guides. ]</p>
    
 <p>Tony Tables for option B.</p>
 <table>
-  <tr>
+  <tbody><tr>
     <th>Before</th>
     <th>After: Option B</th>
   </tr>
@@ -249,7 +249,7 @@ processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); // <fo
 processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <font color="green">ok</font></pre>
    </td>
   </tr>
-</table>
+</tbody></table>
 
 <h3><a name="motivation.explicit">3.3. Option C: Making constructors explicit</a></h3>
 
@@ -261,7 +261,7 @@ processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <fo
    implicit. We can resolve the problem, by makrking all of such constructor explicit, as follows:</p>
 
 <table>
-  <tr>
+  <tbody><tr>
     <td>Destination/Source</td>
 	<th>Fixed</th>
 	<th>Dynamic</th>
@@ -278,11 +278,11 @@ processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <fo
 	<td>implicit (always ok)</td>
 	<td>implicit (always ok)</td>
   </tr>
-</table>
+</tbody></table>
 
 <p>Tony Tables for option C.</p>
 <table>
-  <tr>
+  <tbody><tr>
     <th>Before</th>
     <th>After: Option C</th>
   </tr>
@@ -369,7 +369,7 @@ processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); // <fo
 processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <font color="green">ok</font></pre>
    </td>
   </tr>
-</table>
+</tbody></table>
 
 <h3><a name="motivation.dynamic">3.4. No impact on dynamic-sized span</a></h3>
  
@@ -386,7 +386,7 @@ processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <fo
    
 <p>Tony Tables for initialization.</p>
 <table>
-  <tr>
+  <tbody><tr>
     <th>Option B</th>
     <th>Option C</th>
   </tr>
@@ -417,7 +417,7 @@ auto s = span&lt;int, 5&gt;{v3.data(), v3.data() + 3}; // <font color="red">unde
    </td>
   </tr>
 
-</table>
+</tbody></table>
 
 <h3><a name="motivation.fixed-sized">3.6. Option B and C: Construction from fixed-sized range</a></h3>
  
@@ -468,8 +468,8 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 <p>As the <code>std:span</code> was introduced in C++20, the changes introduce in these paper (regardless of the selected option)
    cannot break existing code. In addition, all pesented options do not affect uses of <code>span</code> with the dynamic size.</p>
    
-<p>The implementation of the option A requires duplicating a constrain:</br>
-   Constrains: <code>extent == dynamic_extent</code> is <code>true</code>.</br>
+<p>The implementation of the option A requires duplicating a constrain:<br>
+   Constrains: <code>extent == dynamic_extent</code> is <code>true</code>.<br>
    that is already present in <code>Container</code>/<code>Range</code> constructor
    (<a href="http://eel.is/c++draft/span.cons#14.1">[span.cons] p14.1</a>) to 3 additional constuctors.
    In can be implemented using the SFINAE tricks (<code>std::enable_if</code>) or <code>requires</code> clause.</p>
@@ -508,6 +508,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
       "A SFINAE-friendly trait to determine the extent of statically sized containers"
       (P1419R0, <a href="https://wg21.link/p1419r0">https://wg21.link/p1419r0</a>)</li>
 </ol>
+
 
 
 </body></html>

@@ -70,13 +70,13 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1869R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1869R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-09-17</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-11-06</td>
   </tr>
   <tr>
-    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -108,7 +108,7 @@ td { text-align: left; vertical-align: top;
     </td>
 
     <td>
-<pre>cv.wait_on(lock, stop_token, [&cont] {
+<pre>cv.wait(lock, stop_token, [&cont] {
    return cont.empty(); 
 });</pre>
    </td>
@@ -122,7 +122,7 @@ td { text-align: left; vertical-align: top;
     </td>
 
     <td>
-<pre>cv.wait_on_until(lock, stop_token, time_point, [&cont] {
+<pre>cv.wait_until(lock, stop_token, time_point, [&cont] {
    return cont.empty(); 
 });</pre>
    </td>
@@ -136,7 +136,7 @@ td { text-align: left; vertical-align: top;
     </td>
 
     <td>
-<pre>cv.wait_on_for(lock, stop_token, 10s, [&cont] {
+<pre>cv.wait_for(lock, stop_token, 10s, [&cont] {
    return cont.empty(); 
 });</pre>
    </td>
@@ -147,11 +147,48 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="history">2. Revision history</a></h2>
 
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<p>Dropped the <code>_on</code> suffix per SG1 guidance in Belfast. 
+   The <code>wait_until</code> method not accepting time point is now just named <code>wait</code>.</p>
+   
+<p><b>SG1 pool results:</b></p>
+<pre>
+Recommend we rename this overload of wait_until in response to PL 363:
+  template&lt;class Lock, class Predicate&gt;
+  bool wait_until(Lock&amp; lock, Predicate pred, stop_token stoken)
+to:
+  template&lt;class Lock, class Predicate&gt;
+  void wait(Lock&amp; lock, Predicate pred, stop_token stoken)
+
+SF 	F 	N 	A 	SA
+1 	11 	7 	2 	0
+Consensus for change.
+
+
+Recommend we change the return type this overload of wait_until to void and don't require re-evaluating the predicate if returning because of stop_token, in response to PL 363:
+   template&lt;class Lock, class Predicate&gt;
+   bool wait(Lock&amp; lock, Predicate pred, stop_token stoken)
+to:
+   template&lt;class Lock, class Predicate&gt;
+   void wait(Lock&amp; lock, Predicate pred, stop_token stoken)
+
+SF 	F 	N 	A 	SA
+0 	7 	6 	5 	0
+No consensus for change.
+
+
+Recommend we reorder the arguments of members that take a stop token according to P1869R0 in response to PL 363:
+
+SF 	F 	N 	A 	SA
+10 	8 	1 	0 	0
+Unanimous consent for change.
+</pre>
+   
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
-<p>Initial revision.</p>
-
-
+<p>Initial revision.</p>   
+   
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>Currently, the <code>condition_variable_any</code> interruptible wait methods, i.e. ones that are accepting <code>stop_token</code>,
@@ -167,16 +204,16 @@ template&lt;class Lock, class Rep, class Period, class Predicate&gt;
                 Predicate pred, stop_token stoken);
 </pre>
 <p>The paper proposes to adjust their names and signatures to make them more consistent with the rest of the "[thread] Thread support library",
-   by using <code>wait_on</code> prefix and placing <code>stop_token</code> as the second argument (thus making <code>pred</code> last).</p>
+   by dropping <code>_until</code> for method without time point and placing <code>stop_token</code> as the second argument (thus making <code>pred</code> last).</p>
 <pre>
 template&lt;class Lock, class Predicate&gt;
-  bool wait_on(Lock&amp; lock, stop_token stoken, Predicate pred);
+  bool wait(Lock&amp; lock, stop_token stoken, Predicate pred);
 template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
-  bool wait_on_until(Lock&amp; lock, stop_token stoken, const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
-                     Predicate pred);
+  bool wait_until(Lock&amp; lock, stop_token stoken, const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+                  Predicate pred);
 template&lt;class Lock, class Rep, class Period, class Predicate&gt;
-  bool wait_on_for(Lock&amp; lock, stop_token stoken, const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
-                   Predicate pred);
+  bool wait_for(Lock&amp; lock, stop_token stoken, const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+                Predicate pred);
 </pre>
 <p>
 
@@ -209,7 +246,7 @@ template&lt;class Lock, class Predicate&gt;
   bool wait_until(Lock&amp; lock, Predicate pred, stop_token stoken);
 </pre>
 
-<p>This paper addresses above inconsistency and conflicting wording, by renaming the method to <code>wait_on</code>.</p>
+<p>This paper addresses above inconsistency and conflicting wording, by renaming the method to <code>wait</code>.</p>
 
 <h3><a name="motivation.predicate">3.2. Predicate as last argument</a></h3>
 
@@ -230,7 +267,7 @@ cv.wait_for(lock, 10s, [&cont] {
 
 <p>This paper moves the <code>stop_token</code> to second the position, thus allowing:</p>
 <pre>
-cv.wait_on_for(lock, stop_token, 10s, [&cont] {
+cv.wait_for(lock, stop_token, 10s, [&cont] {
   return cont.empty();
 });</pre>
 
@@ -243,12 +280,12 @@ cv.wait_on_for(lock, stop_token, 10s, [&cont] {
 <pre>
 // [thread.condvarany.intwait], interruptible waits
 template&lt;class Lock, class Predicate&gt;
-  bool wait_<ins>on</ins><del>until</del>(Lock&amp; lock, <ins>stop_token stoken, </ins>Predicate pred<del>, stop_token stoken</del>);
+  bool wait<del>_until</del>(Lock&amp; lock, <ins>stop_token stoken, </ins>Predicate pred<del>, stop_token stoken</del>);
 template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
-  bool wait<ins>_on</ins>_until(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+  bool wait_until(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time<ins>,</ins>
                   Predicate pred<del>, stop_token stoken</del>);
 template&lt;class Lock, class Rep, class Period, class Predicate&gt;
-  bool wait<ins>_on</ins>_for(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+  bool wait_for(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
                 Predicate pred<del>, stop_token stoken</del>);
 </pre>
 </blockquote>
@@ -257,14 +294,14 @@ template&lt;class Lock, class Rep, class Period, class Predicate&gt;
 <blockquote class="std">
 <pre>
 template&lt;class Lock, class Predicate&gt;
-  bool wait_<ins>on</ins><del>until</del>(Lock&amp; lock, <ins>stop_token stoken, </ins>Predicate pred<del>, stop_token stoken</del>);
+  bool wait<del>_until</del>(Lock&amp; lock, <ins>stop_token stoken, </ins>Predicate pred<del>, stop_token stoken</del>);
 </pre>
 
 [...]
 
 <pre>
 template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
-  bool wait<ins>_on</ins>_until(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time
+  bool wait_until(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time<ins>,</ins>
                   Predicate pred<del>, stop_token stoken</del>);
 </pre>
 
@@ -272,7 +309,7 @@ template&lt;class Lock, class Clock, class Duration, class Predicate&gt;
 
 <pre>
 template&lt;class Lock, class Rep, class Period, class Predicate&gt;
-  bool wait<ins>_on</ins>_for(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
+  bool wait_for(Lock&amp; lock, <ins>stop_token stoken, </ins>const chrono::duration&lt;Rep, Period&gt;&amp; rel_time,
                 Predicate pred<del>, stop_token stoken</del>);
 </pre>
 </blockquote>
