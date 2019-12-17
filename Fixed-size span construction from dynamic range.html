@@ -70,13 +70,13 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P1976R0</td>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1976R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-11-08</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-12-14</td>
   </tr>
   <tr>
-    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
   </tr>
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
@@ -101,13 +101,167 @@ td { text-align: left; vertical-align: top;
 
 <p>Per LEWG guidance in Belfast, the proposed resolution follows the option C (PL250 guidance) and marks the fixed-spize <code>span</code> constructors
    from dynamic-size range explicit.</p>
+
+<table>
+  <tbody><tr>
+    <th></th>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+
+  <tr>
+    <td colspan="3">
+<pre>void processFixed(std::span&lt;int, 5&gt;);
+void processDynamic(std::span&lt;int&gt;);
+
+std::vector&lt;int&gt; v3(3);
+std::vector&lt;int&gt; v5(5);
+</pre>
+	</td>
+  </tr>
+  
+  <tr>
+    <td colspan="3">
+      <p>Dynamic range with different size (5 vs 3)</p>
+	</td>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>
+processFixed(v3);                                             //
+processFixed({v3.data(), v3.data() + 3});                     //
+
+processFixed(span&lt;int, 5&gt;(v3));                               //
+processFixed(span&lt;int, 5&gt;{v3.data(), v3.data() + 3});         //
+
+processFixed(span&lt;int&gt;(v3).first&lt;5&gt;());                       //
+processFixed(span&lt;int&gt;{v3.data(), v3.data() + 3}.first&lt;5&gt;()); //
+
+span&lt;int, 5&gt; s = v3;                                          //
+span&lt;int, 5&gt; s(v3);                                           //
+
+span&lt;int, 5&gt; s = {v3.data(), v3.data() + 3};                  //
+span&lt;int, 5&gt; s{v3.data(), v3.data() + 3};                     //
+</pre>
+    </td>
+
+    <td>
+<pre>
+<font color="orange">ill-formed</font>
+<font color="red">undefined-behavior</font>
+
+<font color="orange">ill-formed</font>
+<font color="red">undefined-behavior</font>
+
+<font color="red">undefined-behavior</font>
+<font color="red">undefined-behavior</font>
+
+<font color="orange">ill-formed</font>
+<font color="red">undefined-behavior</font>
+
+<font color="red">undefined-behavior</font>
+<font color="red">undefined-behavior</font></pre>
+   </td>
+
+    <td>
+<pre>
+<font color="orange">ill-formed</font>
+<font color="orange">ill-formed</font>
+
+<font color="red">undefined-behavior</font>
+<font color="red">undefined-behavior</font>
+
+<font color="red">undefined-behavior</font>
+<font color="red">undefined-behavior</font>
+
+<font color="orange">ill-formed</font>
+<font color="red">undefined-behavior</font>
+
+<font color="orange">ill-formed</font>
+<font color="red">undefined-behavior</font></pre>
+   </td>
+  </tr>
+  
+<tr>
+    <td colspan="3">
+      <p>Dynamic range with matching size (5 vs 5)</p>
+	</td>
+  </tr>
+  
+  <tr>
+    <td>
+<pre>
+processFixed(v5);                                             //
+processFixed({v5.data(), v5.data() + 5});                     //
+
+processFixed(span&lt;int, 5&gt;(v5));                               //
+processFixed(span&lt;int, 5&gt;{v5.data(), v5.data() + 5});         //
+
+processFixed(span&lt;int&gt;(v5).first&lt;5&gt;());                       //
+processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); //
+
+span&lt;int, 5&gt; s = v5;                                          //
+span&lt;int, 5&gt; s(v5);                                           //
+
+span&lt;int, 5&gt; s = {v5.data(), v5.data() + 5};                  //
+span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
+</pre>
+    </td>
+
+    <td>
+<pre>
+<font color="orange">ill-formed</font>
+<font color="green">ok</font>
+
+<font color="orange">ill-formed</font>
+<font color="green">ok</font>
+
+<font color="green">ok</font>
+<font color="green">ok</font>
+
+<font color="orange">ill-formed</font>
+<font color="green">ok</font>
+
+<font color="green">ok</font>
+<font color="green">ok</font></pre>
+   </td>
+
+    <td>
+<pre>
+<font color="orange">ill-formed</font>
+<font color="orange">ill-formed</font>
+
+<font color="green">ok</font>
+<font color="green">ok</font>
+
+<font color="green">ok</font>
+<font color="green">ok</font>
+
+<font color="orange">ill-formed</font>
+<font color="green">ok</font>
+
+<font color="orange">ill-formed</font>
+<font color="green">ok</font></pre>
+   </td>
+  </tr>
+  
+</tbody></table>
   
 
 <h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<ul>
+  <li>Added wording for Option C.</li>
+  <li>Included Tony Tables for proposed resolution (option C) in Introduction.</li>
+  <li>Fixed minor typos in text.</li>
+</ul>
    
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
-<p>Initial revision.</p>   
+<p>Initial revision.</p>
    
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
@@ -142,7 +296,7 @@ void processFixed({v.begin(), v.end()}); // <font color="red">undefined-behavior
 
 <p>Futhermore it would allow us to explore extending <code><i>fixed-span</i></code> construction
    to handle user-defined fixed-size ranges. Currently the standard regonizes only native arrays (<code>T[N]</code>),
-   <code>std::array&lt;T, N&gt;</code> and fixed-size <code>std::span&lt;T, N&gt;</code> (where <code>N != std::dynamic-extent</code>)
+   <code>std::array&lt;T, N&gt;</code> and fixed-size <code>std::span&lt;T, N&gt;</code> (where <code>N != std::dynamic_extent</code>)
    as fixed-size range. The appropariate trait was proposed in 
    <a href="https://wg21.link/p1419">A SFINAE-friendly trait to determine the extent of statically sized containers</a>.</p>
 
@@ -258,7 +412,7 @@ processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <fo
 <p>The construction of the fixed-sized <code>span</code> from the dynamicly sized range, is 
    not indentity operation - this operation assumes additional semantic property of the type
    (size of the range). Such conversion between semantically different types, should not be
-   implicit. We can resolve the problem, by makrking all of such constructor explicit, as follows:</p>
+   implicit. We can resolve the problem, by marking all of such constructor explicit, as follows:</p>
 
 <table>
   <tbody><tr>
@@ -375,7 +529,7 @@ processFixed(span&lt;int&gt;{v5.data(), 5}.first&lt;5&gt;());             // <fo
  
 <p>All proposed options (including removal) does not have any impact on the construction of the
    dynamic-sized span (i.e. <code>span&lt;T&gt;</code>). The construction changes affect only
-   cases when <code>N != std::dynamic-extent</code>.</p>
+   cases when <code>N != std::dynamic_extent</code>.</p>
 
    
 <h3><a name="motivation.initialization">3.5. Option B vs C: Impact on initialization</a></h3>
@@ -424,7 +578,7 @@ auto s = span&lt;int, 5&gt;{v3.data(), v3.data() + 3}; // <font color="red">unde
 <p>Neither option B nor C, proposes any change to the behavior of the construction of
    the fixed-size <code>span</code> from the ranges that are recognized by the
    standard as fixed-size: native arrays (<code>T[N]</code>),
-   <code>std::array&lt;T, N&gt;</code> and fixed-size <code>std::span&lt;T, N&gt;</code> (where <code>N != std::dynamic-extent</code>).
+   <code>std::array&lt;T, N&gt;</code> and fixed-size <code>std::span&lt;T, N&gt;</code> (where <code>N != std::dynamic_extent</code>).
    The construction is implicit if size of the source is the same as the size of destination,
    ill-formed otherwise.</p>
 
@@ -466,7 +620,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 <h2><a name="impact">4. Impact and Implementability</a></h2>
 
 <p>As the <code>std:span</code> was introduced in C++20, the changes introduce in these paper (regardless of the selected option)
-   cannot break existing code. In addition, all pesented options do not affect uses of <code>span</code> with the dynamic size.</p>
+   cannot break existing code. In addition, all presented options do not affect uses of <code>span</code> with the dynamic size.</p>
    
 <p>The implementation of the option A requires duplicating a constrain:<br>
    Constrains: <code>extent == dynamic_extent</code> is <code>true</code>.<br>
@@ -480,7 +634,177 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
    
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
-<p>To be created after specific option is selected.</p>
+<p>The proposed wording changes refer to <a href="http://wg21.link/n4842"></a> N4842 (C++ Working Draft, 2019-11-27).</p>
+
+<p>Apply following changes to section [span.cons] constructors, copy, and assignment:</p>
+<blockquote class="std">
+  
+  <pre>   template&lt;class It&gt;
+     constexpr <ins>explicit(<em>see below</em>)</ins> span(It first, size_type count);</pre>
+
+  <dl class="attribute">
+
+    <dt>Constraints:</dt>
+    <dd>Let <code>U</code> be <code>remove_reference_t&lt;iter_reference_t&lt;It&gt;&gt;</code>.
+    <ul>
+      <li><code>It</code> satisfies <code>contiguous_iterator</code>.</li>
+      <li><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>. 
+	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
+    </ul>
+    <p></p></dd>
+
+    <dt>Preconditions:</dt>
+    <dd>&nbsp;
+    <ul>
+      <li><code>[first, first + count)</code> is a valid range.</li>
+      <li><code>It</code> models <code>contiguous_iterator</code>.</li>
+	  <li>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>count</code> is equal to <code>extent</code>.
+    </ul>
+    <p></p></dd>
+
+    <dt>Effects:</dt>
+    <dd>Initializes <code>data_</code> with <code>to_address(first)</code> and <code>size_</code> with <code>count</code>.<p></p></dd>
+
+    <dt>Throws:</dt>
+    <dd>When and what <code>to_address(first)</code> throws.<p></p></dd>
+
+    <dt><ins>Remarks</ins>:</dt>
+    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent</code>.</ins><p></p></dd>
+  </dl>
+  
+  <pre>   template&lt;class It, class End&gt;
+     constexpr <ins>explicit(<em>see below</em>)</ins> span(It first, End last);</pre>
+
+  <dl class="attribute">
+
+    <dt>Constraints:</dt>
+    <dd>Let <code>U</code> be <code>remove_reference_t&lt;iter_reference_t&lt;It&gt;&gt;</code>.
+    <ul>
+      <li><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>. 
+	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
+      <li><code>It</code> satisfies <code>contiguous_iterator</code>.</li>
+	  <li><code>End</code> satisfies <code>sized_sentinel_for&lt;It&gt;</code>.</li>
+	  <li><code>is_convertible_v&lt;End, size_t&gt;</code> is <code>false</code>.</li>
+    </ul>
+    <p></p></dd>
+
+    <dt>Preconditions:</dt>
+    <dd>&nbsp;
+    <ul>
+	  <li>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>last - first</code> is equal to <code>extent</code>.</li>
+      <li><code>[first, first + count)</code> is a valid range.</li>
+      <li><code>It</code> models <code>contiguous_iterator</code>.</li>
+	  <li><code>End</code> models <code>sized_sentinel_for&lt;It&gt;</code>.</li>
+    </ul>
+    <p></p></dd>
+
+    <dt>Effects:</dt>
+    <dd>Initializes <code>data_</code> with <code>to_address(first)</code> and <code>size_</code> with <code>last - first</code>.<p></p></dd>
+
+    <dt>Throws:</dt>
+    <dd>When and what <code>to_address(first)</code> throws.<p></p></dd>
+
+    <dt><ins>Remarks</ins>:</dt>
+    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent</code>.</ins><p></p></dd>
+  </dl>
+  
+<pre>   template&lt;size_t N&gt; constexpr span(element_type (&arr)[N]) noexcept;
+   template&lt;size_t N&gt; constexpr span(array&lt;value_type, N&gt;& arr) noexcept;
+   template&lt;size_t N&gt; constexpr span(const array&lt;value_type, N&gt;& arr) noexcept;</pre>
+
+  <dl class="attribute">
+    <dt>Constraints:</dt>
+    <dd><ins>Let <code>U</code> be <code>remove_pointer_t&lt;decltype(data(arr))&gt;</code>.</ins>
+    <ul>
+	  <li>extent == dynamic_extent || N == extent</code> is <code>true</code>, and</li>
+	  <li><del><code>remove_pointer_t&lt;decltype(data(arr))&gt;(*)[]</code> is convertible to <code>ElementType(*)[]</code>.<del></li>
+      <li><ins><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
+	      [Note: The intent is to allow onlyqualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
+	</ul>
+    <p></p></dd>
+
+    <dt>Effects:</dt>
+    <dd>Constructs a <code>span</code> that is a view over the supplied array..<p></p></dd>
+
+    <dt>Postconditions:</dt>
+    <dd><code>size() == N && data() == data(arr)</code><p></p></dd>
+  </dl>
+  
+<pre>   template&lt;class R&gt;
+     constexpr <ins>explicit(<em>see below</em>)</ins> span(R&amp;&amp; r);</pre>
+
+  <dl class="attribute">
+
+    <dt>Constraints:</dt>
+    <dd>Let <code>U</code> be <code>remove_reference_t&lt;iter_reference_t&lt;It&gt;&gt;</code>.
+    <ul>
+	  <li><del><code>extent == dynamic_extent</code> is <code>true</code>.</del></li>
+	  <li><code>R</code> satisfies <code>ranges::contiguous_range</code> and <code>ranges::sized_range</code>.</li>
+	  <li>Either <code>R</code> satisfies <code>safe_range</code> or <code>is_const_v&lt;element_type&gt;</code> is <code>true</code>.</li>
+	  <li><code>remove_cvref_t&lt;R&gt;</code> is not a specialization of <code>span</code>.</li>
+	  <li><code>remove_cvref_t&lt;R&gt;</code> is not a specialization of <code>array</code>.</li>
+	  <li><code>is_array_v&lt;remove_cvref_t&lt;R&gt;&gt;</code> is <code>false</code>.</li>
+      <li><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
+	      [Note: The intent is to allow onlyq ualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
+    </ul>
+    <p></p></dd>
+
+    <dt>Preconditions:</dt>
+    <dd>&nbsp;
+    <ul>
+	  <li><ins>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>ranges::size(r)</code> is equal to <code>extent</code>.</ins></li>
+      <li><code>R</code> models <code>ranges::contiguous_range</code> and <code>ranges::sized_range</code>.</li>
+	  <li>If <code>is_const_v&lt;element_type&gt;</code> is <code>false</code>, <code>R</code> models <code>safe_range</code>.</li>
+    </ul>
+    <p></p></dd>
+
+    <dt>Effects:</dt>
+    <dd>Initializes <code>data_</code> with <code>ranges::data(r)</code> and <code>size_</code> with <code>ranges::size(r)</code>.<p></p></dd>
+
+    <dt>Throws:</dt>
+    <dd>What and when <code>ranges::data(r)</code> and <code>ranges::size(r)</code> throws.<p></p></dd>
+
+    <dt><ins>Remarks</ins>:</dt>
+    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent</code>.</ins><p></p></dd>
+  </dl>
+  
+[...]
+  
+<pre>   template&lt;class OtherElementType, size_t OtherExtent&gt;
+     constexpr <ins>explicit(<em>see below</em>)</ins> span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</pre>
+
+  <dl class="attribute">
+
+    <dt>Constraints:</dt>
+    <dd>&nbsp;</code>.
+    <ul>
+	  <li><code><del>Extent</del><ins>extent</ins> == dynamic_extent 
+	      <ins>|| OtherExtent == dynamic_extent</ins> 
+		  || <del>Extent</del><ins>extent</ins> == OtherExtent</code> is <code>true</code>, and</li>
+	  <li><del><code>OtherElementType(*)[]</code> is convertible to <code>ElementType(*)[]</code>.<del></li>
+      <li><ins><code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
+	      [Note: The intent is to allow onlyqualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
+	</ul>
+    <p></p></dd>
+
+    <dt><ins>Preconditions</ins>:</dt>
+    <dd><ins>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>s.size()</code> is equal to <code>extent</code>.</ins></li>
+    <p></p></dd>
+
+    <dt>Effects:</dt>
+    <dd>Constructs a <code>span</code> that is a view over the range <code>[s.data(), s.data() + s.size())</code>.<p></p></dd>
+
+    <dt>Postconditions:</dt>
+    <dd><code>size() == other.size() && data() == other.data()</code><p></p></dd>
+
+    <dt><ins>Remarks</ins>:</dt>
+    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent && OtherExtent == dynamic_extent</code>.</ins><p></p></dd>
+  </dl>  
+  
+</blockquote>
+
+<p>Update the value of the <code>__cpp_lib_span</code> in [version.syn] Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
+
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
@@ -507,8 +831,12 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
   <li>Corentin Jabot, Casey Carter,
       "A SFINAE-friendly trait to determine the extent of statically sized containers"
       (P1419R0, <a href="https://wg21.link/p1419r0">https://wg21.link/p1419r0</a>)</li>
-</ol>
+	  
+  <li>Richard Smith,
+      "Working Draft, Standard for Programming Language C++"
+      (N4842, <a href="https://wg21.link/n4842">https://wg21.link/n4842</a>)</li>
 
+</ol>
 
 
 </body></html>
