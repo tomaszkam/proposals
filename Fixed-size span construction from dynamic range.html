@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
     <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1976R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-12-14</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-12-28</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
@@ -719,7 +719,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 	  <li>extent == dynamic_extent || N == extent</code> is <code>true</code>, and</li>
 	  <li><del><code>remove_pointer_t&lt;decltype(data(arr))&gt;(*)[]</code> is convertible to <code>ElementType(*)[]</code>.<del></li>
       <li><ins><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
-	      [Note: The intent is to allow onlyqualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
+	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
 	</ul>
     <p></p></dd>
 
@@ -745,7 +745,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 	  <li><code>remove_cvref_t&lt;R&gt;</code> is not a specialization of <code>array</code>.</li>
 	  <li><code>is_array_v&lt;remove_cvref_t&lt;R&gt;&gt;</code> is <code>false</code>.</li>
       <li><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
-	      [Note: The intent is to allow onlyq ualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
+	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
     </ul>
     <p></p></dd>
 
@@ -783,7 +783,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 		  || <del>Extent</del><ins>extent</ins> == OtherExtent</code> is <code>true</code>, and</li>
 	  <li><del><code>OtherElementType(*)[]</code> is convertible to <code>ElementType(*)[]</code>.<del></li>
       <li><ins><code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
-	      [Note: The intent is to allow onlyqualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
+	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
 	</ul>
     <p></p></dd>
 
