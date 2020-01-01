@@ -622,13 +622,13 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 <p>As the <code>std:span</code> was introduced in C++20, the changes introduce in these paper (regardless of the selected option)
    cannot break existing code. In addition, all presented options do not affect uses of <code>span</code> with the dynamic size.</p>
    
-<p>The implementation of the option A requires duplicating a constrain:<br>
+<p>The implementation of the option B requires duplicating a constrain:<br>
    Constrains: <code>extent == dynamic_extent</code> is <code>true</code>.<br>
    that is already present in <code>Container</code>/<code>Range</code> constructor
    (<a href="http://eel.is/c++draft/span.cons#14.1">[span.cons] p14.1</a>) to 3 additional constuctors.
    In can be implemented using the SFINAE tricks (<code>std::enable_if</code>) or <code>requires</code> clause.</p>
 
-<p>The implementation of the option B mostly requires adding an conditional explicit
+<p>The implementation of the option C mostly requires adding an conditional explicit
    specifier to 4 constuctors:</p>
 <pre>explicit(extent != dynamic_extent)</pre>
    
@@ -640,7 +640,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 <blockquote class="std">
   
   <pre>   template&lt;class It&gt;
-     constexpr <ins>explicit(<em>see below</em>)</ins> span(It first, size_type count);</pre>
+     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, size_type count);</pre>
 
   <dl class="attribute">
 
@@ -667,13 +667,10 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 
     <dt>Throws:</dt>
     <dd>When and what <code>to_address(first)</code> throws.<p></p></dd>
-
-    <dt><ins>Remarks</ins>:</dt>
-    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent</code>.</ins><p></p></dd>
   </dl>
   
   <pre>   template&lt;class It, class End&gt;
-     constexpr <ins>explicit(<em>see below</em>)</ins> span(It first, End last);</pre>
+     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, End last);</pre>
 
   <dl class="attribute">
 
@@ -703,9 +700,6 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 
     <dt>Throws:</dt>
     <dd>When and what <code>to_address(first)</code> throws.<p></p></dd>
-
-    <dt><ins>Remarks</ins>:</dt>
-    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent</code>.</ins><p></p></dd>
   </dl>
   
 <pre>   template&lt;size_t N&gt; constexpr span(element_type (&arr)[N]) noexcept;
@@ -716,8 +710,8 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
     <dt>Constraints:</dt>
     <dd><ins>Let <code>U</code> be <code>remove_pointer_t&lt;decltype(data(arr))&gt;</code>.</ins>
     <ul>
-	  <li>extent == dynamic_extent || N == extent</code> is <code>true</code>, and</li>
-	  <li><del><code>remove_pointer_t&lt;decltype(data(arr))&gt;(*)[]</code> is convertible to <code>ElementType(*)[]</code>.<del></li>
+	  <li><code>extent == dynamic_extent || N == extent</code> is <code>true</code>, and</li>
+	  <li><del><code>remove_pointer_t&lt;decltype(data(arr))&gt;(*)[]</code> is convertible to <code>ElementType(*)[]</code>.</del></li>
       <li><ins><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
 	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
 	</ul>
@@ -731,7 +725,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
   </dl>
   
 <pre>   template&lt;class R&gt;
-     constexpr <ins>explicit(<em>see below</em>)</ins> span(R&amp;&amp; r);</pre>
+     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(R&amp;&amp; r);</pre>
 
   <dl class="attribute">
 
@@ -763,9 +757,6 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 
     <dt>Throws:</dt>
     <dd>What and when <code>ranges::data(r)</code> and <code>ranges::size(r)</code> throws.<p></p></dd>
-
-    <dt><ins>Remarks</ins>:</dt>
-    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent</code>.</ins><p></p></dd>
   </dl>
   
 [...]
@@ -776,7 +767,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
   <dl class="attribute">
 
     <dt>Constraints:</dt>
-    <dd>&nbsp;</code>.
+    <dd>&nbsp;
     <ul>
 	  <li><code><del>Extent</del><ins>extent</ins> == dynamic_extent 
 	      <ins>|| OtherExtent == dynamic_extent</ins> 
