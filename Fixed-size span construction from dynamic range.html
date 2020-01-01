@@ -636,7 +636,31 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n4842"></a> N4842 (C++ Working Draft, 2019-11-27).</p>
 
-<p>Apply following changes to section [span.cons] constructors, copy, and assignment:</p>
+<p>Apply following changes to section [span.overview] Overview:</p>
+<blockquote class="std">
+<pre>
+   // [span.cons], constructors, copy, and assignment
+   constexpr span() noexcept;
+   template&lt;class It&gt;
+     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, size_type count);
+   template&lt;class It, class End&gt;
+     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, End last);
+   template&lt;size_t N&gt; 
+     constexpr span(element_type (&arr)[N]) noexcept;
+   template&lt;size_t N&gt; 
+     constexpr span(array&lt;value_type, N&gt;& arr) noexcept;
+   template&lt;size_t N&gt; 
+     constexpr span(const array&lt;value_type, N&gt;& arr) noexcept;
+   template&lt;class R&gt;
+     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(R&amp;&amp; r);
+   constexpr span(const span& other) noexcept = default;
+   template&lt;class OtherElementType, size_t OtherExtent&gt;
+     constexpr <ins>explicit(<em>see below</em>)</ins> span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</pre>
+</pre>
+</blockquote>
+
+
+<p>Apply following changes to section [span.cons] Constructors, copy, and assignment:</p>
 <blockquote class="std">
   
   <pre>   template&lt;class It&gt;
@@ -730,7 +754,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
   <dl class="attribute">
 
     <dt>Constraints:</dt>
-    <dd>Let <code>U</code> be <code>remove_reference_t&lt;iter_reference_t&lt;It&gt;&gt;</code>.
+    <dd>Let <code>U</code> be <code>remove_reference_t&lt;ranges::range_­reference_­t&lt;R&gt;&gt;</code>.
     <ul>
 	  <li><del><code>extent == dynamic_extent</code> is <code>true</code>.</del></li>
 	  <li><code>R</code> satisfies <code>ranges::contiguous_range</code> and <code>ranges::sized_range</code>.</li>
@@ -799,7 +823,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
-<p>Andrzej Krzemieński, Casey Carter and Jeff Garland offered many useful suggestions and corrections to the proposal.</p>
+<p>Andrzej Krzemieński, Casey Carter, Tim Song and Jeff Garland offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
    and author's participation in standardization committee.</p>
