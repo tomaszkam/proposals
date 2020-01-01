@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1976R1</td>
+   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D1976R1</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2019-12-28</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2020-01-01</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Working Group</td>
@@ -92,7 +92,7 @@ td { text-align: left; vertical-align: top;
    with the dynamic size. This constructor are source of the undefined behavior, without providing
    any synctatic suggestion on the user side.</p>
 
-<p>To resolve the issues, we present tree options:</p>
+<p>To resolve the issues, we present three options:</p>
 <ul>
   <li>A. Separate fixed-size and dynamic <code>span</code> (remove fixed-size <code>span</code> for C++20)</li>
   <li>B. Disabling constructors</li>
@@ -267,7 +267,7 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
 
 <p>The resolution of <a href="https://wg21.link/lwg3101">the LWG issue 3101</a> prevents user from running
    into accidental undefined-behavior when the <code>span</code> with fixed size is constructed from the
-   range with the size that is not know at compile time. To illustrate:</p>
+   range with the size that is not known at compile time. To illustrate:</p>
 <pre>void processFixed(std::span&lt;int, 5&gt;);
 
 std::vector&lt;int&gt; v;
@@ -781,7 +781,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 	  <li><code><del>Extent</del><ins>extent</ins> == dynamic_extent 
 	      <ins>|| OtherExtent == dynamic_extent</ins> 
 		  || <del>Extent</del><ins>extent</ins> == OtherExtent</code> is <code>true</code>, and</li>
-	  <li><del><code>OtherElementType(*)[]</code> is convertible to <code>ElementType(*)[]</code>.<del></li>
+	  <li><del><code>OtherElementType(*)[]</code> is convertible to <code>ElementType(*)[]</code>.</del></li>
       <li><ins><code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
 	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
 	</ul>
@@ -808,7 +808,7 @@ void processFixed({v.data(), v.data() + v.size()}); // <font color="red">undefin
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
-<p>Andrzej Krzemieński offered many useful suggestions and corrections to the proposal.</p>
+<p>Andrzej Krzemieński and Jeff Garland offered many useful suggestions and corrections to the proposal.</p>
 
 <p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
    and author's participation in standardization committee.</p>
