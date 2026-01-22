@@ -56,7 +56,7 @@ table.header { border: 0px; border-spacing: 0;
 table { border: 1px solid black; border-spacing: 0px;
   margin-left: auto; margin-right: auto; }
 th { text-align: left; vertical-align: top;
-  padding-left: 0.4em; border: none; 
+  padding-left: 0.4em; border: none;
   padding-right: 0.4em; border: none; }
 td { text-align: left; vertical-align: top;
   padding-left: 0.4em; border: none;
@@ -107,13 +107,13 @@ std::vector&lt;int&gt; v5(5);
 </pre>
 	</td>
   </tr>
-  
+
   <tr>
     <td colspan="3">
       <p>Dynamic range with different size (5 vs 3)</p>
 	</td>
   </tr>
-  
+
   <tr>
     <td>
 <pre>
@@ -170,13 +170,13 @@ span&lt;int, 5&gt; s{v3.data(), v3.data() + 3};                     //
 <font color="red">undefined-behavior</font></pre>
    </td>
   </tr>
-  
+
 <tr>
     <td colspan="3">
       <p>Dynamic range with matching size (5 vs 5)</p>
 	</td>
   </tr>
-  
+
   <tr>
     <td>
 <pre>
@@ -233,19 +233,19 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
 <font color="green">ok</font></pre>
    </td>
   </tr>
-  
+
 </tbody></table>
-  
+
 
 <h2><a name="history">2. Revision history</a></h2>
 
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
 <p>Initial revision.</p>
-   
+
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>For the invocation of in the form <code>smd = submdspan(md, strided_slice{offset, extent, stride})</code>, 
+<p>For the invocation of in the form <code>smd = submdspan(md, strided_slice{offset, extent, stride})</code>,
   there are two ranges of indicies of elements that we are reffering to:</p>
   <ul>
     <li><i>input extent</i>: size of the range of indicies into <code>md</code>, that can be accessed <code>smd</code>,</li>
@@ -272,7 +272,7 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
 
 <p>As <code>strided_slice</code> is used as one of the cannonical forms of the slices,
  we propose to <code>strided_slice::extent</code> member should represent <i>output extent</i>.</p>
-   
+
 <h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code> and extending decomposable slices</a></h3>
 
 <p>One of the argument of the for uses of the <i>input extent</i> as <code>stride_slice::extent</code>
@@ -311,7 +311,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 <h3><a name="motivation.static-extent">3.2. Example of static <i>output extent</i> usage</a></h3>
 
 <p>As mentioned before using current <i>input extent</i> specification does not allow
-  selecting a statically sized subset of elements with dynamic stride. For example, let's 
+  selecting a statically sized subset of elements with dynamic stride. For example, let's
   imagine that we want to select 5 elements, evenly spaced from the <code>mdspan md</code>.</p>
 
 <p>With proposed change, we can simply express that as:</p>
@@ -362,11 +362,11 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
      constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, size_type count);
    template&lt;class It, class End&gt;
      constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, End last);
-   template&lt;size_t N&gt; 
+   template&lt;size_t N&gt;
      constexpr span(element_type (&arr)[N]) noexcept;
-   template&lt;size_t N&gt; 
+   template&lt;size_t N&gt;
      constexpr span(array&lt;value_type, N&gt;& arr) noexcept;
-   template&lt;size_t N&gt; 
+   template&lt;size_t N&gt;
      constexpr span(const array&lt;value_type, N&gt;& arr) noexcept;
    template&lt;class R&gt;
      constexpr <ins>explicit(extent != dynamic_extent)</ins> span(R&amp;&amp; r);
@@ -391,7 +391,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     if at least one of the following holds:<ul>
       <li>-2.1- <code>is_convertible_v&lt;S, full_extent_t&gt;</code> is <code>true</code>;</li>
       <li>-2.2- <code>is_convertible_v&lt;S, IndexType&gt;</code> is <code>true</code>;</li>
-      <li>-2.3- <code>S</code> a specialization of <code>strided_slice</code> and 
+      <li>-2.3- <code>S</code> a specialization of <code>strided_slice</code> and
       <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
       for <code><i>X</i></code> denoting <code>S::offset_type</code>, <code>S::extent_type</code>,
       and <code>S::stride_type;</code> or</li>
@@ -427,10 +427,10 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
     <dd><p>-5- A type <code>S</code> is a <i>collapsing slice type</i> if [&hellip;]
     </p></dd>
- 
+
     <dd><p>-6- A type <code>S</code> is a <i>unit-stride slice type</i> if [&hellip;]
     </p></dd>
-  
+
     <dd><p>-7- Given an object <code>e</code> of type <code>E</code> that is a
       specialization of <code>extents</code>, and an object <code>s</code> of
       type <code>S</code> that is a canonical submdspan slice type for <code>E::index_type</code>,
@@ -455,7 +455,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 	  <code>constant_wrapper</code>, then <code>S::<del>extent_type</del><ins>stride_type</ins>::value</code>
 	  is <del>less than or equal to <code><i>x</i></code></del><ins>greater than zero</ins>;</del>
 	</li>
-	<li>-8.1.3- if both <code>S::<del>offset_type</del><ins>extent_type</ins></code> and 
+	<li>-8.1.3- if both <code>S::<del>offset_type</del><ins>extent_type</ins></code> and
 	  <code>S::<del>extent_type</del><ins>stride_type</ins></code> are specializations of
 	  <code>constant_wrapper</code>, <ins>let <tt><i>r</i></tt> be <code>S::stride_type * S::extent_type</code></ins>,
 	  then<ul>
@@ -468,7 +468,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
       then <code>S::value</code> is less than <code><i>x</i></code></li>
     </ul></p></dd>
 
-    <dd><p>-9- Given an object <code>e</code> of type <code>E</code> that is a specialization of 
+    <dd><p>-9- Given an object <code>e</code> of type <code>E</code> that is a specialization of
       <code>extents</code> and an object <code>s</code> of type <code>S</code>, <codE>s</code>
       <i>is a valid <code>submdspan</code> slice for the k<sup>th</sup> extent of <code>e</code></i> if:<ul>
       <li>-9.1- <code>S</code> is a valid <code>submdspan</code> slice type for <i>k<sup>th</sup></i>
@@ -488,14 +488,14 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 <p>Apply following changes to section [mdspan.sub.strided.slice] <code>strided_slice</code>:</p>
 
 <blockquote class="std">
-  
+
 <h4>23.7.3.7.2 <del><code>strided_slice</code></del><ins>Range slices</ins> <span style="float:right">[mdspan.sub.strided.slice]</span></a></h4>
 
   <dl class="attribute">
 
-    <dd>-1- <code>strided_slice</code><ins> and <code>range_range</code></ins> represent<del>s</del> 
+    <dd>-1- <code>strided_slice</code><ins> and <code>range_range</code></ins> represent<del>s</del>
       a set of extent regularly spaced integer indices. The indices start at <code>offset</code>
-      <ins>and <code>first</code> respectively</ins>, and increase by increments of 
+      <ins>and <code>first</code> respectively</ins>, and increase by increments of
       <code>stride</code>.</dd>
   </dl>
 
@@ -511,7 +511,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
       [[no_unique_address]] stride_type stride{};
     };
 
-<ins>    template&lt;class FirstType, class LastType, 
+<ins>    template&lt;class FirstType, class LastType,
                      class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
     struct range_slice {
       using first_type = FirstType;
@@ -538,13 +538,13 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
       types, or model <code><i>integral-constant-like</i></code>.
     <p></p></dd>
 
-    <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent = 
+    <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent =
     <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
     .first = 1, .last = 11, .stride = 3}</code> indicate</del>s</del> the indices
     <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
     selected from the half-open interval <code>[1, 1 + 10)</code>. — <ins>end note</ins>]
-  </dl>  
-  
+  </dl>
+
 </blockquote>
 
 <p>Apply following changes to section [mdspan.sub.helpers] Exposition-only helpers:</p>
@@ -563,7 +563,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     <dt>-5- Effects:</dt>
     <dd>[&hellip;];<p></p></dd>
   </dl>
-    
+
 
 <ins>
 <pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
@@ -589,16 +589,16 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 	<code>constant_wrapper</code>, and <code>IndexType(<i>extent-value</i>)</code>
 	otherwise.</li>
     </ul><p></p></dd>
-  
+
     <dt>-?- Mandates:</dt>
     <dd><br/><ul>
       <li><code>sizeof..(StrideTypes) &lt;= 1</code> is <code>true</code>, and</li>
       <li>if <code>StrideType</code> is specialization of <code>constant_wrapper</code>,
         then <code>stride &gt; 0</code> is <code>true</code>.</li>
     </ul><p></p></dd>
-   
+
     <dt>-?- Preconditions:</dt>
-    <dd><code>span == 0 || stride &gt;= 0</code> is <code>true</code>.<p></p></dd>
+    <dd><code>stride &gt;= 0</code> is <code>true</code>.<p></p></dd>
 
     <dt>-?- Returns:</dt>
     <dd>
@@ -656,118 +656,69 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     </pre></dd>
 
   </dl>
-  
+
 </blockquote>
 
+<p>Apply following changes to section [mdspan.sub.extents] <code>submdspan_extents</code> function:</p>
+
 <blockquote class="std">
-  <dl class="attribute">
-    <dt>Preconditions:</dt>
-    <dd>&nbsp;
-    <ul>
-	  <li>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>last - first</code> is equal to <code>extent</code>.</li>
-      <li><code>[first, first + count)</code> is a valid range.</li>
-      <li><code>It</code> models <code>contiguous_iterator</code>.</li>
-	  <li><code>End</code> models <code>sized_sentinel_for&lt;It&gt;</code>.</li>
-    </ul>
-    <p></p></dd>
-
-    <dt>Effects:</dt>
-    <dd>Initializes <code>data_</code> with <code>to_address(first)</code> and <code>size_</code> with <code>last - first</code>.<p></p></dd>
-
-    <dt>Throws:</dt>
-    <dd>When and what <code>to_address(first)</code> throws.<p></p></dd>
-  </dl>
-  
-<pre>   template&lt;size_t N&gt; constexpr span(element_type (&arr)[N]) noexcept;
-   template&lt;size_t N&gt; constexpr span(array&lt;value_type, N&gt;& arr) noexcept;
-   template&lt;size_t N&gt; constexpr span(const array&lt;value_type, N&gt;& arr) noexcept;</pre>
+<pre>    template&lt;class IndexType, size_t... Extents, class... SliceSpecifiers&gt;
+      constexpr auto submdspan_extents(const extents&lt;IndexType, Extents...&gt;&amp; src,
+                                       SliceSpecifiers... raw_slices);</pre>
 
   <dl class="attribute">
-    <dt>Constraints:</dt>
-    <dd><ins>Let <code>U</code> be <code>remove_pointer_t&lt;decltype(data(arr))&gt;</code>.</ins>
-    <ul>
-	  <li><code>extent == dynamic_extent || N == extent</code> is <code>true</code>, and</li>
-	  <li><del><code>remove_pointer_t&lt;decltype(data(arr))&gt;(*)[]</code> is convertible to <code>ElementType(*)[]</code>.</del></li>
-      <li><ins><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
-	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
-	</ul>
-    <p></p></dd>
+    <dd>-1- Let <code>slices</code> be [&hellip;];<p></p></dd>
 
-    <dt>Effects:</dt>
-    <dd>Constructs a <code>span</code> that is a view over the supplied array..<p></p></dd>
+    <dt>-2- Constraints:</dt>
+    <dd>[&hellip;];<p></p></dd>
 
-    <dt>Postconditions:</dt>
-    <dd><code>size() == N && data() == data(arr)</code><p></p></dd>
-  </dl>
-  
-<pre>   template&lt;class R&gt;
-     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(R&amp;&amp; r);</pre>
+    <dt>-3- Mandates:</dt>
+    <dd>[&hellip;];<p></p></dd>
 
-  <dl class="attribute">
+    <dt>-4- Preconditions:</dt>
+    <dd>[&hellip;];<p></p></dd>
 
-    <dt>Constraints:</dt>
-    <dd>Let <code>U</code> be <code>remove_reference_t&lt;ranges::range_reference_t&lt;R&gt;&gt;</code>.
-    <ul>
-	  <li><del><code>extent == dynamic_extent</code> is <code>true</code>.</del></li>
-	  <li><code>R</code> satisfies <code>ranges::contiguous_range</code> and <code>ranges::sized_range</code>.</li>
-	  <li>Either <code>R</code> satisfies <code>safe_range</code> or <code>is_const_v&lt;element_type&gt;</code> is <code>true</code>.</li>
-	  <li><code>remove_cvref_t&lt;R&gt;</code> is not a specialization of <code>span</code>.</li>
-	  <li><code>remove_cvref_t&lt;R&gt;</code> is not a specialization of <code>array</code>.</li>
-	  <li><code>is_array_v&lt;remove_cvref_t&lt;R&gt;&gt;</code> is <code>false</code>.</li>
-      <li><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
-	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
-    </ul>
-    <p></p></dd>
+    <dd><p>-5- Let <code>SubExtents</code> be a specialization of <code>extents</code> such that:<ul>
+      <li>-5.1- <code>SubExtents::rank()</code> equals <code><i>MAP_RANK</i>(slices,
+        Extents::rank());</code> and;</li>
+      <li>-5.2- for each rank index <code><i>k</i></code> of <del><code>Extents</code></del>
+      <ins><code>extents&lt;IndexType, Extents...&gt;</code></ins>
+      such that the type of <code>slices...[<i>k</o>]</code> is not a collapsing
+      slice type, <code>SubExtents::static_extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code>
+      equals the following, where <code>Σ<sub><i>k<i/></sub></code> denotes the type of
+      <code>slices...[<i>k</i>]</code>:<ul>
+	<li>-5.2.1- <code>Extents::static_extent(<i>k</i>)</code> if <code>Σ<sub><i>k<i/></sub></code>
+	denotes the <code>full_extent_t</code>; otherwise</li>
+	<li><del>-5.2.2- <code>0</code>, if <code>Σ<sub><i>k<i/></sub></code> is a specialization
+	of <code>strided_slice</code> and <code>Σ<sub><i>k<i/></sub>::extent_type</code> denotes
+	<code>constant_wrapper&lt;IndexType(0)&gt;</code>; otherwise</del></li>
+	<li>-5.2.3- <del><code>1 + ((Σ<sub><i>k<i/></sub>::extent_type::value - 1) /
+	Σ<sub><i>k<i/></sub>::stride_type::value)</code></del>
+	<ins>Σ<sub><i>k<i/></sub>::extent_type::value</code></ins> if
+	<code>Σ<sub><i>k<i/></sub></code> is a specialization of <code>strided_slice</code>
+	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s</ins>
+	specialization<del>s</del> of <code>constatnt_wrapper</code>;</li>
+	<li>-5.2.4- otherwise, <code>dynamic_extent</code>.</li>
+      </ul></li>
+    </ul></p></dd>
 
-    <dt>Preconditions:</dt>
-    <dd>&nbsp;
-    <ul>
-	  <li><ins>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>ranges::size(r)</code> is equal to <code>extent</code>.</ins></li>
-      <li><code>R</code> models <code>ranges::contiguous_range</code> and <code>ranges::sized_range</code>.</li>
-	  <li>If <code>is_const_v&lt;element_type&gt;</code> is <code>false</code>, <code>R</code> models <code>safe_range</code>.</li>
-    </ul>
-    <p></p></dd>
+    <dt>-6- Returns:</dt>
+    <dd><p>A value <code>ext</code> of type <code>SubExtents</code> such that for 
+      each index <code><i>k</i></code> of <code>extents&lt;IndexType, Extents...&gt;</code>,
+      where the type of <code>slices...[<i>k</o>]</code> is not a collapsing
+      slice type, <code>ext.extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code> equals
+      the following where <code>σ<sub><i>k<i/></sub></code> denotes 
+      <code>slices...[<i>k</i>]</code>:<ul>
+      <li>-6.1- <code>σ<sub><i>k<i/></sub>.extent<del> == 0 ? 0 : 1 +
+      (σ<sub><i>k<i/></sub>.extent - 1) / σ<sub><i>k<i/></sub>.stride</del></code>
+      if the type of σ<sub><i>k<i/></sub> is specialization of <code>strided_slice</code>,</li>
+      <li>-6.2- otherwise, <code><i>U</i>−<i>L</i></code>, where <code>[L, U)</code> is the
+      <code>submdspan</code> slice range of <code>σ<sub><i>k<i/></sub></code> for the
+      <code>k<sup>th</sup></code> extent of <code>src</code>.</li>
+    </ul></p></dd>
 
-    <dt>Effects:</dt>
-    <dd>Initializes <code>data_</code> with <code>ranges::data(r)</code> and <code>size_</code> with <code>ranges::size(r)</code>.<p></p></dd>
+ </dl>
 
-    <dt>Throws:</dt>
-    <dd>What and when <code>ranges::data(r)</code> and <code>ranges::size(r)</code> throws.<p></p></dd>
-  </dl>
-  
-[...]
-  
-<pre>   template&lt;class OtherElementType, size_t OtherExtent&gt;
-     constexpr <ins>explicit(<em>see below</em>)</ins> span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</pre>
-
-  <dl class="attribute">
-
-    <dt>Constraints:</dt>
-    <dd>&nbsp;
-    <ul>
-	  <li><code><del>Extent</del><ins>extent</ins> == dynamic_extent 
-	      <ins>|| OtherExtent == dynamic_extent</ins> 
-		  || <del>Extent</del><ins>extent</ins> == OtherExtent</code> is <code>true</code>, and</li>
-	  <li><del><code>OtherElementType(*)[]</code> is convertible to <code>ElementType(*)[]</code>.</del></li>
-      <li><ins><code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code> is <code>true</code>.
-	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</ins></li>
-	</ul>
-    <p></p></dd>
-
-    <dt><ins>Preconditions</ins>:</dt>
-    <dd><ins>If <code>extent</code> is not equal to <code>dynamic_extent</code>, then <code>s.size()</code> is equal to <code>extent</code>.</ins></li>
-    <p></p></dd>
-
-    <dt>Effects:</dt>
-    <dd>Constructs a <code>span</code> that is a view over the range <code>[s.data(), s.data() + s.size())</code>.<p></p></dd>
-
-    <dt>Postconditions:</dt>
-    <dd><code>size() == other.size() && data() == other.data()</code><p></p></dd>
-
-    <dt><ins>Remarks</ins>:</dt>
-    <dd><ins>The expression inside <code>explicit</code> is equivalent to: <code>extent != dynamic_extent && OtherExtent == dynamic_extent</code>.</ins><p></p></dd>
-  </dl>  
-  
 </blockquote>
 
 <p>Update the value of the <code>__cpp_lib_span</code> in [version.syn] Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
@@ -777,7 +728,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
 <!--p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
    and author's participation in standardization committee.</p-->
-   
+
 <h2><a name="literature">7. References</a></h2>
 
 <ol>
@@ -788,15 +739,15 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
   <li>Stephan T. Lavavej,
       "span's Container constructors need another constraint",
 	  (LWG3103, <a href="https://wg21.link/lwg3101">https://wg21.link/lwg3103</a>)</li>
-		
+
   <li>Corentin Jabot, Casey Carter,
       "Range constructor for <code>std::span</code>",
 	  (P1394R4, <a href="https://wg21.link/p1394r4">https://wg21.link/p1394r4</a>)</li>
-		 
+
   <li>Corentin Jabot, Casey Carter,
       "A SFINAE-friendly trait to determine the extent of statically sized containers"
       (P1419R0, <a href="https://wg21.link/p1419r0">https://wg21.link/p1419r0</a>)</li>
-	  
+
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
       (N4842, <a href="https://wg21.link/n4842">https://wg21.link/n4842</a>)</li>
