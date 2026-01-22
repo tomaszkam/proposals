@@ -88,9 +88,9 @@ td { text-align: left; vertical-align: top;
 <h2><a name="intro">1. Introduction</a></h2>
 
 <p>This paper proposes to adjust the meaning of <code>strided_slice::extent</code> member,
-   to contain the desired number of elements in produced range.</p>
+   to designate the desired number of elements in produced range.</p>
 
-<table>
+<!-- table>
   <tbody><tr>
     <th></th>
     <th>Before</th>
@@ -234,7 +234,7 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
    </td>
   </tr>
 
-</tbody></table>
+</tbody></table -->
 
 
 <h2><a name="history">2. Revision history</a></h2>
@@ -353,26 +353,18 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n5032"></a> N5032 (C++ Working Draft, 2025-12-15).</p>
 
-<p>Apply following changes to section [span.overview] Overview:</p>
+<p>Apply following changes to section [mdspan.syn] Header <code>&lt;mdspan&gt;</code> synopsis:</p>
 <blockquote class="std">
 <pre>
-   // [span.cons], constructors, copy, and assignment
-   constexpr span() noexcept;
-   template&lt;class It&gt;
-     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, size_type count);
-   template&lt;class It, class End&gt;
-     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, End last);
-   template&lt;size_t N&gt;
-     constexpr span(element_type (&arr)[N]) noexcept;
-   template&lt;size_t N&gt;
-     constexpr span(array&lt;value_type, N&gt;& arr) noexcept;
-   template&lt;size_t N&gt;
-     constexpr span(const array&lt;value_type, N&gt;& arr) noexcept;
-   template&lt;class R&gt;
-     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(R&amp;&amp; r);
-   constexpr span(const span& other) noexcept = default;
-   template&lt;class OtherElementType, size_t OtherExtent&gt;
-     constexpr <ins>explicit(<em>see below</em>)</ins> span(const span&lt;OtherElementType, OtherExtent&gt;&amp; s) noexcept;</pre>
+  // [mdspan.sub], submdspan creation
+  template&lt;class OffsetType, class LengthType, class StrideType&gt;
+    struct strided_slice;
+<ins>  template&lt;class FirstType, class LastType,
+           class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
+    struct range_slice;</ins>
+
+  template&lt;class LayoutMapping&gt;
+    struct submdspan_mapping_result;
 </pre>
 </blockquote>
 
@@ -437,7 +429,10 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
       the <i><code>submdspan</code> slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code></i>
       is:<ul>
       <li>-7.1- <code>[0, e.extent(<i>k</i>))</code>, if <code>S</code> is <code>full_extent_t</code>;</li>
-      <li>-7.2- <code>[E::index_type(s.offset), E::index_type(s.offset + s.extent <ins>* s.stride</ins>))</code>,
+      <li><ins>-7.?- <code>[E::index_type(s.offset), E::index_type(s.offset))</code>,
+	if <code>S</code> is a specialization of <code>strided_slice</code> and <code>E::index_type(s.extent0</code> is zero;
+	otherwise</ins></li>
+      <li>-7.2- <code>[E::index_type(s.offset), E::index_type(s.offset + <ins>+ 1 + (</ins>s.extent <ins> - 1) * s.stride</ins>))</code>,
 	if <code>S</code> is a specialization of <code>strided_slice</code>; otherwise</li>
       <li>-7.3- <code>[E::index_type(s), E::index_type(s)+1)</code></li>
       </ul></li>
@@ -457,11 +452,13 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 	</li>
 	<li>-8.1.3- if both <code>S::<del>offset_type</del><ins>extent_type</ins></code> and
 	  <code>S::<del>extent_type</del><ins>stride_type</ins></code> are specializations of
-	  <code>constant_wrapper</code>, <ins>let <tt><i>r</i></tt> be <code>S::stride_type * S::extent_type</code></ins>,
-	  then<ul>
+	  <code>constant_wrapper</code><ins> and <code>S::extent_type::value</code> is greater
+          then zero, let <tt><i>r</i></tt> be <code>1 + (S::extent_type::value - 1) * 
+	  S::stride_type::value</code></ins>, then<ul>
 	  <li><ins>-8.1.3.1- <tt><i>r</i></tt> is less than or equal to <code><i>x</i></code>, and</ins></li>
 	  <li><ins>-8.1.3.2- if <code>S::offset_type</code> is specialization of <code>constant_wrapper</code>, then</ins>
-	    <code>S::offset_type::value + <del>S::extent_type::value</del><ins><i>r</i></ins></code> is less than or equal to x; or</li>
+	    <code>S::offset_type::value + <del>S::extent_type::value</del><ins><i>r</i></ins></code> is less than or
+	    equal to <code><i>x</i></code>; or</li>
 	</ul></li>
       </ul></li>
       <li>-8.2- if <code>S</code> is a specialization of <code>constant_wrapper</code>,
@@ -512,7 +509,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     };
 
 <ins>    template&lt;class FirstType, class LastType,
-                     class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
+             class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
     struct range_slice {
       using first_type = FirstType;
       using last_type = LastType;
@@ -540,9 +537,9 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
     <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent =
     <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
-    .first = 1, .last = 11, .stride = 3}</code> indicate</del>s</del> the indices
-    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
-    selected from the half-open interval <code>[1, 1 + 10)</code>. — <ins>end note</ins>]
+    .first = 1, .last = 11, .stride = 3}</code></ins> indicate</del>s</del> the indices
+    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. <del>Indices are
+    selected from the half-open interval <code>[1, 1 + 10)</code>.</del> — <ins>end note</ins>]
   </dl>
 
 </blockquote>
@@ -563,7 +560,6 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     <dt>-5- Effects:</dt>
     <dd>[&hellip;];<p></p></dd>
   </dl>
-
 
 <ins>
 <pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
@@ -598,7 +594,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     </ul><p></p></dd>
 
     <dt>-?- Preconditions:</dt>
-    <dd><code>stride &gt;= 0</code> is <code>true</code>.<p></p></dd>
+    <dd><code>stride &gt; 0</code> is <code>true</code>.<p></p></dd>
 
     <dt>-?- Returns:</dt>
     <dd>
@@ -624,7 +620,12 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     } else if constexpr (is_convertible_v&lt;S, IndexType&gt;) {
       return canonical-index&lt;IndexType&gt;(std::move(s));
     } else if constexpr (is-strided-slice&lt;S&gt;) {
-      auto c_extent = canonical-index&lt;IndexType&gt;(std::move(s.extent));
+      <ins>return strided_slice{
+        .offset = canonical-index&lt;IndexType&gt;(std::move(s.extent)),
+        .extent = canonical-index&lt;IndexType&gt;(std::move(s.offset)),
+        .stride = canonical-index&lt;IndexType&gt;(std::move(s.stride))
+      }</ins>
+      <del>auto c_extent = canonical-index&lt;IndexType&gt;(std::move(s.extent));
       auto c_offset = canonical-index&lt;IndexType&gt;(std::move(s.offset));
       if constexpr (is_same_v&lt;decltype(c_extent), constant_wrapper&lt;IndexType(0)&gt;&gt;) {
         return strided_slice{
@@ -636,9 +637,9 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
          return strided_slice{
            .offset = c_offset,
            .extent = c_extent,
-           .stride = canonical-index&lt;IndexType&gt;(std::move(s.stride));
+           .stride = canonical-index&lt;IndexType&gt;(std::move(s.stride))
 	 };
-       }
+      }</del>
     } else {
       auto [s_first, s_last<ins>, ...s_stride</ins>] = std::move(s);
       auto c_first = canonical-index&lt;IndexType&gt;(std::move(s_first));
@@ -683,19 +684,19 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
         Extents::rank());</code> and;</li>
       <li>-5.2- for each rank index <code><i>k</i></code> of <del><code>Extents</code></del>
       <ins><code>extents&lt;IndexType, Extents...&gt;</code></ins>
-      such that the type of <code>slices...[<i>k</o>]</code> is not a collapsing
+      such that the type of <code>slices...[<i>k</i>]</code> is not a collapsing
       slice type, <code>SubExtents::static_extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code>
-      equals the following, where <code>Σ<sub><i>k<i/></sub></code> denotes the type of
+      equals the following, where <code>Σ<sub><i>k</i></sub></code> denotes the type of
       <code>slices...[<i>k</i>]</code>:<ul>
-	<li>-5.2.1- <code>Extents::static_extent(<i>k</i>)</code> if <code>Σ<sub><i>k<i/></sub></code>
+	<li>-5.2.1- <code>Extents::static_extent(<i>k</i>)</code> if <code>Σ<sub><i>k</i></sub></code>
 	denotes the <code>full_extent_t</code>; otherwise</li>
-	<li><del>-5.2.2- <code>0</code>, if <code>Σ<sub><i>k<i/></sub></code> is a specialization
-	of <code>strided_slice</code> and <code>Σ<sub><i>k<i/></sub>::extent_type</code> denotes
+	<li><del>-5.2.2- <code>0</code>, if <code>Σ<sub><i>k</i></sub></code> is a specialization
+	of <code>strided_slice</code> and <code>Σ<sub><i>k</i></sub>::extent_type</code> denotes
 	<code>constant_wrapper&lt;IndexType(0)&gt;</code>; otherwise</del></li>
-	<li>-5.2.3- <del><code>1 + ((Σ<sub><i>k<i/></sub>::extent_type::value - 1) /
-	Σ<sub><i>k<i/></sub>::stride_type::value)</code></del>
-	<ins>Σ<sub><i>k<i/></sub>::extent_type::value</code></ins> if
-	<code>Σ<sub><i>k<i/></sub></code> is a specialization of <code>strided_slice</code>
+	<li>-5.2.3- <del><code>1 + ((Σ<sub><i>k</i></sub>::extent_type::value - 1) /
+	Σ<sub><i>k</i></sub>::stride_type::value)</code></del>
+	<ins>Σ<sub><i>k</i></sub>::extent_type::value</code></ins> if
+	<code>Σ<sub><i>k</i></sub></code> is a specialization of <code>strided_slice</code>
 	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s</ins>
 	specialization<del>s</del> of <code>constatnt_wrapper</code>;</li>
 	<li>-5.2.4- otherwise, <code>dynamic_extent</code>.</li>
@@ -705,15 +706,15 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     <dt>-6- Returns:</dt>
     <dd><p>A value <code>ext</code> of type <code>SubExtents</code> such that for 
       each index <code><i>k</i></code> of <code>extents&lt;IndexType, Extents...&gt;</code>,
-      where the type of <code>slices...[<i>k</o>]</code> is not a collapsing
+      where the type of <code>slices...[<i>k</i>]</code> is not a collapsing
       slice type, <code>ext.extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code> equals
-      the following where <code>σ<sub><i>k<i/></sub></code> denotes 
+      the following where <code>σ<sub><i>k</i></sub></code> denotes 
       <code>slices...[<i>k</i>]</code>:<ul>
-      <li>-6.1- <code>σ<sub><i>k<i/></sub>.extent<del> == 0 ? 0 : 1 +
-      (σ<sub><i>k<i/></sub>.extent - 1) / σ<sub><i>k<i/></sub>.stride</del></code>
-      if the type of σ<sub><i>k<i/></sub> is specialization of <code>strided_slice</code>,</li>
+      <li>-6.1- <code>σ<sub><i>k</i></sub>.extent<del> == 0 ? 0 : 1 +
+      (σ<sub><i>k</i></sub>.extent - 1) / σ<sub><i>k</i></sub>.stride</del></code>
+      if the type of σ<sub><i>k</i></sub> is specialization of <code>strided_slice</code>,</li>
       <li>-6.2- otherwise, <code><i>U</i>−<i>L</i></code>, where <code>[L, U)</code> is the
-      <code>submdspan</code> slice range of <code>σ<sub><i>k<i/></sub></code> for the
+      <code>submdspan</code> slice range of <code>σ<sub><i>k</i></sub></code> for the
       <code>k<sup>th</sup></code> extent of <code>src</code>.</li>
     </ul></p></dd>
 
@@ -721,8 +722,27 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
 </blockquote>
 
-<p>Update the value of the <code>__cpp_lib_span</code> in [version.syn] Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
+<p>Apply following changes to section [mdspan.sub.map.common] Common:</p>
 
+<blockquote class="std">
+  <dl class="attribute">
+    <dd><p>-6- Let <code>sub_strides</code> be an <code>array&lt;SubExtents::index_type,
+      SubExtents::rank()&gt;</code> such that for each rank index <code><i>k</i></code>
+      of <code>extents()</code> for which the type of <code>slices...[<i>k</i>]</code> 
+      is not a collapsing slice type, <code>sub_strides[MAP_RANK(slices,<i>k</i>)]</code>
+      equals<ins>:<ul>
+      <li>-6.1- <code>stride(k) * s.stride</code> if type of <code>s</code> is a
+	a specialization of <code>strided_slice</code> and <code><del>s.stride &lt; s.extent</del></code>
+	<code><ins>s.extent &gt; 1</ins></code> is <code>true</code>, where
+	<code>s</code> is <code>slices...[<i>k</i>]</code>;</li>
+      <li>-6.2- otherwise, <code>stride(k)</code>.</li>
+    </ul></p></dd>
+ </dl>
+
+</blockquote>
+
+<p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
+Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
 
 <h2><a name="acknowledgements">6. Acknowledgements</a></h2>
 
@@ -735,18 +755,6 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
   <li>Poland,
       "PL250 22.07.3.2 [span.cons] size mismatch for fixed-sized span",
 	  (PL250, <a href="https://github.com/cplusplus/nbballot/issues/246">https://github.com/cplusplus/nbballot/issues/246</a>)</li>
-
-  <li>Stephan T. Lavavej,
-      "span's Container constructors need another constraint",
-	  (LWG3103, <a href="https://wg21.link/lwg3101">https://wg21.link/lwg3103</a>)</li>
-
-  <li>Corentin Jabot, Casey Carter,
-      "Range constructor for <code>std::span</code>",
-	  (P1394R4, <a href="https://wg21.link/p1394r4">https://wg21.link/p1394r4</a>)</li>
-
-  <li>Corentin Jabot, Casey Carter,
-      "A SFINAE-friendly trait to determine the extent of statically sized containers"
-      (P1419R0, <a href="https://wg21.link/p1419r0">https://wg21.link/p1419r0</a>)</li>
 
   <li>Richard Smith,
       "Working Draft, Standard for Programming Language C++"
