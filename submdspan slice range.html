@@ -273,7 +273,7 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
 <p>As <code>strided_slice</code> is used as one of the cannonical forms of the slices,
  we propose to <code>strided_slice::extent</code> member should represent <i>output extent</i>.</p>
    
-<h3><a name="motivation.range_slice">3.1. Introducing <code>slice_range</code> and extending decomposable slices</a></h3>
+<h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code> and extending decomposable slices</a></h3>
 
 <p>One of the argument of the for uses of the <i>input extent</i> as <code>stride_slice::extent</code>
   value, was consistency with the interface provided for range slicing in the other languges.
@@ -477,7 +477,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
           slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code>; and</li>
       <li>-9.3- if <code>S</code> a specialization of <code>strided_slice</code> then:<ul>
 	<li>-9.3.1- <code>s.extent</code> is greater than or equal to zero, and</li>
-	<li>-9.3.2- either <code>s.extent</code> equals zero or <code>s.stride</code> is greater than zero.</li>
+	<li>-9.3.2- <del>either <code>s.extent</code> equals zero or</del> <code>s.stride</code> is greater than zero.</li>
       </ul></li>
     </ul></p></dd>
 
@@ -485,24 +485,182 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
 </blockquote>
 
+<p>Apply following changes to section [mdspan.sub.strided.slice] <code>strided_slice</code>:</p>
+
 <blockquote class="std">
   
-  <pre>   template&lt;class It, class End&gt;
-     constexpr <ins>explicit(extent != dynamic_extent)</ins> span(It first, End last);</pre>
+<h4>23.7.3.7.2 <del><code>strided_slice</code></del><ins>Range slices</ins> <span style="float:right">[mdspan.sub.strided.slice]</span></a></h4>
 
   <dl class="attribute">
 
-    <dt>Constraints:</dt>
-    <dd>Let <code>U</code> be <code>remove_reference_t&lt;iter_reference_t&lt;It&gt;&gt;</code>.
-    <ul>
-      <li><code>is_convertible_v&lt;U(*)[], element_type(*)[]&gt;</code> is <code>true</code>. 
-	      [Note: The intent is to allow only qualification conversions of the iterator reference type to <code>element_type</code>. — end note]</li>
-      <li><code>It</code> satisfies <code>contiguous_iterator</code>.</li>
-	  <li><code>End</code> satisfies <code>sized_sentinel_for&lt;It&gt;</code>.</li>
-	  <li><code>is_convertible_v&lt;End, size_t&gt;</code> is <code>false</code>.</li>
-    </ul>
+    <dd>-1- <code>strided_slice</code><ins> and <code>range_range</code></ins> represent<del>s</del> 
+      a set of extent regularly spaced integer indices. The indices start at <code>offset</code>
+      <ins>and <code>first</code> respectively</ins>, and increase by increments of 
+      <code>stride</code>.</dd>
+  </dl>
+
+  <pre>  namespace std {
+    template&lt;class OffsetType, class ExtentType, class StrideType&gt;
+    struct strided_slice {
+      using offset_type = OffsetType;
+      using extent_type = ExtentType;
+      using stride_type = StrideType;
+
+      [[no_unique_address]] offset_type offset{};
+      [[no_unique_address]] extent_type extent{};
+      [[no_unique_address]] stride_type stride{};
+    };
+
+<ins>    template&lt;class FirstType, class LastType, 
+                     class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
+    struct range_slice {
+      using first_type = FirstType;
+      using last_type = LastType;
+      using stride_type = StrideType;
+
+      [[no_unique_address]] first_type first{};
+      [[no_unique_address]] last_type last{};
+      [[no_unique_address]] stride_type stride{};
+    };</ins>
+  }
+</pre>
+
+  <dl class="attribute">
+
+    <dd>-2- <code>strided_slice</code><ins> and <code>range_slice</code></ins> <del>has</del>
+      <ins>have</ins> the data members and special members specified above. <del>It has</del>
+      <ins>They have</ins> no base classes or members other than those specified.
     <p></p></dd>
 
+    <dt>-3- Mandates:</dt>
+    <dd><code>OffsetType</code>, <code>ExtentType</code><ins>, <code>FirstType</code>,
+      <code>LastType</code></ins>, and <code>StrideType</code> are signed or unsigned integer
+      types, or model <code><i>integral-constant-like</i></code>.
+    <p></p></dd>
+
+    <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent = 
+    <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
+    .first = 1, .last = 11, .stride = 3}</code> indicate</del>s</del> the indices
+    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
+    selected from the half-open interval <code>[1, 1 + 10)</code>. — <ins>end note</ins>]
+  </dl>  
+  
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.helpers] Exposition-only helpers:</p>
+
+<blockquote class="std">
+<pre>    templatelt&;class IndexType, class S&gt;
+      constexpr auto canonical-index(S s);</pre>
+
+  <dl class="attribute">
+    <dt>-3- Mandates:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-4- Preconditions:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-5- Effects:</dt>
+    <dd>[&hellip;];<p></p></dd>
+  </dl>
+    
+
+<ins>
+<pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
+      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypes.. strides);</pre>
+
+  <dl class="attribute">
+    <dd>-?- Let:<ul>
+      <li><code>StrideType</code> be <code>constant_wrapper&lt;IndexType(1)&gt;</code>
+        if <code>sizeof...(StrideTypes) == 0</code> or <code>SpanType</code> denotes
+        <code>constant_wrapper&lt;IndexType(0)&gt;</code>, and
+	<code>StridesTypes...[0]</code> otherwise;</li>
+      <li><code>stride</code> be<ul>
+        <li><code>StrideType()</code> if <code>StrideType</code> is specialization
+	  of <code>constant_wrapper</code>, otherwise</li>
+	<li><code>IndexType(1)</code> if <code>span == 0</code> is <code>true</code>,
+	  otherwise</li>
+	<li><code>strides...[0]</code>;</li>
+      </ul></li>
+      <li><code><i>extent-value</i></code> be <code>1 + (span - 1) / stride</code>
+        if <code>span != 0</code> is <code>true</code>, and <code>0</code> otherwise;</li>
+      <li><code>extent</code> be <code>cw&lt;IndexType(<i>extent-value</i>)&gt;</code> if
+	both <code>SpanType</code> and <code>StrideType</code> are specializations of
+	<code>constant_wrapper</code>, and <code>IndexType(<i>extent-value</i>)</code>
+	otherwise.</li>
+    </ul><p></p></dd>
+  
+    <dt>-?- Mandates:</dt>
+    <dd><br/><ul>
+      <li><code>sizeof..(StrideTypes) &lt;= 1</code> is <code>true</code>, and</li>
+      <li>if <code>StrideType</code> is specialization of <code>constant_wrapper</code>,
+        then <code>stride &gt; 0</code> is <code>true</code>.</li>
+    </ul><p></p></dd>
+   
+    <dt>-?- Preconditions:</dt>
+    <dd><code>span == 0 || stride &gt;= 0</code> is <code>true</code>.<p></p></dd>
+
+    <dt>-?- Returns:</dt>
+    <dd>
+      <code>strided_slice{ .offset = first, .extent = extent, .stride = stride };</code>
+    <p></p></dd>
+
+   </dl>
+</ins>
+
+<pre>    template&lt;class IndexType, class S&gt;
+      constexpr auto <i>canonical-slice</i>(S s);</pre>
+
+  <dl class="attribute">
+    <dt>-6- Mandates:</dt>
+    <dd>
+      <code>S</code> is a <code>submdspan</code> slice type for <code>IndexTye.</code>
+    <p></p></dd>
+
+    <dt>-7- Effects:</dt>
+    <dd>Equivalent to:<pre>
+    if constexpr (is_convertible_v&lt;S, full_extent_t&gt;) {
+      return static_cast&lt;full_extent_t&gt;(std::move(s));
+    } else if constexpr (is_convertible_v&lt;S, IndexType&gt;) {
+      return canonical-index&lt;IndexType&gt;(std::move(s));
+    } else if constexpr (is-strided-slice&lt;S&gt;) {
+      auto c_extent = canonical-index&lt;IndexType&gt;(std::move(s.extent));
+      auto c_offset = canonical-index&lt;IndexType&gt;(std::move(s.offset));
+      if constexpr (is_same_v&lt;decltype(c_extent), constant_wrapper&lt;IndexType(0)&gt;&gt;) {
+        return strided_slice{
+          .offset = c_offset,
+          .extent = c_extent,
+          .stride = cw&lt;IndexType(1)&gt;
+         };
+      } else {
+         return strided_slice{
+           .offset = c_offset,
+           .extent = c_extent,
+           .stride = canonical-index&lt;IndexType&gt;(std::move(s.stride));
+	 };
+       }
+    } else {
+      auto [s_first, s_last<ins>, ...s_stride</ins>] = std::move(s);
+      auto c_first = canonical-index&lt;IndexType&gt;(std::move(s_first));
+      auto c_last  = canonical-index&lt;IndexType&gt;(std::move(s_last));
+      <del>return strided_slice{
+          .offset = c_first,
+          .extent = canonical-index&lt;IndexType&gt;(c_last - c_first),
+          .stride = cw&lt;IndexType(1)&gt;
+        };</del>
+      <ins>return <i>canonical-slice-range</i>&lt;IndexType&gt;(
+               c_first,
+	       canonical-index&lt;IndexType&gt;(c_last - c_first),
+	       canonical-index&lt;IndexType&gt;(std::move(s_stride))...);</ins>
+    }
+    </pre></dd>
+
+  </dl>
+  
+</blockquote>
+
+<blockquote class="std">
+  <dl class="attribute">
     <dt>Preconditions:</dt>
     <dd>&nbsp;
     <ul>
