@@ -87,6 +87,8 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
+<p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/246">PL250</a></b></p>
+
 <p>This paper proposes to adjust the meaning of <code>strided_slice::extent</code> member,
    to designate the desired number of elements in produced range.</p>
 
@@ -246,14 +248,14 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
 <p>For the invocation of in the form <code>smd = submdspan(md, strided_slice{offset, extent, stride})</code>,
-  there are two ranges of indicies of elements that we are reffering to:</p>
+  there are two ranges of indices of elements that we are referring to:</p>
   <ul>
-    <li><i>input extent</i>: size of the range of indicies into <code>md</code>, that can be accessed <code>smd</code>,</li>
-    <li><i>output extent</i>: size of the range of indicies that are valid indicies for <code>smd</code>.</li>
+    <li><i>input extent</i>: size of the range of indices into <code>md</code>, that can be accessed <code>smd</code>,</li>
+    <li><i>output extent</i>: size of the range of indices that are valid indices for <code>smd</code>.</li>
   </ul>
 </p>
 
-<p>Given the above, there are two possible interprentations of the <code>extent</code> for the above example,
+<p>Given the above, there are two possible interpretations of the <code>extent</code> for the above example,
   and <code>extent</code> can be interpreted as:
   <ul>
     <li><i>input extent</i>, thus <i>output extent</i> is <code>(extent - 1) / stride</code></li>
@@ -270,13 +272,13 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
   </ul>
 </p>
 
-<p>As <code>strided_slice</code> is used as one of the cannonical forms of the slices,
+<p>As <code>strided_slice</code> is used as one of the canonical forms of the slices,
  we propose to <code>strided_slice::extent</code> member should represent <i>output extent</i>.</p>
 
 <h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code> and extending decomposable slices</a></h3>
 
 <p>One of the argument of the for uses of the <i>input extent</i> as <code>stride_slice::extent</code>
-  value, was consistency with the interface provided for range slicing in the other languges.
+  value, was consistency with the interface provided for range slicing in the other languages.
   However, from the survey of the interface in most common languages shows that <code>first, last</code>
   range is used instead of <code>offset, length</code>:
   <ul>
@@ -291,13 +293,13 @@ span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
   should select elements <code>[2, 5)</code>, instead of <code>[2, 7)</code> as currently specified.
 </p>
 
-<p>To provide a interface consistient with existing practice in other language, we propose
+<p>To provide a interface consistent with existing practice in other language, we propose
   extension to set of acceptable slice type to types that decompose into tree values that
   are compatible with index type. So in addition to accepting pairs (including two element
   <code>tuple</code>) representing selection of <code>first, last</code>, we propose to
   accept a tree elements tuples, where third value determines stride.</code>
 
-<p>Futhermore we proposed to introduce vocabluary type for "range" slice:</p>
+<p>Futhermore we proposed to introduce vocabulary type for "range" slice:</p>
 <pre>
 template&lt;typename FirstType, typename LastType, typename StrideType = constant_wrapper&lt;1zu&gt;&gt;
   struct range_slice
@@ -308,7 +310,14 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
   };
 </pre>
 
-<h3><a name="motivation.static-extent">3.2. Example of static <i>output extent</i> usage</a></h3>
+<h3><a name="motivation.perf">3.2. Expressing required values directly</h3>
+
+TODO:
+* layouts already require input stride, and compute it internally, including cost of divsion
+* proposed changes passes them directly
+* 2x speedup if value is know
+
+<h3><a name="motivation.static-extent">3.3. Example of static <i>output extent</i> usage</a></h3>
 
 <p>As mentioned before using current <i>input extent</i> specification does not allow
   selecting a statically sized subset of elements with dynamic stride. For example, let's
@@ -323,7 +332,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
    statically, regardless if source span had static extents.</p>
 
 
-<h3><a name="motivation.static-extent">3.3. Example of zero stride value usage</a></h3>
+<h3><a name="motivation.static-extent">3.4. Example of zero stride value usage</a></h3>
 
 <p>Using a zero as the value of the <code>stride</code> leads to non-unique mappings
   (incrementing the index does not change the referenced element), thus they are not
@@ -336,7 +345,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 <p>One could imagine <code>layout_strided_nonunique</code> layout, that is equivalent
   to <code>layout_strided</code>, except that it does not require that provided strides,
   lead to non-unique mapping. In case of <code>mdspan</code> with such mapping, stride
-  of value zero may be used to create layout that boardcast single element:</p>
+  of value zero may be used to create layout that broadcast single element:</p>
 <pre>
   auto smd = submdspan(md, strided_slice{3, 5, 0};
 </pre>
@@ -348,6 +357,9 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
    it allows such strides to be allowed in future.</p>
 
 <h2><a name="impact">4. Impact and Implementability</a></h2>
+
+<p>A <a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">patch series</a>
+implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</p>
 
 <h2><a name="wording">5. Proposed Wording</a></h2>
 
@@ -744,10 +756,7 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 <p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
 Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
 
-<h2><a name="acknowledgements">6. Acknowledgements</a></h2>
-
-<!--p>Special thanks and recognition goes to Sabre (<a href="http://www.sabre.com/">http://www.sabre.com</a>) for supporting the production of this proposal
-   and author's participation in standardization committee.</p-->
+<!--h2><a name="acknowledgements">6. Acknowledgements</a></h2-->
 
 <h2><a name="literature">7. References</a></h2>
 
@@ -756,10 +765,13 @@ Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of 
       "PL250 22.07.3.2 [span.cons] size mismatch for fixed-sized span",
 	  (PL250, <a href="https://github.com/cplusplus/nbballot/issues/246">https://github.com/cplusplus/nbballot/issues/246</a>)</li>
 
-  <li>Richard Smith,
-      "Working Draft, Standard for Programming Language C++"
-      (N4842, <a href="https://wg21.link/n4842">https://wg21.link/n4842</a>)</li>
+  <li>Tomasz Kamiński,
+      "[RFC O/2] libstdc++: Implement PL007 changes to submdspan",
+          (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html</a>)</li>
 
+  <li>Thomas Köppe,
+      "Working Draft, Standard for Programming Language C++"
+      (N5032, <a href="https://wg21.link/n5032">https://wg21.link/n5032</a>)</li>
 </ol>
 
 
