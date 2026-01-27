@@ -143,17 +143,17 @@ std::strided_slice{2, <b>3</b>,  3};
 <p>Given the above, there are two possible interpretations of the <code>extent</code> for the above example,
   and <code>extent</code> can be interpreted as:
   <ul>
-    <li><i>input extent</i>, thus <i>output extent</i> is <code>(extent - 1) / stride</code></li>
+    <li><i>input extent</i>, thus <i>output extent</i> is <code>1 + (extent - 1) / stride</code></li>
     <li><i>output extent</i>, thus <i>input extent</i> is <code>extent * stride</code></li>
   </ul>
 </p>
 
-<p>This two meanings are functionally equivalent as they can be transformed into each other,
-  in majority of the cases. However, due use of the division in the <i>input extent</i> interpretation,
-  in contrast to <i>output extent</i>, does not support following:
+<p>In majority of the cases, this two meanings are functionally equivalent and they can be transformed
+  into each other. However, due use of the division in the <i>input extent</i> interpretation
+  does not support following:
   <ul>
     <li><code>stride</code> of value of zero, that could be used to produce non-unique layouts,</li>
-    <li>specifying the value of <i>output extent</i> statically, while keeping the index dynamic.</li>
+    <li>specifying the value of <i>output extent</i> statically, while keeping the stride dynamic.</li>
   </ul>
 </p>
 
@@ -164,7 +164,7 @@ std::strided_slice{2, <b>3</b>,  3};
 
 <p>One of the argument of the for uses of the <i>input extent</i> as <code>stride_slice::extent</code>
   value, was consistency with the interface provided for range slicing in the other languages.
-  However, from the survey of the interface in most common languages shows that <code>first, last</code>
+  However, from the survey of the interface in common languages shows that <code>first, last</code>
   range is used instead of <code>offset, length</code>:
   <ul>
    <li><a href="https://fortran-lang.org/learn/quickstart/arrays_strings/">Fortran</a>:
@@ -174,7 +174,7 @@ std::strided_slice{2, <b>3</b>,  3};
    <li><a href="https://docs.python.org/3/library/functions.html#slice">rust</a>:
        <code>array[first..last]</code>, <code>array[first..]</code>, <code>array[..last]</code> and <code>array[..]</code>.</li>
   </ul>
-  Based on the other languages, the <code>submdspan(md, strided_slice{2, 5, 1})</code>,
+  Based on the inituition build from other languages, the <code>submdspan(md, strided_slice{2, 5, 1})</code>,
   should select elements <code>[2, 5)</code>, instead of <code>[2, 7)</code> as currently specified.
 </p>
 
@@ -184,7 +184,7 @@ std::strided_slice{2, <b>3</b>,  3};
   <code>tuple</code>) representing selection of <code>first, last</code>, we propose to
   accept a tree elements tuples, where third value determines stride.</code>
 
-<p>Futhermore we proposed to introduce vocabulary type for "range" slice:</p>
+<p>Futhermore we propose to introduce vocabulary type for "range" slice:</p>
 <pre>
 template&lt;typename FirstType, typename LastType, typename StrideType = constant_wrapper&lt;1zu&gt;&gt;
   struct range_slice
@@ -199,17 +199,13 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
 <p>Creation of subset of multidimensional index space (<code>submdspan</code>) requires
 <i>output extent</i> to be know. In the model, where user provides <i>input extent</i>,
-these computation are duplicated for each layout. As transforming input extent into 
-output extent involving dividing by extent.</p>
+<i>output extent</i> computation is performed, and thus duplicated in each layout.</p>
 
-<p>In contrast, with changes proposed in this paper, values of <code>strided_slice</code>,
-directly represents value used by <code>submdspan</code> creation, and we canonicalize
-the type of they representation (<code>index_type</code> or <code>constant_wrapper</code>
-of it).</p>
-
-<p>This also leads to measurable speedup for <code>submdspan</code> invocation, when
-the value of <i>output extent</i> is know (for example being reused). Results from 
-limited benchmark:</p>
+<p>In contrast, with changes proposed in this paper, <code>strided_slice</code> members,
+directly represent values used by <code>submdspan</code> creation. These gives programmers,
+more direct control over the process. In particular, in cases when the value of <i>output extent</i>
+is know, or can be reused between invocation, passing it directcly can lead to measurable
+speed-up. For illustration a result of limited benchmark are included below:</p>
 
 <table><tbody>
   <tr><th colspan=3><code>submdspan(md, strided_slice{0, span, stride})</code></th></tr>
@@ -246,7 +242,7 @@ limited benchmark:</p>
 
 </tbody></table>
 
-<p>As previously mentioned <code>range_slice</code> can be used if usage of
+<p>As previously mentioned <code>range_slice</code> can be used if passing
 <i>input extent</i> is preferred. An result from benchmark similar to one
 used above show non difference in the performance:</p>
 
@@ -309,7 +305,7 @@ used above show non difference in the performance:</p>
 
 <p>One could imagine <code>layout_strided_nonunique</code> layout, that is equivalent
   to <code>layout_strided</code>, except that it does not require that provided strides,
-  lead to non-unique mapping. In case of <code>mdspan</code> with such mapping, stride
+  results in non-unique mapping. In case of <code>mdspan</code> with such mapping, stride
   of value zero may be used to create layout that broadcast single element:</p>
 <pre>
   auto smd = submdspan(md, strided_slice{3, 5, 0};
@@ -318,21 +314,21 @@ used above show non difference in the performance:</p>
   to <code>md[3]</code>.</p>
 
 <p>As mentioned before such slice specification is not representable to currently.
-   While the paper does not lift current preconditions on stride value being non-zero,
-   it allows such strides to be allowed in future.</p>
+  While the paper does not lift current preconditions on stride value being non-zero,
+  it allows such strides to be allowed in future for subset of mappings.</p>
 
 <h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
 
 <p>While expansion of the accepted strided type, to support types decomposable
 into tree elements and <code>std::range_slice</code> class template, are pure extension,
-and could be added into later standard, the changes to <code>strided_slice</code> are most
-beneficial when applied before shipping <code>submdspan</code>.</p>
+and could be added into later standard, the changes to <code>strided_slice</code> needs
+to be applied before shipping <code>submdspan</code>.</p>
 
 <p>As <code>strided_slice</code> is part of the cannonical slice types, that define
 interface between the <code>submdspan</code> (and potentially other components providing
-such facility), and implementers of custom layouts, it is important that such interface
-is both mininal (reducing the burden on layouts implementers) and being able to represent a
-wide range of input without loss of precision. As illustrated by this documented current specification
+such facility) and of custom layouts, it is important that such interface is both mininal
+(reducing the burden on layouts implementers) and being able to represent a wide range of
+input without loss of precision. As illustrated by this documented current specification
 of <code>strided_slice</code> fails in both account (it incurs cost of division, and cannot
 be used for non-unique layouts).</p>
 
@@ -342,7 +338,6 @@ in the later standard. However, in contrast to ammending <code>strided_slice</co
 this esentially duplicates amount of types that need to be handled by layouts,
 as pre-existing code depending on sliceable layout requirements may still produce
 object of <code>strided_slice</code> specialization type.</p>
-
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
@@ -518,9 +513,9 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 <ins>    template&lt;class FirstType, class LastType,
              class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
     struct range_slice {
-      [[no_unique_address]] first_type first{};
-      [[no_unique_address]] last_type last{};
-      [[no_unique_address]] stride_type stride{};
+      [[no_unique_address]] FirstType first{};
+      [[no_unique_address]] LastType last{};
+      [[no_unique_address]] StrideType stride{};
     };</ins>
   }
 </pre>
