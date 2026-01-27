@@ -210,12 +210,12 @@ speed-up. For illustration a result of limited benchmark are included below:</p>
 <table><tbody>
   <tr><th colspan=3><code>submdspan(md, strided_slice{0, span, stride})</code></th></tr>
   <tr>
-    <th><code>stride</code></th>
+    <th><code></code></th>
     <th>Before</th>
     <th>After</th>
   </tr>
   <tr>
-    <th><code>span</code></th>
+    <th><code>stride</code> \ <code>span</code></th>
     <th><code>10</code></th>
     <th><code>1 + 9 / stride</code></th>
   </tr>
@@ -536,8 +536,8 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
     <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent =
     <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
     .first = 1, .last = 11, .stride = 3}</code></ins> indicate</del>s</del> the indices
-    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. <del>Indices are
-    selected from the half-open interval <code>[1, 1 + 10)</code>.</del> — <ins>end note</ins>]
+    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
+    selected from the half-open interval <code>[1, 1 + 10)</code>. — <i>end note</i>]
   </dl>
 
 </blockquote>
