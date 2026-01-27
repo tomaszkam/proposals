@@ -87,7 +87,7 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/246">PL250</a></b></p>
+<p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
 
 <p>This paper proposes to adjust the meaning of <code>strided_slice::extent</code> member,
    to designate the desired number of elements in produced range.</p>
@@ -597,7 +597,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
     </ul><p></p></dd>
 
     <dt>-?- Preconditions:</dt>
-    <dd><code>stride &gt; 0</code> is <code>true</code>.<p></p></dd>
+    <dd><code>IndexType(stride) &gt; 0</code> is <code>true</code>.<p></p></dd>
 
     <dt>-?- Returns:</dt>
     <dd>
@@ -753,8 +753,8 @@ Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of 
 
 <ol>
   <li>Poland,
-      "PL250 22.07.3.2 [span.cons] size mismatch for fixed-sized span",
-	  (PL250, <a href="https://github.com/cplusplus/nbballot/issues/246">https://github.com/cplusplus/nbballot/issues/246</a>)</li>
+      "PL007 23.7.3.7 [mdspan.sub] [mdspan.sub] Define the extent member of the strided_slice",
+        (PL007, <a href="https://github.com/cplusplus/nbballot/issues/816">https://github.com/cplusplus/nbballot/issues/816</a>)</li>
 
   <li>Tomasz Kamiński,
       "[RFC O/2] libstdc++: Implement PL007 changes to submdspan",
