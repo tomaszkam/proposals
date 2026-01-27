@@ -297,7 +297,6 @@ used above show non difference in the performance:</p>
 <p>Note that the number of number of elements in the <code>smd</code> is always know
    statically, regardless if source span had static extents.</p>
 
-
 <h3><a name="motivation.static-extent">3.4. Example of zero stride value usage</a></h3>
 
 <p>Using a zero as the value of the <code>stride</code> leads to non-unique mappings
@@ -324,7 +323,26 @@ used above show non difference in the performance:</p>
 
 <h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
 
-TODO 
+<p>While expansion of the accepted strided type, to support types decomposable
+into tree elements and <code>std::range_slice</code> class template, are pure extension,
+and could be added into later standard, the changes to <code>strided_slice</code> are most
+beneficial when applied before shipping <code>submdspan</code>.</p>
+
+<p>As <code>strided_slice</code> is part of the cannonical slice types, that define
+interface between the <code>submdspan</code> (and potentially other components providing
+such facility), and implementers of custom layouts, it is important that such interface
+is both mininal (reducing the burden on layouts implementers) and being able to represent a
+wide range of input without loss of precision. As illustrated by this documented current specification
+of <code>strided_slice</code> fails in both account (it incurs cost of division, and cannot
+be used for non-unique layouts).</p>
+
+<p>As we currently reserve rights to introduced additional cannonical stride types, 
+we could imagine  imagine introducing an separate <code>cannonical_strided_slice</code> 
+in the later standard. However, in contrast to ammending <code>strided_slice</code>,
+this esentially duplicates amount of types that need to be handled by layouts,
+as pre-existing code depending on sliceable layout requirements may still produce
+object of <code>strided_slice</code> specialization type.</p>
+
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
