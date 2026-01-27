@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
+   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D3982R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2025-12-16</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-01-27</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -92,151 +92,36 @@ td { text-align: left; vertical-align: top;
 <p>This paper proposes to adjust the meaning of <code>strided_slice::extent</code> member,
    to designate the desired number of elements in produced range.</p>
 
-<!-- table>
-  <tbody><tr>
-    <th></th>
+<table><tbody>
+  <tr>
     <th>Before</th>
     <th>After</th>
   </tr>
 
   <tr>
-    <td colspan="3">
-<pre>void processFixed(std::span&lt;int, 5&gt;);
-void processDynamic(std::span&lt;int&gt;);
-
-std::vector&lt;int&gt; v3(3);
-std::vector&lt;int&gt; v5(5);
-</pre>
-	</td>
+   <td><pre>
+std::strided_slice{0, 2, 1};
+</pre></td>
+   <td><pre>
+std::strided_slice{0, <b>1</b>, 3};
+  std::range_slice{0, 2, 3};
+        std::tuple{0, 2, 1};
+</pre></td>
   </tr>
 
   <tr>
-    <td colspan="3">
-      <p>Dynamic range with different size (5 vs 3)</p>
-	</td>
+   <td><pre>
+std::strided_slice{2, 10, 3};
+</pre></td>
+   <td><pre>
+std::strided_slice{2, <b>3</b>,  3};
+  std::range_slice{2, <b>12</b>, 3};
+        std::tuple{2, <b>12</b>, 3};
+</pre></td>
   </tr>
 
-  <tr>
-    <td>
-<pre>
-processFixed(v3);                                             //
-processFixed({v3.data(), v3.data() + 3});                     //
 
-processFixed(span&lt;int, 5&gt;(v3));                               //
-processFixed(span&lt;int, 5&gt;{v3.data(), v3.data() + 3});         //
-
-processFixed(span&lt;int&gt;(v3).first&lt;5&gt;());                       //
-processFixed(span&lt;int&gt;{v3.data(), v3.data() + 3}.first&lt;5&gt;()); //
-
-span&lt;int, 5&gt; s = v3;                                          //
-span&lt;int, 5&gt; s(v3);                                           //
-
-span&lt;int, 5&gt; s = {v3.data(), v3.data() + 3};                  //
-span&lt;int, 5&gt; s{v3.data(), v3.data() + 3};                     //
-</pre>
-    </td>
-
-    <td>
-<pre>
-<font color="orange">ill-formed</font>
-<font color="red">undefined-behavior</font>
-
-<font color="orange">ill-formed</font>
-<font color="red">undefined-behavior</font>
-
-<font color="red">undefined-behavior</font>
-<font color="red">undefined-behavior</font>
-
-<font color="orange">ill-formed</font>
-<font color="red">undefined-behavior</font>
-
-<font color="red">undefined-behavior</font>
-<font color="red">undefined-behavior</font></pre>
-   </td>
-
-    <td>
-<pre>
-<font color="orange">ill-formed</font>
-<font color="orange">ill-formed</font>
-
-<font color="red">undefined-behavior</font>
-<font color="red">undefined-behavior</font>
-
-<font color="red">undefined-behavior</font>
-<font color="red">undefined-behavior</font>
-
-<font color="orange">ill-formed</font>
-<font color="red">undefined-behavior</font>
-
-<font color="orange">ill-formed</font>
-<font color="red">undefined-behavior</font></pre>
-   </td>
-  </tr>
-
-<tr>
-    <td colspan="3">
-      <p>Dynamic range with matching size (5 vs 5)</p>
-	</td>
-  </tr>
-
-  <tr>
-    <td>
-<pre>
-processFixed(v5);                                             //
-processFixed({v5.data(), v5.data() + 5});                     //
-
-processFixed(span&lt;int, 5&gt;(v5));                               //
-processFixed(span&lt;int, 5&gt;{v5.data(), v5.data() + 5});         //
-
-processFixed(span&lt;int&gt;(v5).first&lt;5&gt;());                       //
-processFixed(span&lt;int&gt;{v5.data(), v5.data() + 5}.first&lt;5&gt;()); //
-
-span&lt;int, 5&gt; s = v5;                                          //
-span&lt;int, 5&gt; s(v5);                                           //
-
-span&lt;int, 5&gt; s = {v5.data(), v5.data() + 5};                  //
-span&lt;int, 5&gt; s{v5.data(), v5.data() + 5};                     //
-</pre>
-    </td>
-
-    <td>
-<pre>
-<font color="orange">ill-formed</font>
-<font color="green">ok</font>
-
-<font color="orange">ill-formed</font>
-<font color="green">ok</font>
-
-<font color="green">ok</font>
-<font color="green">ok</font>
-
-<font color="orange">ill-formed</font>
-<font color="green">ok</font>
-
-<font color="green">ok</font>
-<font color="green">ok</font></pre>
-   </td>
-
-    <td>
-<pre>
-<font color="orange">ill-formed</font>
-<font color="orange">ill-formed</font>
-
-<font color="green">ok</font>
-<font color="green">ok</font>
-
-<font color="green">ok</font>
-<font color="green">ok</font>
-
-<font color="orange">ill-formed</font>
-<font color="green">ok</font>
-
-<font color="orange">ill-formed</font>
-<font color="green">ok</font></pre>
-   </td>
-  </tr>
-
-</tbody></table -->
+</tbody></table>
 
 
 <h2><a name="history">2. Revision history</a></h2>
@@ -312,10 +197,91 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
 
 <h3><a name="motivation.perf">3.2. Expressing required values directly</h3>
 
-TODO:
-* layouts already require input stride, and compute it internally, including cost of divsion
-* proposed changes passes them directly
-* 2x speedup if value is know
+<p>Creation of subset of multidimensional index space (<code>submdspan</code>) requires
+<i>output extent</i> to be know. In the model, where user provides <i>input extent</i>,
+these computation are duplicated for each layout. As transforming input extent into 
+output extent involving dividing by extent.</p>
+
+<p>In contrast, with changes proposed in this paper, values of <code>strided_slice</code>,
+directly represents value used by <code>submdspan</code> creation, and we canonicalize
+the type of they representation (<code>index_type</code> or <code>constant_wrapper</code>
+of it).</p>
+
+<p>This also leads to measurable speedup for <code>submdspan</code> invocation, when
+the value of <i>output extent</i> is know (for example being reused). Results from 
+limited benchmark:</p>
+
+<table><tbody>
+  <tr><th colspan=3><code>submdspan(md, strided_slice{0, span, stride})</code></th></tr>
+  <tr>
+    <th><code>stride</code></th>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+  <tr>
+    <th><code>span</code></th>
+    <th><code>10</code></th>
+    <th><code>1 + 9 / stride</code></th>
+  </tr>
+  <tr>
+    <td><code>3</code></td>
+    <td>3.03 ns</td>
+    <td>1.52 ns</td>
+  </tr>
+  <tr>
+    <td><code>1</code></td>
+    <td>3.03 ns</td>
+    <td>1.51 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;3&gt;</code></td>
+    <td>1.01 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;1&gt;</code></td>
+    <td>1.02 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+
+</tbody></table>
+
+<p>As previously mentioned <code>range_slice</code> can be used if usage of
+<i>input extent</i> is preferred. An result from benchmark similar to one
+used above show non difference in the performance:</p>
+
+<table><tbody>
+  <tr><th colspan=3><code>submdspan(md, range_slice{0, 10, stride})</code></th></tr>
+  <tr>
+    <th><code>stride</code></th>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+  <tr>
+    <td><code>3</code></td>
+    <td>3.03 ns</td>
+    <td>3.03 ns</td>
+  </tr>
+  <tr>
+    <td><code>1</code></td>
+    <td>3.03 ns</td>
+    <td>1.52 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;3&gt;</code></td>
+    <td>1.01 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;1&gt;</code></td>
+    <td>1.01 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+
+</tbody></table>
+
+<p>More details about above results may be found
+<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065129.html">here</a>.</p>
 
 <h3><a name="motivation.static-extent">3.3. Example of static <i>output extent</i> usage</a></h3>
 
@@ -356,12 +322,19 @@ TODO:
    While the paper does not lift current preconditions on stride value being non-zero,
    it allows such strides to be allowed in future.</p>
 
-<h2><a name="impact">4. Impact and Implementability</a></h2>
+<h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
+
+TODO 
+
+<h2><a name="impact">5. Impact and Implementability</a></h2>
+
+<p>This paper only impacts the behavior of <code>std::submdspan</code> library function,
+that was introduced in C++26.</p>
 
 <p>A <a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">patch series</a>
 implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</p>
 
-<h2><a name="wording">5. Proposed Wording</a></h2>
+<h2><a name="wording">6. Proposed Wording</a></h2>
 
 <p>The proposed wording changes refer to <a href="http://wg21.link/n5032"></a> N5032 (C++ Working Draft, 2025-12-15).</p>
 
