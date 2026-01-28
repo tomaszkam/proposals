@@ -63,7 +63,7 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>Adjusting meaning  <code>strided_slice::extent</code> to make it more generic</title>
+<title>Adjusting the meaning of strided_slice::extent make it more generic</title>
 </head>
 
 <body data-gr-c-s-loaded="true">
@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D3982R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-01-27</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-01-28</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -83,14 +83,23 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">Adjusting meaning  <code>strided_slice::extent</code> to make it more generic</a></h1>
+<h1><a name="title">Adjusting the meaning of <code>strided_slice::extent</code> to make it more generic</a></h1>
 
 <h2><a name="intro">1. Introduction</a></h2>
 
 <p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
 
-<p>This paper proposes to adjust the meaning of <code>strided_slice::extent</code> member,
-   to designate the desired number of elements in produced range.</p>
+<p>This paper proposes three changes:<ol>
+<li>Adjusting the meaning of <code>strided_slice::extent</code> member,
+ to designate the desired number of elements in produced range.
+ <b>This change would be breaking after C++26 is shipped.</b></li>
+<li>Introduces a non-canonical <code>range_slice</code> slice type,
+ that expresses <code>(first, last, stride)</code> interface provided for range
+ slicing in other programming languages.</b></li>
+<li>Expands slice canonicalization, so elements of any type that can
+ be decomposed into tree values (including <code>tuple</code> and <code>range_slice</code>),
+ are treated as <code>(first, last, stride)</code>.</li>
+</ol></p>
 
 <table><tbody>
   <tr>
@@ -171,14 +180,16 @@ std::strided_slice{2, <b>3</b>,  3};
        <code>array(first:lasst)</code> and <code>array(first:last:step)</code>,</li>
    <li><a href="https://docs.python.org/3/library/functions.html#slice">python</a>:
        <code>array[first:last]</code> and <code>array[first:last:step]</code>,</li>
-   <li><a href="https://docs.python.org/3/library/functions.html#slice">rust</a>:
-       <code>array[first..last]</code>, <code>array[first..]</code>, <code>array[..last]</code> and <code>array[..]</code>.</li>
+    <li><a href="https://docs.python.org/3/library/functions.html#slice">python</a>:
+       <code>array[first:last]</code> and <code>array[first:last:step]</code>,</li>
+   <li><a href="https://www.mathworks.com/company/technical-articles/matrix-indexing-in-matlab.html">Matlab</a>:
+       <code>array(first:last)</code>, <code>array(first:step:last)</code>.</li>
   </ul>
   Based on the inituition build from other languages, the <code>submdspan(md, strided_slice{2, 5, 1})</code>,
   should select elements <code>[2, 5)</code>, instead of <code>[2, 7)</code> as currently specified.
 </p>
 
-<p>To provide a interface consistent with existing practice in other language, we propose
+<p>To provide a interface consistent with existing practice in majority of languages, we propose
   extension to set of acceptable slice type to types that decompose into tree values that
   are compatible with index type. So in addition to accepting pairs (including two element
   <code>tuple</code>) representing selection of <code>first, last</code>, we propose to
@@ -194,6 +205,22 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     [[no_unique_addresss] StrideType stride{};
   };
 </pre>
+
+<p>Note that such extension goes directly against the reasoning for current design of
+<code>strided_slice</code> expressed in <q>2.1.1.2 Strided index range slice specifier</q> of 
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html">P2630R4: Submdspan</a>,
+paper:</p>
+<blockquote>
+ We use a struct with named fields instead of a <code>tuple</code>, in order to avoid confusion
+ with the order of the three values.
+</blockquote>
+
+<p>While the author agrees that proposed order may be unintuitive for Matlab users,
+ such confusion can be easily addressed by defining following helper in locally:</p>
+<pre>template&lt;typename FirstType, typename StrideType, typename LastType&gt;
+   constexpr std::range_slice&lt;FirstType, LastType, StrideType&gt;
+   matlab_slice(FirstType first, StrideType stride, LastType last)
+   { return {first, last, stride}; }</pre>
 
 <h3><a name="motivation.perf">3.2. Expressing required values directly</h3>
 
@@ -293,7 +320,7 @@ used above show non difference in the performance:</p>
 <p>Note that the number of number of elements in the <code>smd</code> is always know
    statically, regardless if source span had static extents.</p>
 
-<h3><a name="motivation.static-extent">3.4. Example of zero stride value usage</a></h3>
+<h3><a name="motivation.zero-stride">3.4. Example of zero stride value usage</a></h3>
 
 <p>Using a zero as the value of the <code>stride</code> leads to non-unique mappings
   (incrementing the index does not change the referenced element), thus they are not
@@ -303,7 +330,7 @@ used above show non difference in the performance:</p>
   user defined mappings, that are not required to be unique, and any mapping can
   be queried (<code>is_always_unique</code>, <code>is_unique</code>) for this property.</p>
 
-<p>One could imagine <code>layout_strided_nonunique</code> layout, that is equivalent
+<p>One could imagine <code>layout_strided_relaxed</code><sup>1</sup> layout, that is equivalent
   to <code>layout_strided</code>, except that it does not require that provided strides,
   results in non-unique mapping. In case of <code>mdspan</code> with such mapping, stride
   of value zero may be used to create layout that broadcast single element:</p>
@@ -313,9 +340,13 @@ used above show non difference in the performance:</p>
 <p>For above example <code>smd[0], smd[1], ..., smd[4]</code> each result in reference
   to <code>md[3]</code>.</p>
 
-<p>As mentioned before such slice specification is not representable to currently.
-  While the paper does not lift current preconditions on stride value being non-zero,
+<p>As mentioned before such slice specification is not representable currently.
+  While the paper does not lift current requirements on stride value being non-zero,
   it allows such strides to be allowed in future for subset of mappings.</p>
+
+<p><sup>1</sup> A version of <code>layout_strided_relaxed</code> was 
+  <a href="https://github.com/NVIDIA/cccl/pull/7175">recently proposed</a> for inclusion
+  to NVIDIA ccl library.</p>
 
 <h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
 
@@ -430,7 +461,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
       <li><ins>-7.?- <code>[E::index_type(s.offset), E::index_type(s.offset))</code>,
 	if <code>S</code> is a specialization of <code>strided_slice</code> and <code>E::index_type(s.extent)</code> is zero;
 	otherwise</ins></li>
-      <li>-7.2- <code>[E::index_type(s.offset), E::index_type(s.offset + <ins>+ 1 + (</ins>s.extent <ins> - 1) * s.stride</ins>))</code>,
+      <li>-7.2- <code>[E::index_type(s.offset), E::index_type(s.offset + <ins>1 + (</ins>s.extent <ins> - 1) * s.stride</ins>))</code>,
 	if <code>S</code> is a specialization of <code>strided_slice</code>; otherwise</li>
       <li>-7.3- <code>[E::index_type(s), E::index_type(s)+1)</code></li>
       </ul></li>
@@ -449,7 +480,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 	  is less than or equal to <code><i>x</i></code>;
 	</li>
 	<li>-8.1.3- if <del>both <code>S::offset_type</code> and</del><code>S::extent_type</code>
-	 <del>are</del><ins>is</ins> specialization<del>s</del> of <code>constant_wrapper</code><ins>
+	 <del>are</del><ins>is a</ins> specialization<del>s</del> of <code>constant_wrapper</code><ins>
 	  and <code>S::extent_type::value</code> is greater then zero</ins> then, <ul>
 	  <li><ins>-8.1.3.2- if <code>S::offset_type</code> specialization of <code>constant_wrapper</code>,
 	    then <code>S::offset_type::value + S::extent_type::value</ins></code> is less than or equal to
@@ -492,7 +523,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 
   <dl class="attribute">
 
-    <dd>-1- <code>strided_slice</code><ins> and <code>range_range</code></ins> represent<del>s</del>
+    <dd>-1- <code>strided_slice</code><ins> and <code>range_slice</code></ins> represent<del>s</del>
       a set of extent regularly spaced integer indices. The indices start at <code>offset</code>
       <ins>and <code>first</code> respectively</ins>, and increase by increments of
       <code>stride</code>.</dd>
@@ -561,7 +592,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 
 <ins>
 <pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
-      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypes.. strides);</pre>
+      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypesi... strides);</pre>
 
   <dl class="attribute">
     <dd>-?- Let:<ul>
@@ -619,12 +650,12 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
       return canonical-index&lt;IndexType&gt;(std::move(s));
     } else if constexpr (is-strided-slice&lt;S&gt;) {
       <ins>return strided_slice{
-        .offset = canonical-index&lt;IndexType&gt;(std::move(s.extent)),
-        .extent = canonical-index&lt;IndexType&gt;(std::move(s.offset)),
-        .stride = canonical-index&lt;IndexType&gt;(std::move(s.stride))
+        .offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent)),
+        .extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset)),
+        .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
       }</ins>
-      <del>auto c_extent = canonical-index&lt;IndexType&gt;(std::move(s.extent));
-      auto c_offset = canonical-index&lt;IndexType&gt;(std::move(s.offset));
+      <del>auto c_extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent));
+      auto c_offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset));
       if constexpr (is_same_v&lt;decltype(c_extent), constant_wrapper&lt;IndexType(0)&gt;&gt;) {
         return strided_slice{
           .offset = c_offset,
@@ -635,22 +666,22 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
          return strided_slice{
            .offset = c_offset,
            .extent = c_extent,
-           .stride = canonical-index&lt;IndexType&gt;(std::move(s.stride))
+           .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
 	 };
       }</del>
     } else {
       auto [s_first, s_last<ins>, ...s_stride</ins>] = std::move(s);
-      auto c_first = canonical-index&lt;IndexType&gt;(std::move(s_first));
-      auto c_last  = canonical-index&lt;IndexType&gt;(std::move(s_last));
+      auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_first));
+      auto c_last  = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_last));
       <del>return strided_slice{
           .offset = c_first,
-          .extent = canonical-index&lt;IndexType&gt;(c_last - c_first),
+          .extent = <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
           .stride = cw&lt;IndexType(1)&gt;
         };</del>
       <ins>return <i>canonical-slice-range</i>&lt;IndexType&gt;(
                c_first,
-	       canonical-index&lt;IndexType&gt;(c_last - c_first),
-	       canonical-index&lt;IndexType&gt;(std::move(s_stride))...);</ins>
+	       <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
+	       <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_stride))...);</ins>
     }
     </pre></dd>
 
@@ -696,7 +727,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 	<ins>Σ<sub><i>k</i></sub>::extent_type::value</code></ins> if
 	<code>Σ<sub><i>k</i></sub></code> is a specialization of <code>strided_slice</code>
 	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s</ins>
-	specialization<del>s</del> of <code>constatnt_wrapper</code>;</li>
+	specialization<del>s</del> of <code>constant_wrapper</code>;</li>
 	<li>-5.2.4- otherwise, <code>dynamic_extent</code>.</li>
       </ul></li>
     </ul></p></dd>
@@ -742,9 +773,17 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 <p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
 Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
 
-<!--h2><a name="acknowledgements">6. Acknowledgements</a></h2-->
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
 
-<h2><a name="literature">7. References</a></h2>
+<p>Mark Hoemmen and Christian Trott offered many useful suggestions and
+  corrections to the proposal.</p>
+
+<p>Special thanks and recognition goes to Red Hat
+(<a href="https://www.redhat.com/">https://www.redhat.com</a>) for supporting
+the production of this proposal  and author's participation in standardization
+committee.</p>
+
+<h2><a name="literature">8. References</a></h2>
 
 <ol>
   <li>Poland,
@@ -754,6 +793,10 @@ Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of 
   <li>Tomasz Kamiński,
       "[RFC O/2] libstdc++: Implement PL007 changes to submdspan",
           (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html</a>)</li>
+
+  <li>Christian Trott, Damien Lebrun-Grandie, Mark Hoemmen, Nevin Liber
+      "Submdspan",
+          (P2630R4, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html</a>)</li>
 
   <li>Thomas Köppe,
       "Working Draft, Standard for Programming Language C++"
