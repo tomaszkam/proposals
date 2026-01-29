@@ -95,10 +95,12 @@ td { text-align: left; vertical-align: top;
  <b>This change would be breaking after C++26 is shipped.</b></li>
 <li>Introduces a non-canonical <code>range_slice</code> slice type,
  that expresses <code>(first, last, stride)</code> interface provided for range
- slicing in other programming languages.</b></li>
+ slicing in other programming languages.
+ <b>This is extension that can be added in later standard.</b></li>
 <li>Expands slice canonicalization, so elements of any type that can
  be decomposed into tree values (including <code>tuple</code> and <code>range_slice</code>),
- are treated as <code>(first, last, stride)</code>.</li>
+ are treated as <code>(first, last, stride)</code>.<b>This is further extension,
+ that can be added on top of above in later standard.</b></li>
 </ol></p>
 
 <table><tbody>
@@ -144,7 +146,7 @@ std::strided_slice{2, <b>3</b>,  3};
 <p>For the invocation of in the form <code>smd = submdspan(md, strided_slice{offset, extent, stride})</code>,
   there are two ranges of indices of elements that we are referring to:</p>
   <ul>
-    <li><i>input extent</i>: size of the range of indices into <code>md</code>, that can be accessed <code>smd</code>,</li>
+    <li><i>input span</i>: size of the range of indices into <code>md</code>, that can be accessed <code>smd</code>,</li>
     <li><i>output extent</i>: size of the range of indices that are valid indices for <code>smd</code>.</li>
   </ul>
 </p>
@@ -152,13 +154,13 @@ std::strided_slice{2, <b>3</b>,  3};
 <p>Given the above, there are two possible interpretations of the <code>extent</code> for the above example,
   and <code>extent</code> can be interpreted as:
   <ul>
-    <li><i>input extent</i>, thus <i>output extent</i> is <code>1 + (extent - 1) / stride</code></li>
-    <li><i>output extent</i>, thus <i>input extent</i> is <code>extent * stride</code></li>
+    <li><i>input span</i>, thus <i>output extent</i> is <code>1 + (extent - 1) / stride</code></li>
+    <li><i>output extent</i>, thus <i>input span</i> is <code>extent * stride</code></li>
   </ul>
 </p>
 
 <p>In majority of the cases, this two meanings are functionally equivalent and they can be transformed
-  into each other. However, due use of the division in the <i>input extent</i> interpretation
+  into each other. However, due use of the division in the <i>input span</i> interpretation
   does not support following:
   <ul>
     <li><code>stride</code> of value of zero, that could be used to produce non-unique layouts,</li>
@@ -171,7 +173,7 @@ std::strided_slice{2, <b>3</b>,  3};
 
 <h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code> and extending decomposable slices</a></h3>
 
-<p>One of the argument of the for uses of the <i>input extent</i> as <code>stride_slice::extent</code>
+<p>One of the argument of the for uses of the <i>input span</i> as <code>stride_slice::extent</code>
   value, was consistency with the interface provided for range slicing in the other languages.
   However, from the survey of the interface in common languages shows that <code>first, last</code>
   range is used instead of <code>offset, length</code>:
@@ -225,7 +227,7 @@ paper:</p>
 <h3><a name="motivation.perf">3.2. Expressing required values directly</h3>
 
 <p>Creation of subset of multidimensional index space (<code>submdspan</code>) requires
-<i>output extent</i> to be know. In the model, where user provides <i>input extent</i>,
+<i>output extent</i> to be know. In the model, where user provides <i>input span</i>,
 <i>output extent</i> computation is performed, and thus duplicated in each layout.</p>
 
 <p>In contrast, with changes proposed in this paper, <code>strided_slice</code> members,
@@ -270,7 +272,7 @@ speed-up. For illustration a result of limited benchmark are included below:</p>
 </tbody></table>
 
 <p>As previously mentioned <code>range_slice</code> can be used if passing
-<i>input extent</i> is preferred. An result from benchmark similar to one
+<i>input span</i> is preferred. An result from benchmark similar to one
 used above show non difference in the performance:</p>
 
 <table><tbody>
@@ -308,7 +310,7 @@ used above show non difference in the performance:</p>
 
 <h3><a name="motivation.static-extent">3.3. Example of static <i>output extent</i> usage</a></h3>
 
-<p>As mentioned before using current <i>input extent</i> specification does not allow
+<p>As mentioned before using current <i>input span</i> specification does not allow
   selecting a statically sized subset of elements with dynamic stride. For example, let's
   imagine that we want to select 5 elements, evenly spaced from the <code>mdspan md</code>.</p>
 
@@ -330,7 +332,7 @@ used above show non difference in the performance:</p>
   user defined mappings, that are not required to be unique, and any mapping can
   be queried (<code>is_always_unique</code>, <code>is_unique</code>) for this property.</p>
 
-<p>One could imagine <code>layout_strided_relaxed</code><sup>1</sup> layout, that is equivalent
+<p>One could imagine <code>layout_stride_relaxed</code><sup>1</sup> layout, that is equivalent
   to <code>layout_strided</code>, except that it does not require that provided strides,
   results in non-unique mapping. In case of <code>mdspan</code> with such mapping, stride
   of value zero may be used to create layout that broadcast single element:</p>
@@ -344,9 +346,9 @@ used above show non difference in the performance:</p>
   While the paper does not lift current requirements on stride value being non-zero,
   it allows such strides to be allowed in future for subset of mappings.</p>
 
-<p><sup>1</sup> A version of <code>layout_strided_relaxed</code> was 
+<p><sup>1</sup> A version of <code>layout_stride_relaxed</code> was 
   <a href="https://github.com/NVIDIA/cccl/pull/7175">recently proposed</a> for inclusion
-  to NVIDIA ccl library.</p>
+  to NVIDIA cccl library.</p>
 
 <h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
 
@@ -592,7 +594,7 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
 
 <ins>
 <pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
-      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypesi... strides);</pre>
+      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypes... strides);</pre>
 
   <dl class="attribute">
     <dd>-?- Let:<ul>
