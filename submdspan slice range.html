@@ -90,8 +90,9 @@ td { text-align: left; vertical-align: top;
 <p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
 
 <p>This paper proposes three changes:<ol>
-<li>Adjusting the meaning of <code>strided_slice::extent</code> member,
- to designate the desired number of elements in produced range.
+<li>Renaming the <code>stride_slice</code> to <code>extent_stride</code> and
+ adjusting the meaning of <code>extent</code> member, to designate the desired
+ number of elements in produced range.
  <b>This change would be breaking after C++26 is shipped.</b></li>
 <li>Introduces a non-canonical <code>range_slice</code> slice type,
  that expresses <code>(first, last, stride)</code> interface provided for range
@@ -350,9 +351,23 @@ used above show non difference in the performance:</p>
   <a href="https://github.com/NVIDIA/cccl/pull/7175">recently proposed</a> for inclusion
   to NVIDIA cccl library.</p>
 
+<h3><a name="motivation.zero-stride">3.4. Rename of <code>strided_slice</code></a></h3>
+
+<p>After expanding the set of accepted slice types, the <code>strided_slice</code> name
+does not capture the difference well (as <code>range_slice</code> is also strided), thus
+we propose to rename the class to <code>extent_slice</code>.</p>
+
+<p><code>extent_slice</code> name was selected to focus on the fact that we it members
+define size (extent) produced of multidimensional index space, i.e. it directly reflects
+the value of <code>smd.extent(k)</code>, where <code>smd</code> is produced <code>mdspan</code>,
+and <code>k</code> is index of dimension to which slice is applied.</p>
+
+<p>We also avoid using words commonly used to refer to the range like "size",
+"length" (as in offset + length), "span".</p>
+
 <h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
 
-<p>While expansion of the accepted strided type, to support types decomposable
+<p>While expansion of the accepted stride type, to support types decomposable
 into tree elements and <code>std::range_slice</code> class template, are pure extension,
 and could be added into later standard, the changes to <code>strided_slice</code> needs
 to be applied before shipping <code>submdspan</code>.</p>
@@ -365,10 +380,10 @@ input without loss of precision. As illustrated by this documented current speci
 of <code>strided_slice</code> fails in both account (it incurs cost of division, and cannot
 be used for non-unique layouts).</p>
 
-<p>As we currently reserve rights to introduced additional cannonical stride types, 
-we could imagine  imagine introducing an separate <code>cannonical_strided_slice</code> 
-in the later standard. However, in contrast to ammending <code>strided_slice</code>,
-this esentially duplicates amount of types that need to be handled by layouts,
+<p>We currently reserve rights to introduced additional canonical stride types, 
+we could imagine  imagine introducing an separate <code>canonical_strided_slice</code> 
+in the later standard. However, in contrast to amending <code>strided_slice</code>,
+this essentially duplicates amount of types that need to be handled by layouts,
 as pre-existing code depending on sliceable layout requirements may still produce
 object of <code>strided_slice</code> specialization type.</p>
 
@@ -378,7 +393,7 @@ object of <code>strided_slice</code> specialization type.</p>
 that was introduced in C++26.</p>
 
 <p>A <a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">patch series</a>
-implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</p>
+implementing proposed wording changes (except rename) to <code>submdspan</code> in libstdc++.</p>
 
 <h2><a name="wording">6. Proposed Wording</a></h2>
 
@@ -771,6 +786,9 @@ implementing proposed  wording changes to <code>submdspan</code> in libstdc++.</
  </dl>
 
 </blockquote>
+
+<p>Replace all occurrences of <code>strided_slice</code> and <code><i>is-strided-slice</i></code>
+in [mdspan.sub] with <code>extent_slice</code> and <code><i>is-extent-slice</i></code> respectively.</p>
 
 <p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
 Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
