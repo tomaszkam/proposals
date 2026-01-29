@@ -365,12 +365,38 @@ and <code>k</code> is index of dimension to which slice is applied.</p>
 <p>We also avoid using words commonly used to refer to the range like "size",
 "length" (as in offset + length), "span".</p>
 
-<h2><a name="ship-verhicle">4. Targeting C++26</a></h2>
+<h2><a name="ship-verhicle">4. Ship vehicle and pools</a></h2>
 
-<p>While expansion of the accepted stride type, to support types decomposable
-into tree elements and <code>std::range_slice</code> class template, are pure extension,
-and could be added into later standard, the changes to <code>strided_slice</code> needs
-to be applied before shipping <code>submdspan</code>.</p>
+<p>This paper proposes three changes:<ol>
+<li>Renaming the <code>stride_slice</code> to <code>extent_stride</code> and
+ adjusting the meaning of <code>extent</code> member, to designate the desired
+ number of elements in produced range.</li>
+<li>Introduces a non-canonical <code>range_slice</code> slice type,
+ that expresses <code>(first, last, stride)</code> interface provided for range
+ slicing in other programming languages.</li>
+<li>Expands slice canonicalization, so elements of any type that can
+ be decomposed into tree values (including <code>tuple</code> and <code>range_slice</code>),
+ are treated as <code>(first, last, stride)</code>.</li>
+</ol></p>
+
+<p>From the above only the <b>first change</b> need to be applied in the C++26 timeframe,
+ and later are extension that can be applied in the further standards.</p>
+
+<h3><a name="ship-verhicle">4.1. Proposed pools</a></h3>
+
+<p>1. Accept rename and changes to <code>stride_class</code> class template 
+ from P3982R0 to C++26.</p>
+
+<p>2. Accept the introduction of <code>slice_range</code> class template
+ from P3982R0 to C++26.</p> 
+
+<p>3. Accept any type decomposable into tree elements as <code>submdspan</code>
+ slice type as proposed in P3982R0 to C++26.</p>
+
+<p>4. Accept any type decomposable into tree elements as <code>submdspan</code>
+ slice type tas proposed in P3982R0 to C++29.</p>
+
+<h3><a name="ship-verhicle.strided_slice">4.1. <code>stride_slice</code> needs to target C++26</a></h3>
 
 <p>As <code>strided_slice</code> is part of the cannonical slice types, that define
 interface between the <code>submdspan</code> (and potentially other components providing
@@ -386,6 +412,20 @@ in the later standard. However, in contrast to amending <code>strided_slice</cod
 this essentially duplicates amount of types that need to be handled by layouts,
 as pre-existing code depending on sliceable layout requirements may still produce
 object of <code>strided_slice</code> specialization type.</p>
+
+<h3><a name="ship-verhicle.range_slice">4.2. <code>range_slice</code> should target C++26</a></h3>
+
+<p>While <code>range_slice</code> can be added later as extension, the authors strongly
+believe that ergonomic of the <code>submdspan</code> API will be severly degraded, without
+ability to specificy <i>input span</i>.</p>
+
+<p>During the work on this paper, one of the authors (Tomasz) made following mistake,
+when transforming <i>input span</i> <code>span</code> to <i>output extent</i>:<ul>
+<li>using <code>span / stride</code>,</li>
+<li>using <code>(span - 1) / stride</code> (missing <code>+1</code>),</li>
+<li>not accounting for <code>span</code> equal to zero.</li>
+</ul>Illustrating that even for programmers familar with the topic, such computation
+remain bug-prone.</p>
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
