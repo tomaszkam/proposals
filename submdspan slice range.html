@@ -81,6 +81,9 @@ td { text-align: left; vertical-align: top;
   <tr>
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
+  <tr>
+    <th></th><th> </th><td><address>Mark Hoemmen &lt;&mark dot hoemmen at gmail dot com&gt;</address></td>
+  </tr>
 </tbody></table>
 
 <h1><a name="title">Adjusting the meaning of <code>strided_slice::extent</code> to make it more generic</a></h1>
@@ -98,10 +101,11 @@ td { text-align: left; vertical-align: top;
  that expresses the <code>(first, last, stride)</code> interface provided for range
  slicing in other programming languages.
  <b>This is an extension that can be added in a later Standard.</b></li>
-<li>Expand slice canonicalization, so elements of any type that can
- be decomposed into three values (including <code>tuple</code> and <code>range_slice</code>),
- are treated as <code>(first, last, stride)</code>.<b>This is another extension
- that can be added on top of the previous extension in a later Standard.</b></li>
+<li>Expand slice canonicalization, so elements of any type (other than <code>extent_stride</code>)
+ that can  be decomposed into three values (including <code>tuple</code> and
+ <code>range_slice</code>),  are treated as <code>(first, last, stride)</code>.
+ <b>This is another extension that can be added on top of the previous extension
+ in a later Standard.</b></li>
 </ol></p>
 
 <table><tbody>
@@ -112,12 +116,12 @@ td { text-align: left; vertical-align: top;
 
   <tr>
    <td><pre>
-std::strided_slice{0, 2, 1};
+std::strided_slice{0, 2, 3};
 </pre></td>
    <td><pre>
-std::strided_slice{0, <b>1</b>, 3};
-  std::range_slice{0, 2, 3};
-        std::tuple{0, 2, 1};
+std::extent_slice{0, <b>1</b>, 3};
+ std::range_slice{0, 2, 3};
+       std::tuple{0, 2, 3};
 </pre></td>
   </tr>
 
@@ -126,9 +130,9 @@ std::strided_slice{0, <b>1</b>, 3};
 std::strided_slice{2, 10, 3};
 </pre></td>
    <td><pre>
-std::strided_slice{2, <b>3</b>,  3};
-  std::range_slice{2, <b>12</b>, 3};
-        std::tuple{2, <b>12</b>, 3};
+std::extent_slice{2, <b>4</b>,  3};
+ std::range_slice{2, <b>12</b>, 3};
+       std::tuple{2, <b>12</b>, 3};
 </pre></td>
   </tr>
 
@@ -237,16 +241,16 @@ is known, or can be reused between invocations, passing it directly can lead to 
 speed-up. We illustrate this by including benchmark results below.</p>
 
 <table><tbody>
-  <tr><th colspan=3><code>submdspan(md, strided_slice{0, span, stride})</code></th></tr>
+  <tr><th colspan=3><code>submdspan(md, <i>prefix</i>_slice{0, span, stride})</code></th></tr>
   <tr>
     <th><code></code></th>
     <th>Before</th>
     <th>After</th>
   </tr>
   <tr>
-    <th><code>stride</code> \ <code>span</code></th>
-    <th><code>10</code></th>
-    <th><code>1 + 9 / stride</code></th>
+    <th><code>stride</code> \ <i>prefix</i>:<code>span</code></th>
+    <th><code>strided</code>:<code>10</code></th>
+    <th><code>extent</code>:<code>1 + 9 / stride</code></th>
   </tr>
   <tr>
     <td><code>3</code></td>
@@ -375,9 +379,9 @@ for example in the `std::ranges::sized_range` concept.</p>
 <li>Introduce a new non-canonical slice type <code>range_slice</code>,
  that expresses the <code>(first, last, stride)</code> interface for range
  slicing provided by other programming languages.</li>
-<li>Expand slice canonicalization, so elements of any type that can
- be decomposed into three values (including <code>tuple</code> and <code>range_slice</code>)
- are treated as <code>(first, last, stride)</code>.</li>
+<li>Expand slice canonicalization, so elements of any type (other than <code>extent_slice</code>)
+ that can be decomposed into three values (including <code>tuple</code> and
+ <code>range_slice</code>) are treated as <code>(first, last, stride)</code>.</li>
 </ol></p>
 
 <p>From the above only the <b>first change</b> need to be applied in the C++26 timeframe.
@@ -392,10 +396,10 @@ The others are extensions that could be applied to future standards.</p>
  from P3982R0 to C++26.</p> 
 
 <p>3. Accept any type decomposable into three elements as <code>submdspan</code>
- slice type as proposed in P3982R0 to C++26.</p>
-
-<p>4. Accept any type decomposable into three elements as <code>submdspan</code>
  slice type as proposed in P3982R0 to C++29.</p>
+
+<p>3. Accept any type decomposable into three elements as <code>submdspan</code>
+ slice type as proposed in P3982R0 to C++26.</p>
 
 <h3><a name="ship-vehicle.strided_slice">4.2. <code>stride_slice</code> needs to target C++26</a></h3>
 
@@ -836,13 +840,8 @@ Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of 
 
 <h2><a name="acknowledgements">7. Acknowledgements</a></h2>
 
-<p>Mark Hoemmen and Christian Trott offered many useful suggestions and
+<p>Christian Trott offered many useful suggestions and
   corrections to the proposal.</p>
-
-<p>Special thanks and recognition goes to Red Hat
-(<a href="https://www.redhat.com/">https://www.redhat.com</a>) for supporting
-the production of this proposal  and author's participation in standardization
-committee.</p>
 
 <h2><a name="literature">8. References</a></h2>
 
