@@ -82,7 +82,7 @@ td { text-align: left; vertical-align: top;
     <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
   </tr>
   <tr>
-    <th></th><th> </th><td><address>Mark Hoemmen &lt;&mark dot hoemmen at gmail dot com&gt;</address></td>
+    <th></th><th> </th><td><address>Mark Hoemmen &lt;mark dot hoemmen at gmail dot com&gt;</address></td>
   </tr>
 </tbody></table>
 
@@ -186,10 +186,10 @@ std::extent_slice{2, <b>4</b>,  3};
        <code>array(first:last)</code> and <code>array(first:last:step)</code></li>
    <li><a href="https://docs.python.org/3/library/functions.html#slice">python</a>:
        <code>array[first:last]</code> and <code>array[first:last:step]</code></li>
-    <li><a href="https://docs.python.org/3/library/functions.html#slice">python</a>:
-       <code>array[first:last]</code> and <code>array[first:last:step]</code></li>
    <li><a href="https://www.mathworks.com/company/technical-articles/matrix-indexing-in-matlab.html">Matlab</a>:
-       <code>array(first:last)</code>, <code>array(first:step:last)</code></li>
+       <code>array(first:last)</code> and <code>array(first:step:last)</code></li>
+   <li><a href="https://docs.python.org/3/library/functions.html#slice">rust</a>:
+       <code>array[first..last]</code>, <code>array[first..]</code>, <code>array[..last]</code> and <code>array[..]</code>.</li>
   </ul>
   Based on the inituition built from other languages, <code>submdspan(md, strided_slice{2, 5, 1})</code>,
   should select elements <code>[2, 5)</code>, instead of <code>[2, 7)</code> as currently specified.
@@ -354,13 +354,13 @@ used above show no significant performance difference.</p>
   <a href="https://github.com/NVIDIA/cccl/pull/7175">recently proposed</a> for inclusion
   in NVIDIA's CCCL library.</p>
 
-<h3><a name="motivation.zero-stride">3.4. Rename of <code>strided_slice</code></a></h3>
+<h3><a name="motivation.zero-stride">3.5. Rename of <code>strided_slice</code></a></h3>
 
 <p>After expanding the set of accepted slice types, the <code>strided_slice</code> name
 does not capture the difference well, as <code>range_slice</code> is also strided.  Thus,
 we propose to rename the class to <code>extent_slice</code>.</p>
 
-The <p><code>extent_slice</code> name was selected to focus on the fact that its members
+<p>The <code>extent_slice</code> name was selected to focus on the fact that its members
 define the size (extent) of the produced (output) multidimensional index space.  That is, it directly reflects
 the value of <code>smd.extent(k)</code>, where <code>smd</code> is the <code>mdspan</code> produced by <code>submdspan</code>,
 and <code>k</code> is the index of the extent to which the slice is applied.</p>
@@ -368,7 +368,7 @@ and <code>k</code> is the index of the extent to which the slice is applied.</p>
 <p>We also avoid using words commonly used to refer to the range like "size,"
 "length" (as in offset + length), or "span".
 The word "size" is particularly overloaded,
-for example in the `std::ranges::sized_range` concept.</p>
+for example in the <code>std::ranges::sized_range</code> concept.</p>
 
 <h2><a name="ship-vehicle">4. Ship vehicle and polls</a></h2>
 
@@ -424,7 +424,7 @@ as pre-existing code depending on sliceable layout requirements may still produc
 believe that the ergonomics of <code>submdspan</code> would be severly degraded, without
 the ability to specify a slice using an <i>input span</i>.</p>
 
-<p>During the work on this paper, one of the authors (Tomasz) made the following mistake,
+<p>During the work on this paper, one of the authors (Tomasz) made the following mistakes,
 when transforming the <i>input span</i> <code>span</code> to an <i>output extent</i>:<ul>
 <li>using <code>span / stride</code>,</li>
 <li>using <code>(span - 1) / stride</code> (missing <code>+1</code>),</li>
