@@ -442,6 +442,14 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
 
 <h2><a name="wording">6. Proposed Wording</a></h2>
 
+<p>Section 6.1 contains the wording for all the changes to C++26 we request in this paper,
+including the two new features (<code>range_slice</code>, and interpreting any type decomposable
+into three elements as <code>first : last : stride</code>).  Section 6.2 contains alternate wording
+for the minimum change to C++26, namely the change in meaning of the <code>extent</code> member
+of <code>strided_slice</code>.</p>
+
+<h3><a name="wording-requested">6.1 Wording that We Request</a></h3>
+
 <p>The proposed wording changes refer to <a href="http://wg21.link/n5032"></a> N5032 (C++ Working Draft, 2025-12-15).</p>
 
 <p>Apply following changes to section [mdspan.syn] Header <code>&lt;mdspan&gt;</code> synopsis:</p>
@@ -629,6 +637,379 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
     <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent =
     <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
     .first = 1, .last = 11, .stride = 3}</code></ins> indicate</del>s</del> the indices
+    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
+    selected from the half-open interval <code>[1, 1 + 10)</code>. — <i>end note</i>]
+  </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.helpers] Exposition-only helpers:</p>
+
+<blockquote class="std">
+<pre>    templatelt&;class IndexType, class S&gt;
+      constexpr auto canonical-index(S s);</pre>
+
+  <dl class="attribute">
+    <dt>-3- Mandates:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-4- Preconditions:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-5- Effects:</dt>
+    <dd>[&hellip;];<p></p></dd>
+  </dl>
+
+<ins>
+<pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
+      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypes... strides);</pre>
+
+  <dl class="attribute">
+    <dd>-?- Let:<ul>
+      <li><code>StrideType</code> be <code>constant_wrapper&lt;IndexType(1)&gt;</code>
+        if <code>sizeof...(StrideTypes) == 0</code> or <code>SpanType</code> denotes
+        <code>constant_wrapper&lt;IndexType(0)&gt;</code>, and
+	<code>StridesTypes...[0]</code> otherwise;</li>
+      <li><code>stride</code> be<ul>
+        <li><code>StrideType()</code> if <code>StrideType</code> is specialization
+	  of <code>constant_wrapper</code>, otherwise</li>
+	<li><code>IndexType(1)</code> if <code>span == 0</code> is <code>true</code>,
+	  otherwise</li>
+	<li><code>strides...[0]</code>;</li>
+      </ul></li>
+      <li><code><i>extent-value</i></code> be <code>1 + (span - 1) / stride</code>
+        if <code>span != 0</code> is <code>true</code>, and <code>0</code> otherwise;</li>
+      <li><code>extent</code> be <code>cw&lt;IndexType(<i>extent-value</i>)&gt;</code> if
+	both <code>SpanType</code> and <code>StrideType</code> are specializations of
+	<code>constant_wrapper</code>, and <code>IndexType(<i>extent-value</i>)</code>
+	otherwise.</li>
+    </ul><p></p></dd>
+
+    <dt>-?- Mandates:</dt>
+    <dd><br/><ul>
+      <li><code>sizeof..(StrideTypes) &lt;= 1</code> is <code>true</code>, and</li>
+      <li>if <code>StrideType</code> is specialization of <code>constant_wrapper</code>,
+        then <code>StrideType::value &gt; 0</code> is <code>true</code>.</li>
+    </ul><p></p></dd>
+
+    <dt>-?- Preconditions:</dt>
+    <dd><code>IndexType(stride) &gt; 0</code> is <code>true</code>.<p></p></dd>
+
+    <dt>-?- Returns:</dt>
+    <dd>
+      <code>strided_slice{ .offset = first, .extent = extent, .stride = stride };</code>
+    <p></p></dd>
+
+   </dl>
+</ins>
+
+<pre>    template&lt;class IndexType, class S&gt;
+      constexpr auto <i>canonical-slice</i>(S s);</pre>
+
+  <dl class="attribute">
+    <dt>-6- Mandates:</dt>
+    <dd>
+      <code>S</code> is a <code>submdspan</code> slice type for <code>IndexTye.</code>
+    <p></p></dd>
+
+    <dt>-7- Effects:</dt>
+    <dd>Equivalent to:<pre>
+    if constexpr (is_convertible_v&lt;S, full_extent_t&gt;) {
+      return static_cast&lt;full_extent_t&gt;(std::move(s));
+    } else if constexpr (is_convertible_v&lt;S, IndexType&gt;) {
+      return canonical-index&lt;IndexType&gt;(std::move(s));
+    } else if constexpr (is-strided-slice&lt;S&gt;) {
+      <ins>return strided_slice{
+        .offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent)),
+        .extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset)),
+        .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
+      }</ins>
+      <del>auto c_extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent));
+      auto c_offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset));
+      if constexpr (is_same_v&lt;decltype(c_extent), constant_wrapper&lt;IndexType(0)&gt;&gt;) {
+        return strided_slice{
+          .offset = c_offset,
+          .extent = c_extent,
+          .stride = cw&lt;IndexType(1)&gt;
+         };
+      } else {
+         return strided_slice{
+           .offset = c_offset,
+           .extent = c_extent,
+           .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
+	 };
+      }</del>
+    } else {
+      auto [s_first, s_last<ins>, ...s_stride</ins>] = std::move(s);
+      auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_first));
+      auto c_last  = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_last));
+      <del>return strided_slice{
+          .offset = c_first,
+          .extent = <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
+          .stride = cw&lt;IndexType(1)&gt;
+        };</del>
+      <ins>return <i>canonical-slice-range</i>&lt;IndexType&gt;(
+               c_first,
+	       <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
+	       <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_stride))...);</ins>
+    }
+    </pre></dd>
+
+  </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.extents] <code>submdspan_extents</code> function:</p>
+
+<blockquote class="std">
+<pre>    template&lt;class IndexType, size_t... Extents, class... SliceSpecifiers&gt;
+      constexpr auto submdspan_extents(const extents&lt;IndexType, Extents...&gt;&amp; src,
+                                       SliceSpecifiers... raw_slices);</pre>
+
+  <dl class="attribute">
+    <dd>-1- Let <code>slices</code> be [&hellip;];<p></p></dd>
+
+    <dt>-2- Constraints:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-3- Mandates:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-4- Preconditions:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dd><p>-5- Let <code>SubExtents</code> be a specialization of <code>extents</code> such that:<ul>
+      <li>-5.1- <code>SubExtents::rank()</code> equals <code><i>MAP_RANK</i>(slices,
+        Extents::rank());</code> and;</li>
+      <li>-5.2- for each rank index <code><i>k</i></code> of <del><code>Extents</code></del>
+      <ins><code>extents&lt;IndexType, Extents...&gt;</code></ins>
+      such that the type of <code>slices...[<i>k</i>]</code> is not a collapsing
+      slice type, <code>SubExtents::static_extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code>
+      equals the following, where <code>Σ<sub><i>k</i></sub></code> denotes the type of
+      <code>slices...[<i>k</i>]</code>:<ul>
+	<li>-5.2.1- <code>Extents::static_extent(<i>k</i>)</code> if <code>Σ<sub><i>k</i></sub></code>
+	denotes the <code>full_extent_t</code>; otherwise</li>
+	<li><del>-5.2.2- <code>0</code>, if <code>Σ<sub><i>k</i></sub></code> is a specialization
+	of <code>strided_slice</code> and <code>Σ<sub><i>k</i></sub>::extent_type</code> denotes
+	<code>constant_wrapper&lt;IndexType(0)&gt;</code>; otherwise</del></li>
+	<li>-5.2.3- <del><code>1 + ((Σ<sub><i>k</i></sub>::extent_type::value - 1) /
+	Σ<sub><i>k</i></sub>::stride_type::value)</code></del>
+	<ins>Σ<sub><i>k</i></sub>::extent_type::value</code></ins> if
+	<code>Σ<sub><i>k</i></sub></code> is a specialization of <code>strided_slice</code>
+	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s</ins>
+	specialization<del>s</del> of <code>constant_wrapper</code>;</li>
+	<li>-5.2.4- otherwise, <code>dynamic_extent</code>.</li>
+      </ul></li>
+    </ul></p></dd>
+
+    <dt>-6- Returns:</dt>
+    <dd><p>A value <code>ext</code> of type <code>SubExtents</code> such that for 
+      each index <code><i>k</i></code> of <code>extents&lt;IndexType, Extents...&gt;</code>,
+      where the type of <code>slices...[<i>k</i>]</code> is not a collapsing
+      slice type, <code>ext.extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code> equals
+      the following where <code>σ<sub><i>k</i></sub></code> denotes 
+      <code>slices...[<i>k</i>]</code>:<ul>
+      <li>-6.1- <code>σ<sub><i>k</i></sub>.extent<del> == 0 ? 0 : 1 +
+      (σ<sub><i>k</i></sub>.extent - 1) / σ<sub><i>k</i></sub>.stride</del></code>
+      if the type of σ<sub><i>k</i></sub> is specialization of <code>strided_slice</code>,</li>
+      <li>-6.2- otherwise, <code><i>U</i>−<i>L</i></code>, where <code>[L, U)</code> is the
+      <code>submdspan</code> slice range of <code>σ<sub><i>k</i></sub></code> for the
+      <code>k<sup>th</sup></code> extent of <code>src</code>.</li>
+    </ul></p></dd>
+
+ </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.map.common] Common:</p>
+
+<blockquote class="std">
+  <dl class="attribute">
+    <dd><p>-6- Let <code>sub_strides</code> be an <code>array&lt;SubExtents::index_type,
+      SubExtents::rank()&gt;</code> such that for each rank index <code><i>k</i></code>
+      of <code>extents()</code> for which the type of <code>slices...[<i>k</i>]</code> 
+      is not a collapsing slice type, <code>sub_strides[MAP_RANK(slices,<i>k</i>)]</code>
+      equals<ins>:<ul>
+      <li>-6.1- <code>stride(k) * s.stride</code> if type of <code>s</code> is a
+	a specialization of <code>strided_slice</code> and <code><del>s.stride &lt; s.extent</del></code>
+	<code><ins>s.extent &gt; 1</ins></code> is <code>true</code>, where
+	<code>s</code> is <code>slices...[<i>k</i>]</code>;</li>
+      <li>-6.2- otherwise, <code>stride(k)</code>.</li>
+    </ul></p></dd>
+ </dl>
+
+</blockquote>
+
+<p>Replace all occurrences of <code>strided_slice</code> and <code><i>is-strided-slice</i></code>
+in [mdspan.sub] with <code>extent_slice</code> and <code><i>is-extent-slice</i></code> respectively.</p>
+
+<p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
+Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
+
+<h3><a name="wording-minimal">6.2 Minimal Wording Option</a></h3>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n5032"></a> N5032 (C++ Working Draft, 2025-12-15).</p>
+
+<p>Apply following changes to section [mdspan.sub.overview] Overview :</p>
+<blockquote class="std">
+
+  <dl class="attribute">
+    <dd><p>-1- The <code>submdspan</code> facilities create a new <code>mdspan</code>
+    viewing a subset of elements of an existing input <code>mdspan</code>.
+    The subset viewed by the created mdspan is determined by the
+    <code>SliceSpecifier</code> arguments.</p></dd>
+
+    <dd><p>-2- Given a signed or unsigned integer type <code>IndexType</code>, a
+    type <code>S</code> is a <i></code>submdspan</code> slice type for <code>IndexType</code></i>
+    if at least one of the following holds:<ul>
+      <li>-2.1- <code>is_convertible_v&lt;S, full_extent_t&gt;</code> is <code>true</code>;</li>
+      <li>-2.2- <code>is_convertible_v&lt;S, IndexType&gt;</code> is <code>true</code>;</li>
+      <li>-2.3- <code>S</code> a specialization of <code>strided_slice</code> and
+      <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
+      for <code><i>X</i></code> denoting <code>S::offset_type</code>, <code>S::extent_type</code>,
+      and <code>S::stride_type;</code> or</li>
+      <li>-2.4- all of the following hold:<ul>
+        <li>-2.4.1- the declaration <code>auto [...ls] = std::move(s);</code> is
+             well-formed for some object <code>s</code> of type <code>S</code>,</li>
+	<li>-2.4.2- <code>sizeof...(ls)</code> is equal to <code>2</code>, and</li>
+	<li>-2.4.3- <code>(is_convertible_v&lt;decltype(std::move(ls)), IndexType&gt; &amp;&amp; ...)</code> is <code>true</code>.
+      </ul></li>
+    </ul></p></dd>
+
+    <dd><p>-3- Given a signed or unsigned integer type <code>IndexType</code>,  a type <code>S</code> is a
+      <i>canonical <code>submdspan</code> index type for <code>IndexType</code></i>
+      if <code>S</code> is either <code>IndexType</code> or <code>constant_wrapper&lt;v&gt;</code>
+      for some value <code>v</code> of type <code>IndexType</code>, such that <code>v</code> is greater
+      than or equal to zero.</p></dd>
+
+    <dd><p>-4- Given a signed or unsigned integer type <code>IndexType</code>, a type <code>S</code>
+      is a <i>canonical <code>submdspan</code> slice type for <code>IndexType</code></i> if exactly one
+      of the following is <code>true</code>:<ul>
+      <li>-4.1- <code>S</code> is <code>full_extent_t</code>;</li>
+      <li>-4.2- <code>S</code> is a canonical submdspan index type for
+	<code>IndexType</code>; or</li>
+      <li>-4.3- <code>S</code> a specialization of <code>strided_slice</code>
+        where all of the following hold:<ul>
+	<li>-4.3.1- <code>S::offset_type</code>, <code>S::extent_type</code>, and <code>S::stride_type</code>
+	  are all canonical submdspan index types for <code>IndexType</code>; and</li>
+	<li>-4.2.2- if <code>S::stride_type</code> and <code>S::extent_type</code>
+     	 are both specializations of <code>constant_wrapper</code>, then
+	 <code>S::stride_type::value</code> is greater than zero.</li>
+      </ul></li>
+    </ul></p></dd>
+
+    <dd><p>-5- A type <code>S</code> is a <i>collapsing slice type</i> if [&hellip;]
+    </p></dd>
+
+    <dd><p>-6- A type <code>S</code> is a <i>unit-stride slice type</i> if [&hellip;]
+    </p></dd>
+
+    <dd><p>-7- Given an object <code>e</code> of type <code>E</code> that is a
+      specialization of <code>extents</code>, and an object <code>s</code> of
+      type <code>S</code> that is a canonical submdspan slice type for <code>E::index_type</code>,
+      the <i><code>submdspan</code> slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code></i>
+      is:<ul>
+      <li>-7.1- <code>[0, e.extent(<i>k</i>))</code>, if <code>S</code> is <code>full_extent_t</code>;</li>
+      <li><ins>-7.?- <code>[E::index_type(s.offset), E::index_type(s.offset))</code>,
+	if <code>S</code> is a specialization of <code>strided_slice</code> and <code>E::index_type(s.extent)</code> is zero;
+	otherwise</ins></li>
+      <li>-7.2- <code>[E::index_type(s.offset), E::index_type(s.offset + <ins>1 + (</ins>s.extent <ins> - 1) * s.stride</ins>))</code>,
+	if <code>S</code> is a specialization of <code>strided_slice</code>; otherwise</li>
+      <li>-7.3- <code>[E::index_type(s), E::index_type(s)+1)</code></li>
+      </ul></li>
+    </ul></p></dd>
+
+    <dd><p>-8- Given a type <code>E</code> that is a specialization of <code>extents</code>,
+    a type <code>S</code> is a <i>valid <code>submdspan</code> slice type for the <i>k<sup>th</sup></i>
+    extent of <code>E</code></i> if <code>S</code> is a canonical slice type for <code>E::index_type</code>,
+    and for <code><i>x</i></code> equal to <code>E::static_extent(<i>k</i>)</code>, either <code><i>x</i></code>
+    is equal to <code>dynamic_extent</code>; or<ul>
+      <li>-8.1- if <code>S</code> is a specialization of <code>strided_slice</code>:<ul>
+        <li>-8.1.1- if <code>S::offset_type</code> is a specialization of <code>constant_wrapper</code>,
+	  then <code>S::offset_type::value</code> is less than or equal to <code><i>x</i></code>;</li>
+	<li>-8.1.2- if <code>S::<del>offset_type</del><ins>extent_type</ins></code>
+	  is a specialization of <code>constant_wrapper</code> then <code>S::extent_type::value</code>
+	  is less than or equal to <code><i>x</i></code>;
+	</li>
+	<li>-8.1.3- if <del>both <code>S::offset_type</code> and</del><code>S::extent_type</code>
+	 <del>are</del><ins>is a</ins> specialization<del>s</del> of <code>constant_wrapper</code><ins>
+	  and <code>S::extent_type::value</code> is greater then zero</ins> then, <ul>
+	  <li><ins>-8.1.3.2- if <code>S::offset_type</code> specialization of <code>constant_wrapper</code>,
+	    then <code>S::offset_type::value + S::extent_type::value</ins></code> is less than or equal to
+            <code><i>x</i></code>,</ins></li>
+	  <li><ins>-8.1.3.2- if <code>S::stride_type</code> is specialization of <code>constant_wrapper</code>,
+	    then <code>S::stride_type::value</code> is greater than zero and <code><i>r</i></code> is less
+            than <code><i>x</i></code>, and</ins></li>
+	  <li><ins>-8.1.3.3- if both <code>S::offset_type</code> and <code>S::stride_type</code> are specializations
+	    of <code>constant_wrapper</code>, then</ins> <code>S::offset_type::value + <del>S::extent_type::value</del>
+	    <ins><i>r</i></ins></code> is less than<del> or equal to</del> <code><i>x</i></code><del>;</del><ins>,</ins></li>
+	  </ul></li><ins>where <code><i>r</i></code> is <code>1 + (S::extent_type::value - 1) *
+        S::stride_type::value</code>;</ins>
+      </ul></li>
+      <li>-8.2- if <code>S</code> is a specialization of <code>constant_wrapper</code>,
+      then <code>S::value</code> is less than <code><i>x</i></code></li>
+    </ul></p></dd>
+
+    <dd><p>-9- Given an object <code>e</code> of type <code>E</code> that is a specialization of
+      <code>extents</code> and an object <code>s</code> of type <code>S</code>, <codE>s</code>
+      <i>is a valid <code>submdspan</code> slice for the k<sup>th</sup> extent of <code>e</code></i> if:<ul>
+      <li>-9.1- <code>S</code> is a valid <code>submdspan</code> slice type for <i>k<sup>th</sup></i>
+	  extent of <code>E</code>;</li>
+      <li>-9.2- the <i>k<sup>th</sup></i> interval of <code>e</code> contains the <code>submdspan</code>
+          slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code>; and</li>
+      <li>-9.3- if <code>S</code> a specialization of <code>strided_slice</code> then:<ul>
+	<li>-9.3.1- <code>s.extent</code> is greater than or equal to zero, and</li>
+	<li>-9.3.2- either <code>s.extent</code> equals zero or <code>s.stride</code> is greater than zero.</li>
+      </ul></li>
+    </ul></p></dd>
+
+  </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.strided.slice] <code>strided_slice</code>:</p>
+
+<blockquote class="std">
+
+<h4>23.7.3.7.2 <del><code>strided_slice</code></del><ins>Range slices</ins> <span style="float:right">[mdspan.sub.strided.slice]</span></a></h4>
+
+  <dl class="attribute">
+
+    <dd>-1- <code>strided_slice</code> represents
+      a set of extent regularly spaced integer indices. The indices start at <code>offset</code>,
+      and increase by increments of
+      <code>stride</code>.</dd>
+  </dl>
+
+  <pre>  namespace std {
+    template&lt;class OffsetType, class ExtentType, class StrideType&gt;
+    struct strided_slice {
+      using offset_type = OffsetType;
+      using extent_type = ExtentType;
+      using stride_type = StrideType;
+
+      [[no_unique_address]] offset_type offset{};
+      [[no_unique_address]] extent_type extent{};
+      [[no_unique_address]] stride_type stride{};
+    };
+  }
+</pre>
+
+  <dl class="attribute">
+
+    <dd>-2- <code>strided_slice</code> has
+      the data members and special members specified above. They have
+      no base classes or members other than those specified.
+    <p></p></dd>
+
+    <dt>-3- Mandates:</dt>
+    <dd><code>OffsetType</code>, <code>ExtentType</code>,
+      and <code>StrideType</code> are signed or unsigned integer
+      types, or model <code><i>integral-constant-like</i></code>.
+    <p></p></dd>
+
+    <dd>[ <i>Note</i>: <code>strided_slice{ .offset = 1, .extent =
+    <del>10</del><ins>4</ins>, .stride = 3}</code> indicates the indices
     <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
     selected from the half-open interval <code>[1, 1 + 10)</code>. — <i>end note</i>]
   </dl>
