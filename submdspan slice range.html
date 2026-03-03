@@ -73,7 +73,7 @@ td { text-align: left; vertical-align: top;
    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D3982R0</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-01-29</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-03-03</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -477,11 +477,15 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
       <li>-2.3- <code>S</code> a specialization of <code>strided_slice</code> and
       <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
       for <code><i>X</i></code> denoting <code>S::offset_type</code>, <code>S::extent_type</code>,
-      and <code>S::stride_type;</code> or</li>
+      and <code>S::stride_type</code>;<del>or</del></li>
+      <li><ins>-2.?- <code>S</code> a specialization of <code>range_slice</code> and
+      <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
+      for <code><i>X</i></code> denoting type of <code>S::first</code>, <code>S::last</code>,
+      and <code>S::stride</code> members; or</ins></li>
       <li>-2.4- all of the following hold:<ul>
         <li>-2.4.1- the declaration <code>auto [...ls] = std::move(s);</code> is
              well-formed for some object <code>s</code> of type <code>S</code>,</li>
-	<li>-2.4.2- <code>sizeof...(ls)</code> is equal <ins>either</ins> to <code>2</code><ins> or <code>3</code></ins>, and</li>
+	<li>-2.4.2- <code>sizeof...(ls)</code> is equal to <code>2</code>, and</li>
 	<li>-2.4.3- <code>(is_convertible_v&lt;decltype(std::move(ls)), IndexType&gt; &amp;&amp; ...)</code> is <code>true</code>.
       </ul></li>
     </ul></p></dd>
@@ -638,7 +642,23 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
 <p>Apply following changes to section [mdspan.sub.helpers] Exposition-only helpers:</p>
 
 <blockquote class="std">
-<pre>    templatelt&;class IndexType, class S&gt;
+<pre>    template&lt;class T&gt;
+      concept <i>is-strided-slice</i> = <i>see below</i>;</pre>
+
+  <dl class="attribute">
+    <dd>-2- The concept <code><i>is-strided-slice</i>&lt;T&gt;</code> is satisfied and
+      modeled if and only if <code>T</code> is a specialization of <code>strided_slice</code>.<p></p></dd>
+  </dl>
+
+<pre><ins>    template&lt;class T&gt;
+      concept <i>is-range-slice</i> = <i>see below</i>;</ins></pre>
+
+  <dl class="attribute">
+    <dd><ins>-?- The concept <code><i>is-range-slice</i>&lt;T&gt;</code> is satisfied and
+      modeled if and only if <code>T</code> is a specialization of <code>range_slice</code>.<p></p></ins></dd>
+  </dl>
+
+<pre>    template&lt;class IndexType, class S&gt;
       constexpr auto canonical-index(S s);</pre>
 
   <dl class="attribute">
@@ -710,7 +730,7 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
       return static_cast&lt;full_extent_t&gt;(std::move(s));
     } else if constexpr (is_convertible_v&lt;S, IndexType&gt;) {
       return canonical-index&lt;IndexType&gt;(std::move(s));
-    } else if constexpr (is-strided-slice&lt;S&gt;) {
+    } else if constexpr (<i>is-strided-slice</i>&lt;S&gt;) {
       <ins>return strided_slice{
         .offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent)),
         .extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset)),
@@ -731,8 +751,16 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
            .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
 	 };
       }</del>
+    <ins>} else if constexpr (<i>is-range-slice</i>&lt;S&gt;) {
+      auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.first));
+      auto c_last  = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.last));
+      return <i>canonical-slice-range</i>&lt;IndexType&gt;(
+                c_first,
+		<i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
+		<i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride));
+    </ins>
     } else {
-      auto [s_first, s_last<ins>, ...s_stride</ins>] = std::move(s);
+      auto [s_first, s_last] = std::move(s);
       auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_first));
       auto c_last  = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_last));
       <del>return strided_slice{
@@ -742,8 +770,7 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
         };</del>
       <ins>return <i>canonical-slice-range</i>&lt;IndexType&gt;(
                c_first,
-	       <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
-	       <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_stride))...);</ins>
+	       <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first));</ins>
     }
     </pre></dd>
 
