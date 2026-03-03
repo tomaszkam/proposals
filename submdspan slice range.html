@@ -63,14 +63,14 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>Fix the meaning of strided_slice::extent for C++26</title>
+<title>Split <code>strided_slice</code> into <code>extent_slice</code> and <code>range_slice</code> for C++26</title>
 </head>
 
 <body data-gr-c-s-loaded="true">
 
 <table class="header"><tbody>
   <tr>
-   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D3982R0</td>
+   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D3982R1</td>
   </tr>
   <tr>
     <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-03-03</td>
@@ -86,26 +86,22 @@ td { text-align: left; vertical-align: top;
   </tr>
 </tbody></table>
 
-<h1><a name="title">Fix meaning of <code>strided_slice::extent</code> for C++26</a></h1>
+<h1><a name="title">Split <code>strided_slice</code> into <code>extent_slice</code> and <code>range_slice</code> for C++26</a></h1>
 
 <h2><a name="intro">1. Introduction</a></h2>
 
 <p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
 
-<p>This paper proposes three changes:<ol>
-<li>Rename <code>strided_slice</code> to <code>extent_stride</code> and
+<p>This paper proposes two changes:<ol>
+<li>Rename <code>strided_slice</code> to <code>extent_slice</code> and
  adjust the meaning of its <code>extent</code> member, to designate the desired
  number of elements in the range produced by <code>submdspan</code>.
  <b>This change would be breaking after C++26 is shipped.</b></li>
 <li>Introduce a non-canonical <code>range_slice</code> slice type,
  that expresses the <code>(first, last, stride)</code> interface provided for range
  slicing in other programming languages.
- <b>This is an extension that can be added in a later Standard.</b></li>
-<li>Expand slice canonicalization, so elements of any type (other than <code>extent_stride</code>)
- that can  be decomposed into three values (including <code>tuple</code> and
- <code>range_slice</code>),  are treated as <code>(first, last, stride)</code>.
- <b>This is another extension that can be added on top of the previous extension
- in a later Standard.</b></li>
+ <b>This is an extension that teoreticaly can be added in a later standard,
+ but lack of it will severy degenerate the usability of <code>submdspan</code>.</b></li>
 </ol></p>
 
 <table><tbody>
@@ -121,7 +117,6 @@ std::strided_slice{0, 2, 3};
    <td><pre>
 std::extent_slice{0, <b>1</b>, 3};
  std::range_slice{0, 2, 3};
-       std::tuple{0, 2, 3};
 </pre></td>
   </tr>
 
@@ -132,7 +127,6 @@ std::strided_slice{2, 10, 3};
    <td><pre>
 std::extent_slice{2, <b>4</b>,  3};
  std::range_slice{2, <b>12</b>, 3};
-       std::tuple{2, <b>12</b>, 3};
 </pre></td>
   </tr>
 
@@ -141,6 +135,10 @@ std::extent_slice{2, <b>4</b>,  3};
 
 
 <h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<p>TODO</p>
 
 <h3><a name="history.r0">2.1. Revision 0</a></h3>
 
@@ -175,7 +173,7 @@ std::extent_slice{2, <b>4</b>,  3};
 <p>As <code>strided_slice</code> is used as one of the canonical forms of the slices,
  we propose to <code>strided_slice::extent</code> member should represent the <i>output extent</i>.</p>
 
-<h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code> and extending decomposable slices</a></h3>
+<h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code></a></h3>
 
 <p>One argument for using the <i>input span</i> as the value of <code>stride_slice::extent</code>
   was consistency with other programming languages' range slicing interface.
@@ -196,12 +194,7 @@ std::extent_slice{2, <b>4</b>,  3};
 </p>
 
 <p>To provide a interface consistent with existing practice in many languages, we propose
-  extending the set of accepted slice types to include types that decompose into three values that
-  are compatible with index type. So in addition to accepting pairs (including two-element
-  <code>tuple</code>) representing <code>first, last</code>, we propose to
-  accept a three-element tuple, where the third value is the stride.</code>
-
-<p>Futhermore, we propose to introduce a new vocabulary type for "range" slice:</p>
+   to introduce a new vocabulary type for "range" slice:</p>
 <pre>
 template&lt;typename FirstType, typename LastType, typename StrideType = constant_wrapper&lt;1zu&gt;&gt;
   struct range_slice
@@ -211,22 +204,6 @@ template&lt;typename FirstType, typename LastType, typename StrideType = constan
     [[no_unique_addresss]] StrideType stride{};
   };
 </pre>
-
-<p>Note that such extension goes directly against the reasoning for the current design of
-<code>strided_slice</code> expressed in <q>2.1.1.2 Strided index range slice specifier</q> of the 
-<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html">P2630R4: Submdspan</a>,
-paper:</p>
-<blockquote>
- We use a struct with named fields instead of a <code>tuple</code>, in order to avoid confusion
- with the order of the three values.
-</blockquote>
-
-<p>While the author agrees that the proposed order may be unintuitive for Matlab users,
- such confusion can be easily addressed by users defining the following helper locally:</p>
-<pre>template&lt;typename FirstType, typename StrideType, typename LastType&gt;
-   constexpr std::range_slice&lt;FirstType, LastType, StrideType&gt;
-   matlab_slice(FirstType first, StrideType stride, LastType last)
-   { return {first, last, stride}; }</pre>
 
 <h3><a name="motivation.perf">3.2. Expressing required values directly</h3>
 
@@ -341,7 +318,7 @@ used above show no significant performance difference.</p>
   result in a non-unique mapping. In case of <code>mdspan</code> with such mapping, a zero stride
   may be used to create a layout that "broadcasts" a single element over the given extent.</p>
 <pre>
-  auto smd = submdspan(md, strided_slice{3, 5, 0};
+  auto smd = submdspan(md, strided_slice{3, 5, 0});
 </pre>
 <p>For the above example, each of <code>smd[0], smd[1], ..., smd[4]</code> results in a reference
   to <code>md[3]</code>.</p>
@@ -372,16 +349,13 @@ for example in the <code>std::ranges::sized_range</code> concept.</p>
 
 <h2><a name="ship-vehicle">4. Ship vehicle and polls</a></h2>
 
-<p>This paper proposes three changes:<ol>
+<p>This paper proposes two changes:<ol>
 <li>Rename <code>strided_slice</code> to <code>extent_stride</code> and
  adjust the meaning of <code>extent</code> member, to designate the desired
  number of elements in the produced range.</li>
 <li>Introduce a new non-canonical slice type <code>range_slice</code>,
  that expresses the <code>(first, last, stride)</code> interface for range
  slicing provided by other programming languages.</li>
-<li>Expand slice canonicalization, so elements of any type (other than <code>extent_slice</code>)
- that can be decomposed into three values (including <code>tuple</code> and
- <code>range_slice</code>) are treated as <code>(first, last, stride)</code>.</li>
 </ol></p>
 
 <p>From the above only the <b>first change</b> need to be applied in the C++26 timeframe.
@@ -389,17 +363,13 @@ The others are extensions that could be applied to future standards.</p>
 
 <h3><a name="ship-vehicle">4.1. Proposed polls</a></h3>
 
+// TODO: Reworkd
+
 <p>1. Accept rename and changes to <code>strided_slice</code> class template 
  from P3982R0 to C++26.</p>
 
 <p>2. Accept the introduction of <code>range_slice</code> class template
  from P3982R0 to C++26.</p> 
-
-<p>3. Accept any type decomposable into three elements as <code>submdspan</code>
- slice type as proposed in P3982R0 to C++29.</p>
-
-<p>3. Accept any type decomposable into three elements as <code>submdspan</code>
- slice type as proposed in P3982R0 to C++26.</p>
 
 <h3><a name="ship-vehicle.strided_slice">4.2. <code>stride_slice</code> needs to target C++26</a></h3>
 
