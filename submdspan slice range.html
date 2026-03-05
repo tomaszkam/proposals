@@ -63,7 +63,7 @@ td { text-align: left; vertical-align: top;
   padding-right: 0.4em; border: none; }
 </style>
 
-<title>Split <code>strided_slice</code> into <code>extent_slice</code> and <code>range_slice</code> for C++26</title>
+<title>Split strided_slice into extent_slice and range_slice for C++26</title>
 </head>
 
 <body data-gr-c-s-loaded="true">
@@ -100,8 +100,8 @@ td { text-align: left; vertical-align: top;
 <li>Introduce a non-canonical <code>range_slice</code> slice type,
  that expresses the <code>(first, last, stride)</code> interface provided for range
  slicing in other programming languages.
- <b>While this is an extension that theoretically can be added in a later standard,
- this change preserve provide more ergonomic and familiar interface for <code>submdspan</code>.</b></li>
+ <b>While this is an extension that can be added in a later standard,
+ this change preserve more ergonomic and familiar interface for <code>submdspan</code>.</b></li>
 </ol></p>
 
 <table><tbody>
@@ -516,7 +516,7 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
     is equal to <code>dynamic_extent</code>; or<ul>
       <li>-8.1- if <code>S</code> is a specialization of <code>strided_slice</code>:<ul>
         <li>-8.1.1- <del>if <code>S::offset_type</code> is a specialization of <code>constant_wrapper</code>,
-	  then <code>S::offset_type::value</code></del><ins><i>o</i> is less than or equal to <i>x</i>;</li>
+          then <code>S::offset_type::value</code></del><ins><i>o</i></ins> is less than or equal to <i>x</i>;</li>
 	<li>-8.1.2- <del>if <code>S::extent_type</ins></code>
 	  is a specialization of <code>constant_wrapper</code> then <code>S::extent_type::value</code></del>
 	  <ins><i>e</i></ins> is less than or equal to <i>x</i>;
@@ -550,7 +550,7 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
           slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code>; and</li>
       <li>-9.3- if <code>S</code> a specialization of <code>strided_slice</code> then:<ul>
 	<li>-9.3.1- <code>s.extent</code> is greater than or equal to zero, and</li>
-	<li>-9.3.2- either <code>s.extent</code> <del>equals zero</del><ins>less than two</ins> or <code>s.stride</code> is greater than zero.</li>
+	<li>-9.3.2- either <code>s.extent</code> <del>equals zero</del><ins>is less than two</ins> or <code>s.stride</code> is greater than zero.</li>
       </ul></li>
     </ul></p></dd>
 
@@ -682,7 +682,7 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
     </ul><p></p></dd>
 
     <dt>-?- Preconditions:</dt>
-    <dd><code>IndexType(stride) &gt; 0</code> is <code>true</code>.<p></p></dd>
+    <dd><code>stride &gt; 0</code> is <code>true</code>.<p></p></dd>
 
     <dt>-?- Returns:</dt>
     <dd>
@@ -734,8 +734,7 @@ implementing the proposed wording changes (except the rename) to <code>submdspan
       return <i>canonical-slice-range</i>&lt;IndexType&gt;(
                 c_first,
 		<i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
-		<i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride));
-    </ins>
+		<i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride));</ins>
     } else {
       auto [s_first, s_last] = std::move(s);
       auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_first));
