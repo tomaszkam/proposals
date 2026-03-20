@@ -1,0 +1,966 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org gr__isocpp_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>Split strided_slice into extent_slice and range_slice for C++26</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D3982R1</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-03-03</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+  <tr>
+    <th></th><th> </th><td><address>Mark Hoemmen &lt;mark dot hoemmen at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title">Split <code>strided_slice</code> into <code>extent_slice</code> and <code>range_slice</code> for C++26</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
+
+<p>This paper proposes two changes:<ol>
+<li>Rename <code>strided_slice</code> to <code>extent_slice</code> and
+ adjust the meaning of its <code>extent</code> member, to designate the desired
+ number of elements in the range produced by <code>submdspan</code>.
+ <b>This change would be breaking after C++26 is shipped.</b></li>
+<li>Introduce a non-canonical <code>range_slice</code> slice type,
+ that expresses the <code>(first, last, stride)</code> interface provided for range
+ slicing in other programming languages.
+ <b>While this is an extension that can be added in a later standard,
+ we prefer to include it in C++26,
+ as it gives <code>submdspan</code> a more ergonomic and familiar interface.</b></li>
+</ol></p>
+
+<table><tbody>
+  <tr>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+
+  <tr>
+   <td><pre>
+std::strided_slice{0, 2, 3};
+</pre></td>
+   <td><pre>
+std::extent_slice{0, <b>1</b>, 3};
+ std::range_slice{0, 2, 3};
+</pre></td>
+  </tr>
+
+  <tr>
+   <td><pre>
+std::strided_slice{2, 10, 3};
+</pre></td>
+   <td><pre>
+std::extent_slice{2, <b>4</b>,  3};
+ std::range_slice{2, <b>12</b>, 3};
+</pre></td>
+  </tr>
+
+</tbody></table>
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r1">2.2. Revision 1</a></h3>
+
+<ul>
+ <li>Changed title to better reflect the content.</li>
+ <li>Remove the proposal to support any type decomposable into <code>[first, last, stride]</code>,
+   as slice type. This change will be proposed for C++29.</li>
+ <li>Corrected and updated the wording for <code>strided_slice</code>
+   per Charles Hussong's suggestions.</li>
+</ul>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>The invocation <code>smd = submdspan(md, strided_slice{offset, extent, stride})</code>
+  refers to two ranges of indices:</p>
+  <ul>
+    <li><i>input span</i>: size of the range of indices into <code>md</code>, that can be accessed by <code>smd</code>; and</li>
+    <li><i>output extent</i>: size of the range of indices that are valid indices for <code>smd</code>.</li>
+  </ul>
+</p>
+
+<p>Given the above, there are two possible interpretations of the <code>extent</code> for the above example:
+  <ul>
+    <li><i>input span</i>, thus <i>output extent</i> is <code>1 + (extent - 1) / stride</code>; or</li>
+    <li><i>output extent</i>, thus <i>input span</i> is <code>extent * stride</code>.</li>
+  </ul>
+</p>
+
+<p>In most cases, this two meanings are functionally equivalent and they can be transformed
+  into each other. However, due use of the division in the <i>input span</i> interpretation
+  does not support the following:
+  <ul>
+    <li><code>stride</code> whose value is zero, that could be used to produce non-unique layouts; or</li>
+    <li>specifying the value of <i>output extent</i> statically, while keeping the stride dynamic.</li>
+  </ul>
+</p>
+
+<p>As <code>strided_slice</code> is used as one of the canonical forms of the slices,
+ we propose that the <code>strided_slice::extent</code> member should represent the <i>output extent</i>.</p>
+
+<h3><a name="motivation.range_slice">3.1. Introducing <code>range_slice</code></a></h3>
+
+<p>One argument for using the <i>input span</i> as the value of <code>stride_slice::extent</code>
+  was consistency with other programming languages' range slicing interfaces.
+  However, surveying the slicing interface in common languages shows that they all use <code>first, last</code>
+  instead of <code>offset, length</code>.
+  <ul>
+   <li><a href="https://fortran-lang.org/learn/quickstart/arrays_strings/">Fortran</a>:
+       <code>array(first:last)</code> and <code>array(first:last:step)</code></li>
+   <li><a href="https://docs.python.org/3/library/functions.html#slice">python</a>:
+       <code>array[first:last]</code> and <code>array[first:last:step]</code></li>
+   <li><a href="https://www.mathworks.com/company/technical-articles/matrix-indexing-in-matlab.html">Matlab</a>:
+       <code>array(first:last)</code> and <code>array(first:step:last)</code></li>
+   <li><a href="https://docs.python.org/3/library/functions.html#slice">rust</a>:
+       <code>array[first..last]</code>, <code>array[first..]</code>, <code>array[..last]</code> and <code>array[..]</code>.</li>
+  </ul>
+  Based on the inituition built from other languages, <code>submdspan(md, strided_slice{2, 5, 1})</code>,
+  should select elements <code>[2, 5)</code>, instead of <code>[2, 7)</code> as currently specified.
+</p>
+
+<p>To provide a interface consistent with existing practice in many languages, we propose
+   to introduce a new vocabulary type for "range" slice:</p>
+<pre>
+template&lt;typename FirstType, typename LastType, typename StrideType = constant_wrapper&lt;1zu&gt;&gt;
+  struct range_slice
+  {
+    [[no_unique_addresss]] FirstType first{};
+    [[no_unique_addresss]] LastType last{};
+    [[no_unique_addresss]] StrideType stride{};
+  };
+</pre>
+
+<h3><a name="motivation.perf">3.2. Expressing required values directly</h3>
+
+<p>Creating a subset of a multidimensional index space (<code>submdspan</code>) requires
+the <i>output extent</i> to be known. In the model where user provides an <i>input span</i>,
+the <i>output extent</i> computation must be performed, and is thus duplicated in each layout.</p>
+
+<p>In contrast, with this paper's proposed changes, the members of <code>strided_slice</code>
+directly represent values used by <code>submdspan</code> creation. This gives programmers
+more direct control over the process. In particular, in cases when the value of <i>output extent</i>
+is known, or can be reused between invocations, passing it directly can lead to measurable
+speed-up. We illustrate this by including benchmark results below.</p>
+
+<table><tbody>
+  <tr><th colspan=3><code>submdspan(md, X{0, span, stride})</code></th></tr>
+  <tr>
+    <th><code></code></th>
+    <th>Before (<code>X</code> is <code>strided_slice</code>)</th>
+    <th>After (<code>X</code> is <code>extent_slice</code>)</th>
+  </tr>
+  <tr>
+    <th><code>stride</code></th>
+    <th><code>span</code> = <code>10</code></th>
+    <th><code>span</code> = <code>1 + 9 / stride</code></th>
+  </tr>
+  <tr>
+    <td><code>3</code></td>
+    <td>3.03 ns</td>
+    <td>1.52 ns</td>
+  </tr>
+  <tr>
+    <td><code>1</code></td>
+    <td>3.03 ns</td>
+    <td>1.51 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;3&gt;</code></td>
+    <td>1.01 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;1&gt;</code></td>
+    <td>1.02 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+
+</tbody></table>
+
+<p>As previously mentioned, <code>range_slice</code> can be used if passing
+an <i>input span</i> is preferred. Results from a benchmark similar to one
+used above show no significant performance difference.</p>
+
+<table><tbody>
+  <tr><th colspan=3><code>submdspan(md, range_slice{0, 10, stride})</code></th></tr>
+  <tr>
+    <th><code>stride</code></th>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+  <tr>
+    <td><code>3</code></td>
+    <td>3.03 ns</td>
+    <td>3.03 ns</td>
+  </tr>
+  <tr>
+    <td><code>1</code></td>
+    <td>3.03 ns</td>
+    <td>1.52 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;3&gt;</code></td>
+    <td>1.01 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+  <tr>
+    <td><code>std::cw&lt;1&gt;</code></td>
+    <td>1.01 ns</td>
+    <td>1.01 ns</td>
+  </tr>
+
+</tbody></table>
+
+<p>More details about above results may be found
+<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065129.html">here</a>.</p>
+
+<h3><a name="motivation.static-extent">3.3. Example of static <i>output extent</i> usage</a></h3>
+
+<p>As mentioned before, the current <i>input span</i> specification does not give users a way to
+  select a statically sized subset of elements with dynamic stride. For example,
+  imagine that we want to select 5 elements, evenly spaced from the <code>mdspan md</code>.</p>
+
+<p>With the proposed change, we can simply express that as:</p>
+<pre>
+  auto smd = sumdspan(md, strided_slice{cw&lt;0&gt;, cw&lt;5&gt;, md.extents()[0] / 5})
+</pre>
+
+<p>Note that the number of number of elements in the <code>smd</code> is always known
+   statically, regardless if the source span had static extents.</p>
+
+<h3><a name="motivation.zero-stride">3.4. Example of zero stride value usage</a></h3>
+
+<p>Using a zero as the value of the <code>stride</code> leads to a non-unique layout mapping,
+  because incrementing the index does not change the referenced element.
+  Thus, Standard layout mappings like <code>layout_stride::mapping</code>,
+  <code>layout_left_padded::mapping</code>, and <code>layout_right_padded::mapping</code>
+  do not accept zero strides as input to their constructors.</p>
+
+<p>However, <code>submdspan</code> can be also used with <code>mdspan</code> with
+  user-defined mappings that are not required to be unique.  Any mapping can
+  be queried (via <code>is_always_unique</code> or <code>is_unique</code>) for this property.</p>
+
+<p>One could imagine a <code>layout_stride_relaxed</code><sup>1</sup> layout that is equivalent
+  to <code>layout_strided</code>, except that it does not require that the provided strides
+  result in a non-unique mapping. In case of <code>mdspan</code> with such mapping, a zero stride
+  may be used to create a layout that "broadcasts" a single element over the given extent.</p>
+<pre>
+  auto smd = submdspan(md, strided_slice{3, 5, 0});
+</pre>
+<p>For the above example, each of <code>smd[0], smd[1], ..., smd[4]</code> results in a reference
+  to <code>md[3]</code>.</p>
+
+<p>As mentioned before, such a slice specification is not representable currently.
+  While the paper does not lift the current requirements on the stride value being non-zero,
+  it permits zero strides in the future for a subset of mappings.</p>
+
+<p><sup>1</sup> A version of <code>layout_stride_relaxed</code> was
+  <a href="https://github.com/NVIDIA/cccl/pull/7175">recently merged into</a>
+  NVIDIA's CCCL library.</p>
+
+<h3><a name="motivation.zero-stride">3.5. Rename <code>strided_slice</code> to <code>extent_slice</code></a></h3>
+
+<p>After expanding the set of accepted slice types, the <code>strided_slice</code> name
+does not capture the difference well, as <code>range_slice</code> is also strided.  Thus,
+we propose to rename the class to <code>extent_slice</code>.</p>
+
+<p>The <code>extent_slice</code> name was selected to focus on the fact that its members
+define the size (extent) of the produced (output) multidimensional index space.  That is, it directly reflects
+the value of <code>smd.extent(k)</code>, where <code>smd</code> is the <code>mdspan</code> produced by <code>submdspan</code>,
+and <code>k</code> is the index of the extent to which the slice is applied.</p>
+
+<p>We also avoid using words commonly used to refer to the range like "size,"
+"length" (as in offset + length), or "span."
+The word "size" is particularly overloaded,
+for example in the <code>std::ranges::sized_range</code> concept.</p>
+
+<h3><a name="motivation.example">3.6. Example showing all the changes</a></h3>
+
+<p>Here is an example showing all the proposed changes.</p>
+
+<ul>
+<li>Status quo
+  <ul>
+  <li><code>s = strided_slice{1, 10, 3}</code> views input indices 1, 4, 7, and 10.</li>  
+  <li>The input span is [<code>s.offset</code>, <code>s.offset + s.extent</code>) = [1, 1+10) = [1, 11).</li>
+  <li>The output extent is <code>s.offset + (s.extent - 1) / s.stride</code> = 1 + (10 - 1) / 3 = 4,
+    which is NOT the same as <code>s.extent</code>.</li>
+  </ul>
+</li>
+ 
+<li>Proposed change
+  <ul>
+  <li><code>s = extent_slice{1, 10, 3}</code> views input indices 1, 4, 7, 10, 13, 16, 19, 22, 25, and 28.</li>  
+  <li>The input span is [<code>s.offset</code>, <code>s.offset + 1 + (s.extent - 1) * s.stride</code>) = [1, 29).</li>
+  <li>The output extent is 10, which is the same as <code>s.extent</code>.</li>
+  <li><code>range_slice{1, 11, 3}</code> views input indices 1, 4, 7, and 10.</li>
+  </ul>
+</li>
+</ul>  
+
+<h2><a name="ship-vehicle">4. Ship vehicle, proposed polls, and review history</a></h2>
+
+<p>This paper proposes two changes:<ol>
+<li>Rename <code>strided_slice</code> to <code>extent_stride</code> and
+ adjust the meaning of <code>extent</code> member, to designate the desired
+ number of elements in the produced range.</li>
+<li>Introduce a new non-canonical slice type <code>range_slice</code>,
+ that expresses the <code>(first, last, stride)</code> interface for range
+ slicing provided by other programming languages.</li>
+</ol></p>
+
+<p>From the above only the <b>first change</b> need to be applied in the C++26 timeframe.
+However, we prefer that the second change be included in C++26 as well,
+as it makes <code>submdspan</code> more consistent with slicing facilities
+in other programming languages.</p>
+
+<h3><a name="ship-vehicle">4.1. Proposed polls</a></h3>
+
+<ol>
+  <li>Accept rename of <code>strided_slice</code> to <code>extent_slice</code>,
+    and accept changes to <code>strided_slice</code> class template
+    from P3982R1 to C++26.</li>
+
+  <li>Accept the introduction of <code>range_slice</code> class template
+    from P3982R1 to C++26.</li>
+</ol>
+
+<h3><a name="ship-vehicle">4.2. Nonbinding LEWG review</a></h3>
+
+<p>
+LEWG reviewed R0 of this proposal on 2026-03-03 and took the following polls.
+The review and poll results were nonbinding for procedural reasons.
+LEWG must review this proposal again at the Croydon meeting later in March 2026.
+</p>
+
+<p>
+POLL (nonbinding): We want to pursue adding <code>range_slice</code> to C++26.
+</p>
+
+<table><tbody>
+  <tr>
+    <td>SF</td>
+    <td>F</td>
+    <td>N</td>
+    <td>A</td>
+    <td>SA</td>
+  </tr>
+
+  <tr>
+    <td>10</td>
+    <td>6</td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+  </tr>
+</tbody></table>
+
+<ul>
+  <li>Attendance: 22</li>
+  <li>Authors' opinion: 2xSF</li>
+  <li>Outcome: Strong consensus in favor</li>
+</ul>
+
+<p>
+POLL (nonbinding): We want to pursue adding 3 element decomposition for C++26.
+</p>
+
+<table><tbody>
+  <tr>
+    <td>SF</td>
+    <td>F</td>
+    <td>N</td>
+    <td>A</td>
+    <td>SA</td>
+  </tr>
+
+  <tr>
+    <td>3</td>
+    <td>3</td>
+    <td>4</td>
+    <td>2</td>
+    <td>0</td>
+  </tr>
+</tbody></table>
+
+<ul>
+  <li>Attendance: 22</li>
+  <li>Authors' opinion: 2xSF</li>
+  <li>Outcome: very weak consensus</li>
+</ul>
+
+<p>The authors took these poll results as guidance to delay
+adding the 3-element decomposition feature to C++29.
+R1 includes this revision.</p>
+
+<h3><a name="ship-vehicle.strided_slice">4.3. <code>stride_slice</code> needs to target C++26</a></h3>
+
+<p><code>strided_slice</code> is one of the canonical slice types that define the
+interface between <code>submdspan</code> (and potentially other components providing
+such facility) and custom layouts.  Thus, it is important that the interface is both mininal
+(reducing the burden on layouts implementers) and able to represent a wide range of
+input without loss of information. As this document explains, the current specification
+of <code>strided_slice</code> fails in both accounts.  It incurs the cost of division,
+and it cannot be used for non-unique layouts.</p>
+
+<p>We currently reserve the right to introduce additional canonical stride types.
+We could imagine introducing a separate <code>canonical_strided_slice</code> type
+in a later standard. However, in contrast to amending <code>strided_slice</code>,
+this would essentially duplicate the number of types that layouts would need to handle,
+as pre-existing code depending on sliceable layout requirements may still produce
+<code>strided_slice</code> objects.</p>
+
+<h3><a name="ship-vehicle.range_slice">4.4. <code>range_slice</code> should target C++26</a></h3>
+
+<p>While <code>range_slice</code> could be added later as an extension, the authors strongly
+believe that the ergonomics of <code>submdspan</code> would be severly degraded, without
+the ability to specify a slice using an <i>input span</i>.</p>
+
+<p>During the work on this paper, one of the authors (Tomasz) made the following mistakes,
+when transforming the <i>input span</i> <code>span</code> to an <i>output extent</i>:<ul>
+<li>using <code>span / stride</code>,</li>
+<li>using <code>(span - 1) / stride</code> (missing <code>+1</code>),</li>
+<li>not accounting for <code>span</code> equal to zero.</li>
+</ul>This shows that even for programmers familar with the topic, such computations
+remain bug-prone.</p>
+
+<h2><a name="impact">5. Impact and Implementability</a></h2>
+
+<p>This paper only impacts the behavior of the <code>std::submdspan</code> library function
+that was introduced in C++26.</p>
+
+<p>Here is a <a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">patch series</a>
+implementing the proposed wording changes (except the rename) to <code>submdspan</code> in libstdc++.</p>
+
+<h2><a name="wording">6. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n5032"></a> N5032 (C++ Working Draft, 2025-12-15).</p>
+
+<p>Apply following changes to section [mdspan.syn] Header <code>&lt;mdspan&gt;</code> synopsis:</p>
+<blockquote class="std">
+<pre>
+  // [mdspan.sub], submdspan creation
+  template&lt;class OffsetType, class LengthType, class StrideType&gt;
+    struct strided_slice;
+<ins>  template&lt;class FirstType, class LastType,
+           class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
+    struct range_slice;</ins>
+
+  template&lt;class LayoutMapping&gt;
+    struct submdspan_mapping_result;
+</pre>
+</blockquote>
+
+
+<p>Apply following changes to section [mdspan.sub.overview] Overview :</p>
+<blockquote class="std">
+
+  <dl class="attribute">
+    <dd><p>-1- The <code>submdspan</code> facilities create a new <code>mdspan</code>
+    viewing a subset of elements of an existing input <code>mdspan</code>.
+    The subset viewed by the created mdspan is determined by the
+    <code>SliceSpecifier</code> arguments.</p></dd>
+
+    <dd><p>-2- Given a signed or unsigned integer type <code>IndexType</code>, a
+    type <code>S</code> is a <i></code>submdspan</code> slice type for <code>IndexType</code></i>
+    if at least one of the following holds:<ul>
+      <li>-2.1- <code>is_convertible_v&lt;S, full_extent_t&gt;</code> is <code>true</code>;</li>
+      <li>-2.2- <code>is_convertible_v&lt;S, IndexType&gt;</code> is <code>true</code>;</li>
+      <li>-2.3- <code>S</code> a specialization of <code>strided_slice</code> and
+      <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
+      for <code><i>X</i></code> denoting <code>S::offset_type</code>, <code>S::extent_type</code>,
+      and <code>S::stride_type</code>;<del>or</del></li>
+      <li><ins>-2.?- <code>S</code> a specialization of <code>range_slice</code> and
+      <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
+      for <code><i>X</i></code> denoting the type of the <code>S::first</code>, <code>S::last</code>,
+      and <code>S::stride</code> members; or</ins></li>
+      <li>-2.4- all of the following hold:<ul>
+        <li>-2.4.1- the declaration <code>auto [...ls] = std::move(s);</code> is
+             well-formed for some object <code>s</code> of type <code>S</code>,</li>
+	<li>-2.4.2- <code>sizeof...(ls)</code> is equal to <code>2</code>, and</li>
+	<li>-2.4.3- <code>(is_convertible_v&lt;decltype(std::move(ls)), IndexType&gt; &amp;&amp; ...)</code> is <code>true</code>.
+      </ul></li>
+    </ul></p></dd>
+
+    <dd><p>-3- Given a signed or unsigned integer type <code>IndexType</code>,  a type <code>S</code> is a
+      <i>canonical <code>submdspan</code> index type for <code>IndexType</code></i>
+      if <code>S</code> is either <code>IndexType</code> or <code>constant_wrapper&lt;v&gt;</code>
+      for some value <code>v</code> of type <code>IndexType</code>, such that <code>v</code> is greater
+      than or equal to zero.</p></dd>
+
+    <dd><p>-4- Given a signed or unsigned integer type <code>IndexType</code>, a type <code>S</code>
+      is a <i>canonical <code>submdspan</code> slice type for <code>IndexType</code></i> if exactly one
+      of the following is <code>true</code>:<ul>
+      <li>-4.1- <code>S</code> is <code>full_extent_t</code>;</li>
+      <li>-4.2- <code>S</code> is a canonical submdspan index type for
+	<code>IndexType</code>; or</li>
+      <li>-4.3- <code>S</code> a specialization of <code>strided_slice</code>
+        where all of the following hold:<ul>
+	<li>-4.3.1- <code>S::offset_type</code>, <code>S::extent_type</code>, and <code>S::stride_type</code>
+	  are all canonical submdspan index types for <code>IndexType</code>; and</li>
+	<li>-4.2.2- if <code>S::stride_type</code> and <code>S::extent_type</code>
+     	 are both specializations of <code>constant_wrapper</code>, then
+	 <code>S::stride_type::value</code> is greater than zero.</li>
+      </ul></li>
+    </ul></p></dd>
+
+    <dd><p>-5- A type <code>S</code> is a <i>collapsing slice type</i> if [&hellip;]
+    </p></dd>
+
+    <dd><p>-6- A type <code>S</code> is a <i>unit-stride slice type</i> if [&hellip;]
+    </p></dd>
+
+    <dd><p>-7- Given an object <code>e</code> of type <code>E</code> that is a
+      specialization of <code>extents</code>, and an object <code>s</code> of
+      type <code>S</code> that is a canonical submdspan slice type for <code>E::index_type</code>,
+      the <i><code>submdspan</code> slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code></i>
+      is:<ul>
+      <li>-7.1- <code>[0, e.extent(<i>k</i>))</code>, if <code>S</code> is <code>full_extent_t</code>;</li>
+      <li><ins>-7.?- <code>[E::index_type(s.offset), E::index_type(s.offset))</code>,
+	if <code>S</code> is a specialization of <code>strided_slice</code> and <code>E::index_type(s.extent)</code> is zero;
+	otherwise</ins></li>
+      <li>-7.2- <code>[E::index_type(s.offset), E::index_type(s.offset + <ins>1 + (</ins>s.extent <ins> - 1) * s.stride</ins>))</code>,
+	if <code>S</code> is a specialization of <code>strided_slice</code>; otherwise</li>
+      <li>-7.3- <code>[E::index_type(s), E::index_type(s)+1)</code></li>
+      </ul></li>
+    </ul></p></dd>
+
+    <dd><p>-8- Given a type <code>E</code> that is a specialization of <code>extents</code>,
+    a type <code>S</code> is a <i>valid <code>submdspan</code> slice type for the <i>k<sup>th</sup></i>
+    extent of <code>E</code></i> if <code>S</code> is a canonical slice type for <code>E::index_type</code>,
+    and for <code><i>x</i></code> equal to <code>E::static_extent(<i>k</i>)</code>, either <i>x</i>
+    is equal to <code>dynamic_extent</code>; or<ul>
+      <li>-8.1- if <code>S</code> is a specialization of <code>strided_slice</code>:<ul>
+        <li>-8.1.1- <del>if <code>S::offset_type</code> is a specialization of <code>constant_wrapper</code>,
+          then <code>S::offset_type::value</code></del><ins><i>o</i></ins> is less than or equal to <i>x</i>;</li>
+	<li>-8.1.2- <del>if <code>S::extent_type</ins></code>
+	  is a specialization of <code>constant_wrapper</code> then <code>S::extent_type::value</code></del>
+	  <ins><i>e</i></ins> is less than or equal to <i>x</i>;
+	</li>
+        <li><ins>-8.1.?- if <i>e</i> is greater than one, then <i>t</i> is greater than zero,</li>
+	</li>
+	<li>-8.1.3- <del>if both <code>S::offset_type</code> and<code>S::extent_type</code>
+	  are specialization<del>s</del> of <code>constant_wrapper</code> then,
+	  <code>S::offset_type::value + S::extent_type::value</code></del><br/>
+	  <ins>if <i>e</i> is greater than zero, then <i>o</i> + 1 + (<i>e</i> - 1) <i>t</i></ins>
+	  is less than or equal to <i>x</i></li>
+	</li>
+      </ul><ins>where<ins><ul>
+        <li><ins>-8.1.4- <i>o</i> is the value of <code>S::offset_type::value</code> if <code>S::offset_type</code>
+          is a specialization of <code>constant_wrapper</code> and 0 otherwise,</li>
+	<li><ins>-8.1.4- <i>e</i> is the value of <code>S::extent_type::value</code> if <code>S::extent_type</code>
+	  is a specialization of <code>constant_wrapper</code> and 0 otherwise,</li>
+   	<li><ins>-8.1.4- <i>t</i> is the value of <code>S::stride_type::value</code> if <code>S::stride_type</code>
+          is a specialization of <code>constant_wrapper</code> and 1 otherwise.</li>
+      </ul></li>
+      <li>-8.2- if <code>S</code> is a specialization of <code>constant_wrapper</code>,
+      then <code>S::value</code> is less than <code><i>x</i></code></li>
+    </ul></p></dd>
+
+    <dd><p>-9- Given an object <code>e</code> of type <code>E</code> that is a specialization of
+      <code>extents</code> and an object <code>s</code> of type <code>S</code>, <codE>s</code>
+      <i>is a valid <code>submdspan</code> slice for the k<sup>th</sup> extent of <code>e</code></i> if:<ul>
+      <li>-9.1- <code>S</code> is a valid <code>submdspan</code> slice type for <i>k<sup>th</sup></i>
+	  extent of <code>E</code>;</li>
+      <li>-9.2- the <i>k<sup>th</sup></i> interval of <code>e</code> contains the <code>submdspan</code>
+          slice range of <code>s</code> for the <i>k<sup>th</sup></i> extent of <code>e</code>; and</li>
+      <li>-9.3- if <code>S</code> a specialization of <code>strided_slice</code> then:<ul>
+	<li>-9.3.1- <code>s.extent</code> is greater than or equal to zero, and</li>
+	<li>-9.3.2- either <code>s.extent</code> <del>equals zero</del><ins>is less than two</ins> or <code>s.stride</code> is greater than zero.</li>
+      </ul></li>
+    </ul></p></dd>
+
+  </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.strided.slice] <code>strided_slice</code>:</p>
+
+<blockquote class="std">
+
+<h4>23.7.3.7.2 <del><code>strided_slice</code></del><ins>Range slices</ins> <span style="float:right">[mdspan.sub.strided.slice]</span></a></h4>
+
+  <dl class="attribute">
+
+    <dd>-1- <code>strided_slice</code><ins> and <code>range_slice</code></ins> represent<del>s</del>
+      a set of extent regularly spaced integer indices. The indices start at <code>offset</code>
+      <ins>and <code>first</code> respectively</ins>, and increase by increments of
+      <code>stride</code>.</dd>
+  </dl>
+
+  <pre>  namespace std {
+    template&lt;class OffsetType, class ExtentType, class StrideType&gt;
+    struct strided_slice {
+      using offset_type = OffsetType;
+      using extent_type = ExtentType;
+      using stride_type = StrideType;
+
+      [[no_unique_address]] offset_type offset{};
+      [[no_unique_address]] extent_type extent{};
+      [[no_unique_address]] stride_type stride{};
+    };
+
+<ins>    template&lt;class FirstType, class LastType,
+             class StrideType = std::constant_wrapper&lt;1zu&gt;&gt;
+    struct range_slice {
+      [[no_unique_address]] FirstType first{};
+      [[no_unique_address]] LastType last{};
+      [[no_unique_address]] StrideType stride{};
+    };</ins>
+  }
+</pre>
+
+  <dl class="attribute">
+
+    <dd>-2- <code>strided_slice</code><ins> and <code>range_slice</code></ins> <del>has</del>
+      <ins>have</ins> the data members and special members specified above. <del>It has</del>
+      <ins>They have</ins> no base classes or members other than those specified.
+    <p></p></dd>
+
+    <dt>-3- Mandates:</dt>
+    <dd><code>OffsetType</code>, <code>ExtentType</code><ins>, <code>FirstType</code>,
+      <code>LastType</code></ins>, and <code>StrideType</code> are signed or unsigned integer
+      types, or model <code><i>integral-constant-like</i></code>.
+    <p></p></dd>
+
+    <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent =
+    <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
+    .first = 1, .last = 11, .stride = 3}</code></ins> indicate<del>s</del> the indices
+    <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
+    selected from the half-open interval <code>[1, 1 + 10)</code>. — <i>end note</i>]
+  </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.helpers] Exposition-only helpers:</p>
+
+<blockquote class="std">
+<pre>    template&lt;class T&gt;
+      concept <i>is-strided-slice</i> = <i>see below</i>;</pre>
+
+  <dl class="attribute">
+    <dd>-2- The concept <code><i>is-strided-slice</i>&lt;T&gt;</code> is satisfied and
+      modeled if and only if <code>T</code> is a specialization of <code>strided_slice</code>.<p></p></dd>
+  </dl>
+
+<pre><ins>    template&lt;class T&gt;
+      concept <i>is-range-slice</i> = <i>see below</i>;</ins></pre>
+
+  <dl class="attribute">
+    <dd><ins>-?- The concept <code><i>is-range-slice</i>&lt;T&gt;</code> is satisfied and
+      modeled if and only if <code>T</code> is a specialization of <code>range_slice</code>.<p></p></ins></dd>
+  </dl>
+
+<pre>    template&lt;class IndexType, class S&gt;
+      constexpr auto canonical-index(S s);</pre>
+
+  <dl class="attribute">
+    <dt>-3- Mandates:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-4- Preconditions:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-5- Effects:</dt>
+    <dd>[&hellip;];<p></p></dd>
+  </dl>
+
+<ins>
+<pre>    template&lt;class IndexType, class OffsetType, class SpanType, class... StrideTypes&gt;
+      constexpr auto <i>canonical-range-slice</i>(OffsetType offset, SpanType span, StrideTypes... strides);</pre>
+
+  <dl class="attribute">
+    <dd>-?- Let:<ul>
+      <li><code>StrideType</code> be <code>constant_wrapper&lt;IndexType(1)&gt;</code>
+        if <code>sizeof...(StrideTypes) == 0</code> or <code>SpanType</code> denotes
+        <code>constant_wrapper&lt;IndexType(0)&gt;</code>, and
+	<code>StridesTypes...[0]</code> otherwise;</li>
+      <li><code>stride</code> be<ul>
+        <li><code>StrideType()</code> if <code>StrideType</code> is a specialization
+	  of <code>constant_wrapper</code>, otherwise</li>
+	<li><code>IndexType(1)</code> if <code>span == 0</code> is <code>true</code>,
+	  otherwise</li>
+	<li><code>strides...[0]</code>;</li>
+      </ul></li>
+      <li><code><i>extent-value</i></code> be <code>1 + (span - 1) / stride</code>
+        if <code>span != 0</code> is <code>true</code>, and <code>0</code> otherwise;</li>
+      <li><code>extent</code> be <code>cw&lt;IndexType(<i>extent-value</i>)&gt;</code> if
+	both <code>SpanType</code> and <code>StrideType</code> are specializations of
+	<code>constant_wrapper</code>, and <code>IndexType(<i>extent-value</i>)</code>
+	otherwise.</li>
+    </ul><p></p></dd>
+
+    <dt>-?- Mandates:</dt>
+    <dd><br/><ul>
+      <li><code>sizeof...(StrideTypes) &lt;= 1</code> is <code>true</code>, and</li>
+      <li>if <code>StrideType</code> is specialization of <code>constant_wrapper</code>,
+        then <code>StrideType::value &gt; 0</code> is <code>true</code>.</li>
+    </ul><p></p></dd>
+
+    <dt>-?- Preconditions:</dt>
+    <dd><code>stride &gt; 0</code> is <code>true</code>.<p></p></dd>
+
+    <dt>-?- Returns:</dt>
+    <dd>
+      <code>strided_slice{ .offset = offset, .extent = extent, .stride = stride };</code>
+    <p></p></dd>
+
+   </dl>
+</ins>
+
+<pre>    template&lt;class IndexType, class S&gt;
+      constexpr auto <i>canonical-slice</i>(S s);</pre>
+
+  <dl class="attribute">
+    <dt>-6- Mandates:</dt>
+    <dd>
+      <code>S</code> is a <code>submdspan</code> slice type for <code>IndexTye.</code>
+    <p></p></dd>
+
+    <dt>-7- Effects:</dt>
+    <dd>Equivalent to:<pre>
+    if constexpr (is_convertible_v&lt;S, full_extent_t&gt;) {
+      return static_cast&lt;full_extent_t&gt;(std::move(s));
+    } else if constexpr (is_convertible_v&lt;S, IndexType&gt;) {
+      return canonical-index&lt;IndexType&gt;(std::move(s));
+    } else if constexpr (<i>is-strided-slice</i>&lt;S&gt;) {
+      <ins>return strided_slice{
+        .offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent)),
+        .extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset)),
+        .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
+      }</ins>
+      <del>auto c_extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent));
+      auto c_offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset));
+      if constexpr (is_same_v&lt;decltype(c_extent), constant_wrapper&lt;IndexType(0)&gt;&gt;) {
+        return strided_slice{
+          .offset = c_offset,
+          .extent = c_extent,
+          .stride = cw&lt;IndexType(1)&gt;
+         };
+      } else {
+         return strided_slice{
+           .offset = c_offset,
+           .extent = c_extent,
+           .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
+	 };
+      }</del>
+    <ins>} else if constexpr (<i>is-range-slice</i>&lt;S&gt;) {
+      auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.first));
+      auto c_last  = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.last));
+      return <i>canonical-slice-range</i>&lt;IndexType&gt;(
+                c_first,
+		<i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
+		<i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride));</ins>
+    } else {
+      auto [s_first, s_last] = std::move(s);
+      auto c_first = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_first));
+      auto c_last  = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s_last));
+      <del>return strided_slice{
+          .offset = c_first,
+          .extent = <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first),
+          .stride = cw&lt;IndexType(1)&gt;
+        };</del>
+      <ins>return <i>canonical-slice-range</i>&lt;IndexType&gt;(
+               c_first,
+	       <i>canonical-index</i>&lt;IndexType&gt;(c_last - c_first));</ins>
+    }
+    </pre></dd>
+
+  </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.extents] <code>submdspan_extents</code> function:</p>
+
+<blockquote class="std">
+<pre>    template&lt;class IndexType, size_t... Extents, class... SliceSpecifiers&gt;
+      constexpr auto submdspan_extents(const extents&lt;IndexType, Extents...&gt;&amp; src,
+                                       SliceSpecifiers... raw_slices);</pre>
+
+  <dl class="attribute">
+    <dd>-1- Let <code>slices</code> be [&hellip;];<p></p></dd>
+
+    <dt>-2- Constraints:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-3- Mandates:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dt>-4- Preconditions:</dt>
+    <dd>[&hellip;];<p></p></dd>
+
+    <dd><p>-5- Let <code>SubExtents</code> be a specialization of <code>extents</code> such that:<ul>
+      <li>-5.1- <code>SubExtents::rank()</code> equals <code><i>MAP_RANK</i>(slices,
+        Extents::rank());</code> and;</li>
+      <li>-5.2- for each rank index <code><i>k</i></code> of <del><code>Extents</code></del>
+      <ins><code>extents&lt;IndexType, Extents...&gt;</code></ins>
+      such that the type of <code>slices...[<i>k</i>]</code> is not a collapsing
+      slice type, <code>SubExtents::static_extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code>
+      equals the following, where <code>Σ<sub><i>k</i></sub></code> denotes the type of
+      <code>slices...[<i>k</i>]</code>:<ul>
+	<li>-5.2.1- <code>Extents::static_extent(<i>k</i>)</code> if <code>Σ<sub><i>k</i></sub></code>
+	denotes the <code>full_extent_t</code>; otherwise</li>
+	<li><del>-5.2.2- <code>0</code>, if <code>Σ<sub><i>k</i></sub></code> is a specialization
+	of <code>strided_slice</code> and <code>Σ<sub><i>k</i></sub>::extent_type</code> denotes
+	<code>constant_wrapper&lt;IndexType(0)&gt;</code>; otherwise</del></li>
+	<li>-5.2.3- <del><code>1 + ((Σ<sub><i>k</i></sub>::extent_type::value - 1) /
+	Σ<sub><i>k</i></sub>::stride_type::value)</code></del>
+	<ins>Σ<sub><i>k</i></sub>::extent_type::value</code></ins> if
+	<code>Σ<sub><i>k</i></sub></code> is a specialization of <code>strided_slice</code>
+	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s</ins>
+	specialization<del>s</del> of <code>constant_wrapper</code>;</li>
+	<li>-5.2.4- otherwise, <code>dynamic_extent</code>.</li>
+      </ul></li>
+    </ul></p></dd>
+
+    <dt>-6- Returns:</dt>
+    <dd><p>A value <code>ext</code> of type <code>SubExtents</code> such that for
+      each index <code><i>k</i></code> of <code>extents&lt;IndexType, Extents...&gt;</code>,
+      where the type of <code>slices...[<i>k</i>]</code> is not a collapsing
+      slice type, <code>ext.extent(<i>MAP_RANK</i>(slices, <i>k</i>))</code> equals
+      the following where <code>σ<sub><i>k</i></sub></code> denotes
+      <code>slices...[<i>k</i>]</code>:<ul>
+      <li>-6.1- <code>σ<sub><i>k</i></sub>.extent<del> == 0 ? 0 : 1 +
+      (σ<sub><i>k</i></sub>.extent - 1) / σ<sub><i>k</i></sub>.stride</del></code>
+      if the type of σ<sub><i>k</i></sub> is specialization of <code>strided_slice</code>,</li>
+      <li>-6.2- otherwise, <code><i>U</i>−<i>L</i></code>, where <code>[L, U)</code> is the
+      <code>submdspan</code> slice range of <code>σ<sub><i>k</i></sub></code> for the
+      <code>k<sup>th</sup></code> extent of <code>src</code>.</li>
+    </ul></p></dd>
+
+ </dl>
+
+</blockquote>
+
+<p>Apply following changes to section [mdspan.sub.map.common] Common:</p>
+
+<blockquote class="std">
+  <dl class="attribute">
+    <dd><p>-6- Let <code>sub_strides</code> be an <code>array&lt;SubExtents::index_type,
+      SubExtents::rank()&gt;</code> such that for each rank index <code><i>k</i></code>
+      of <code>extents()</code> for which the type of <code>slices...[<i>k</i>]</code>
+      is not a collapsing slice type, <code>sub_strides[MAP_RANK(slices,<i>k</i>)]</code>
+      equals<ins>:<ul>
+      <li>-6.1- <code>stride(k) * s.stride</code> if type of <code>s</code> is a
+	a specialization of <code>strided_slice</code> and <code><del>s.stride &lt; s.extent</del></code>
+	<code><ins>s.extent &gt; 1</ins></code> is <code>true</code>, where
+	<code>s</code> is <code>slices...[<i>k</i>]</code>;</li>
+      <li>-6.2- otherwise, <code>stride(k)</code>.</li>
+    </ul></p></dd>
+ </dl>
+
+</blockquote>
+
+<p>Replace all occurrences of <code>strided_slice</code> and <code><i>is-strided-slice</i></code>
+in [mdspan.sub] with <code>extent_slice</code> and <code><i>is-extent-slice</i></code> respectively.</p>
+
+<p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
+Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
+
+<h2><a name="acknowledgements">7. Acknowledgements</a></h2>
+
+<p>Christian Trott and Charles Hussong offered many useful suggestions and
+  corrections to the proposal.</p>
+
+<h2><a name="literature">8. References</a></h2>
+
+<ol>
+  <li>Poland,
+      "PL007 23.7.3.7 [mdspan.sub] [mdspan.sub] Define the extent member of the strided_slice",
+        (PL007, <a href="https://github.com/cplusplus/nbballot/issues/816">https://github.com/cplusplus/nbballot/issues/816</a>)</li>
+
+  <li>Tomasz Kamiński,
+      "[RFC O/2] libstdc++: Implement PL007 changes to submdspan",
+          (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html">https://gcc.gnu.org/pipermail/libstdc++/2026-January/065127.html</a>)</li>
+
+  <li>Christian Trott, Damien Lebrun-Grandie, Mark Hoemmen, and Nevin Liber,
+      "Submdspan",
+          (P2630R4, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html</a>)</li>
+
+  <li>Thomas Köppe,
+      "Working Draft, Standard for Programming Language C++"
+      (N5032, <a href="https://wg21.link/n5032">https://wg21.link/n5032</a>)</li>
+</ol>
+
+
+</body></html>
