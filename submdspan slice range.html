@@ -70,10 +70,10 @@ td { text-align: left; vertical-align: top;
 
 <table class="header"><tbody>
   <tr>
-   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P3982R1</td>
+   <th>Document number:&nbsp;&nbsp;</th><th> </th><td>P3982R2</td>
   </tr>
   <tr>
-    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-03-20</td>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-03-24</td>
   </tr>
   <tr>
     <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
@@ -135,6 +135,10 @@ std::extent_slice{2, <b>4</b>,  3};
 
 
 <h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r2">2.3. Revision 2</a></h3>
+
+<p>Apllied wording fixes from LWG review in Croydon.</p>
 
 <h3><a name="history.r1">2.2. Revision 1</a></h3>
 
@@ -354,7 +358,7 @@ The word "size" is particularly overloaded,
 for example in the <code>std::ranges::sized_range</code> concept.</p>
 
 <h2><a name="ship-vehicle">4. Ship vehicle and polls</a></h2>
-
+r SpanType denotes constant_wrapper<IndexType(0)>, and StridesType
 <p>This paper proposes two changes:<ol>
 <li>Rename <code>strided_slice</code> to <code>extent_stride</code> and
  adjust the meaning of <code>extent</code> member, to designate the desired
@@ -449,11 +453,11 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
     if at least one of the following holds:<ul>
       <li>-2.1- <code>is_convertible_v&lt;S, full_extent_t&gt;</code> is <code>true</code>;</li>
       <li>-2.2- <code>is_convertible_v&lt;S, IndexType&gt;</code> is <code>true</code>;</li>
-      <li>-2.3- <code>S</code> a specialization of <code>strided_slice</code> and
+      <li>-2.3- <code>S</code> is a specialization of <code>strided_slice</code> and
       <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
       for <code><i>X</i></code> denoting <code>S::offset_type</code>, <code>S::extent_type</code>,
       and <code>S::stride_type</code>;<del>or</del></li>
-      <li><ins>-2.?- <code>S</code> a specialization of <code>range_slice</code> and
+      <li><ins>-2.?- <code>S</code> is a specialization of <code>range_slice</code> and
       <code>is_convertible_v&lt;<i>X</i>, IndexType&gt;</code> is <code>true</code>
       for <code><i>X</i></code> denoting type of <code>S::first</code>, <code>S::last</code>,
       and <code>S::stride</code> members; or</ins></li>
@@ -531,9 +535,9 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
       </ul><ins>where<ins><ul>
         <li><ins>-8.1.4- <i>o</i> is value of <code>S::offset_type::value</code> if <code>S::offset_type</code>
           is a specialization of <code>constant_wrapper</code> and 0 otherwise,</li>
-	<li><ins>-8.1.4- <i>e</i> is value of <code>S::extent_type::value</code> if <code>S::extent_type</code>
+	<li><ins>-8.1.5- <i>e</i> is value of <code>S::extent_type::value</code> if <code>S::extent_type</code>
 	  is a specialization of <code>constant_wrapper</code> and 0 otherwise,</li>
-   	<li><ins>-8.1.4- <i>t</i> is value of <code>S::stride_type::value</code> if <code>S::stride_type</code>
+   	<li><ins>-8.1.6- <i>t</i> is value of <code>S::stride_type::value</code> if <code>S::stride_type</code>
           is a specialization of <code>constant_wrapper</code> and 1 otherwise.</li>
       </ul></li>
       <li>-8.2- if <code>S</code> is a specialization of <code>constant_wrapper</code>,
@@ -561,7 +565,7 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
 
 <blockquote class="std">
 
-<h4>23.7.3.7.2 <del><code>strided_slice</code></del><ins>Range slices</ins> <span style="float:right">[mdspan.sub.strided.slice]</span></a></h4>
+<h4>23.7.3.7.2 <del><code>strided_slice</code></del><ins>Range slices</ins> <span style="float:right">[mdspan.sub.<del>strided</del><ins>range</ins>.slice<ins>s</ins>]</span></a></h4>
 
   <dl class="attribute">
 
@@ -608,7 +612,7 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
 
     <dd>[ <i>Note</i>: <ins>Both </ins><code>strided_slice{ .offset = 1, .extent =
     <del>10</del><ins>4</ins>, .stride = 3}</code><ins> and <code>range_slice{
-    .first = 1, .last = 11, .stride = 3}</code></ins> indicate</del>s</del> the indices
+    .first = 1, .last = 11, .stride = 3}</code></ins> indicate<del>s</del><ins> the indices
     <code>1</code>, <code>4</code>, <code>7</code>, and <code>10</code>. Indices are
     selected from the half-open interval <code>[1, 1 + 10)</code>. — <i>end note</i>]
   </dl>
@@ -654,12 +658,14 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
 
   <dl class="attribute">
     <dd>-?- Let:<ul>
-      <li><code>StrideType</code> be <code>constant_wrapper&lt;IndexType(1)&gt;</code>
-        if <code>sizeof...(StrideTypes) == 0</code> or <code>SpanType</code> denotes
-        <code>constant_wrapper&lt;IndexType(0)&gt;</code>, and
-	<code>StridesTypes...[0]</code> otherwise;</li>
+      <li><code>StrideType</code> denote<ul>
+        <li><code>constant_wrapper&lt;IndexType(1)&gt;</code> if <code>StrideTypes</code>
+	is an empty pack or <code>SpanType</code> denotes <code>constant_wrapper&lt;IndexType(0)&gt;</code>,
+	otherwise</li>
+	<li><code>StrideTypes...[0]</code>;</li>
+      </ul></li>
       <li><code>stride</code> be<ul>
-        <li><code>StrideType()</code> if <code>StrideType</code> is specialization
+        <li><code>StrideType()</code> if <code>StrideType</code> is a specialization
 	  of <code>constant_wrapper</code>, otherwise</li>
 	<li><code>IndexType(1)</code> if <code>span == 0</code> is <code>true</code>,
 	  otherwise</li>
@@ -676,7 +682,7 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
     <dt>-?- Mandates:</dt>
     <dd><br/><ul>
       <li><code>sizeof...(StrideTypes) &lt;= 1</code> is <code>true</code>, and</li>
-      <li>if <code>StrideType</code> is specialization of <code>constant_wrapper</code>,
+      <li>if <code>StrideType</code> is a specialization of <code>constant_wrapper</code>,
         then <code>StrideType::value &gt; 0</code> is <code>true</code>.</li>
     </ul><p></p></dd>
 
@@ -711,7 +717,7 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
         .offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent)),
         .extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset)),
         .stride = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.stride))
-      }</ins>
+      };</ins>
       <del>auto c_extent = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.extent));
       auto c_offset = <i>canonical-index</i>&lt;IndexType&gt;(std::move(s.offset));
       if constexpr (is_same_v&lt;decltype(c_extent), constant_wrapper&lt;IndexType(0)&gt;&gt;) {
@@ -782,15 +788,15 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
       equals the following, where <code>Σ<sub><i>k</i></sub></code> denotes the type of
       <code>slices...[<i>k</i>]</code>:<ul>
 	<li>-5.2.1- <code>Extents::static_extent(<i>k</i>)</code> if <code>Σ<sub><i>k</i></sub></code>
-	denotes the <code>full_extent_t</code>; otherwise</li>
+	denotes <del>the</del> <code>full_extent_t</code>; otherwise</li>
 	<li><del>-5.2.2- <code>0</code>, if <code>Σ<sub><i>k</i></sub></code> is a specialization
 	of <code>strided_slice</code> and <code>Σ<sub><i>k</i></sub>::extent_type</code> denotes
 	<code>constant_wrapper&lt;IndexType(0)&gt;</code>; otherwise</del></li>
 	<li>-5.2.3- <del><code>1 + ((Σ<sub><i>k</i></sub>::extent_type::value - 1) /
 	Σ<sub><i>k</i></sub>::stride_type::value)</code></del>
-	<ins>Σ<sub><i>k</i></sub>::extent_type::value</code></ins> if
+	<ins><code>Σ<sub><i>k</i></sub>::extent_type::value</code></ins> if
 	<code>Σ<sub><i>k</i></sub></code> is a specialization of <code>strided_slice</code>
-	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s</ins>
+	whose <code>extent_type</code> <del>and <code>stride_type</code></del> denote<ins>s a</ins>
 	specialization<del>s</del> of <code>constant_wrapper</code>;</li>
 	<li>-5.2.4- otherwise, <code>dynamic_extent</code>.</li>
       </ul></li>
@@ -805,7 +811,7 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
       <code>slices...[<i>k</i>]</code>:<ul>
       <li>-6.1- <code>σ<sub><i>k</i></sub>.extent<del> == 0 ? 0 : 1 +
       (σ<sub><i>k</i></sub>.extent - 1) / σ<sub><i>k</i></sub>.stride</del></code>
-      if the type of σ<sub><i>k</i></sub> is specialization of <code>strided_slice</code>,</li>
+      if the type of σ<sub><i>k</i></sub> is a specialization of <code>strided_slice</code>,</li>
       <li>-6.2- otherwise, <code><i>U</i>−<i>L</i></code>, where <code>[L, U)</code> is the
       <code>submdspan</code> slice range of <code>σ<sub><i>k</i></sub></code> for the
       <code>k<sup>th</sup></code> extent of <code>src</code>.</li>
@@ -825,7 +831,7 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
       is not a collapsing slice type, <code>sub_strides[MAP_RANK(slices,<i>k</i>)]</code>
       equals<ins>:<ul>
       <li>-6.1- <code>stride(k) * s.stride</code> if type of <code>s</code> is a
-	a specialization of <code>strided_slice</code> and <code><del>s.stride &lt; s.extent</del></code>
+	specialization of <code>strided_slice</code> and <code><del>s.stride &lt; s.extent</del></code>
 	<code><ins>s.extent &gt; 1</ins></code> is <code>true</code>, where
 	<code>s</code> is <code>slices...[<i>k</i>]</code>;</li>
       <li>-6.2- otherwise, <code>stride(k)</code>.</li>
@@ -834,10 +840,10 @@ implementing the proposed wording changes to <code>submdspan</code> in libstdc++
 
 </blockquote>
 
-<p>Replace all occurrences of <code>strided_slice</code> and <code><i>is-strided-slice</i></code>
-in [mdspan.sub] with <code>extent_slice</code> and <code><i>is-extent-slice</i></code> respectively.</p>
+<p><b>Replace all occurrences</b> of <code>strided_slice</code> and <code><i>is-strided-slice</i></code>
+in [mdspan.syn] and [mdspan.sub] with <code>extent_slice</code> and <code><i>is-extent-slice</i></code> respectively.</p>
 
-<p>Update the value of the <code>__cpp_lib_submdspan</code> in [version.syn]
+<p><b>Update the value</b> of the <code>__cpp_lib_submdspan</code> in [version.syn]
 Header <code>&lt;version&gt;</code> synopsis to reflect the date of approval of this proposal.</p>
 
 <h2><a name="acknowledgements">7. Acknowledgements</a></h2>
