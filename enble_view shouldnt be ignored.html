@@ -89,8 +89,8 @@ td { text-align: left; vertical-align: top;
 
 <p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
 
-<p>This paper proposal a modification to the <code>viewable_range</code> concept,
-that prevents a standard library facilites from implicitly forming an reference
+<p>This paper proposes modification to the <code>viewable_range</code> concept,
+that prevents standard library facilities from implicitly forming a reference
 to the type that was explicitly designated to be an <code>view</code> (i.e. for
 which <code>enable_view</code> is  true).</p>
 
@@ -119,8 +119,8 @@ return opt
   | ...;
 </pre></td>
      <td>
-	<font color="red">undefined-behavior</font><br/>
-	dangling refernece to <code>opt</code>
+	<font color="red">undefined behavior</font><br/>
+	dangling reference to <code>opt</code>
      </td>
      <td><font color="orange">ill-formed</font></td>
   </tr>
@@ -168,17 +168,17 @@ return opt
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>The C++ <code>views</code>s are subset of the <code>range</code>s,
-that are inexpensive to move (and copy if supported), and in consequence
+<p>The C++ <code>view</code>s are subset of the <code>range</code>s,
+that are inexpensive to move (and copy if supported), and consequently are
 stored by value when adapted by standard range adaptors, like <code>views::transform</code>
-or <code>views::take</code>. Such by-value semantic eliminates a risk
-of dangling reference related undefined behavior, when such view
+or <code>views::take</code>. Such by-value semantics eliminate the risk of
+dangling-reference-related undefined behavior, when such view
 chain is returned:</p>
 <pre>
   auto process_span(std::span&lt;const int&gt; s)
   {
     // span is a view and returned view chain stores a copy of
-    // s parameter, and does not depend on it's lifetime
+    // s parameter, and does not depend on its lifetime
     return s
       | std::views::transform([](int x) { return x * 3; })
       | std::views::take(20);
@@ -187,7 +187,7 @@ chain is returned:</p>
   auto process_vec(const std::vector&lt;int&gt; v)
   {
     // vector is not a view by itself, and returned view chain
-    // refers to it (ref_view) is created, and dangles
+    // refers to it (ref_view is created), and dangles
     return v
       | std::views::transform([](int x) { return x * 3; })
       | std::views::take(20);
@@ -195,28 +195,28 @@ chain is returned:</p>
 </pre>
 
 <p>As the difference between <code>view</code> and the <code>range</code>
-are mostly in semantic, the author of the range, must explicitly opt-in to
+is mostly in semantic, the author of the range, must explicitly opt-in to
 it, by making sure that <code>enable_view</code> is true, by specializing
-is explicitly or deriving from either <code>view_base</code> or
+it explicitly or deriving from either <code>view_base</code> or
 <code>view_interface</code> (see <a href="https://cplusplus.github.io/LWG/issue3326">
 LWG3326: <code>enable_view</code> has false positives</a>).</p>
 
-<p>Given above, it seem resonable to assume, that <b>once type is designed
-as the view, it will always be stored by value in view chains</b>. However,
-in cases when such type is not <code>movable</code>, library infastructure
-<b>will form an reference to such type</b> when adapted.</b>
+<p>Given above, it seemis reasonable to assume, that <b>once a type is designed
+as a view, it will always be stored by value in view chains</b>. However,
+in cases when such type is not <code>movable</code>, library infrastructure
+<b>will form a reference to such type</b> when adapted.</b>
 
 <h3><a name="motivation.optional">3.1. Impact on <code>std::optional</code></a></h3>
 
-<p>After C++26 change that in an <code>view</code>
+<p>After the C++26 change that made it a <code>view</code>
 (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3168r2.html">P3168</a>),
-<code>std::optional</code> may excibit above behavior if the wrapped type is not 
-<code>movable</code>, due not being move-constructible, move-assingable, or both.</p>
+<code>std::optional</code> may exhibit above behavior if the wrapped type is not 
+<code>movable</code>, due to not being move-constructible, move-assignable, or both.</p>
 
-<p>In particular move-assingablity requirment, implies that lvalues <code>optional</code>,
+<p>In particular move-assignability requirement, implies that lvalues <code>optional</code>,
 of const-qualifed types will be referenced (instead of stored by value) in view chain.
 For <a href="https://compiler-explorer.com/z/d1f4EjoEa">example</a> when using
-<code>std::optional&lt;std::pair&lt;const std::string, int&gt;</code> (value type of
+<code>std::optional&lt;std::pair&lt;const std::string, int&gt;&gt;</code> (value type of
 <code>std::map</code>):</p>
 <pre>
 constexpr auto
@@ -268,7 +268,7 @@ but is not <code>movable</code> may end up in second branch (third branch requir
 <code>!enable_view&lt;remove_cvref_t&lt;T&gt;&gt;</code>. Directly reflecting the intent
 of the class implementer, instead of silently ignoring it (possibly due error).</p>
 
-<h3><a name="motivation.user-view">3.2. user-views may be affected</h3>
+<h3><a name="motivation.user-view">3.3. User defined ranges may be affected</h3>
 
 <h2><a name="ship-vehicle">4. Ship vehicle, proposed polls, and review history</a></h2>
 
@@ -277,9 +277,9 @@ Createe LWG issue
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
-<p>The implementation of the paper for libstdc++ can be found in following
-<a href="TODO">patch</a>.
-Running test exposed an issue in the implementation of the internal <code>_Utf_view</code>,
+<p>The implementation of the paper for libstdc++ can be found in the following
+<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-November/068246.html">patch</a>.
+Running the tests exposed an issue in the implementation of the internal <code>_Utf_view</code>,
 that was then addressed in <a href="https://gcc.gnu.org/cgit/gcc/commit/?id=f94a73e0fcedf7a05b04aa12beee57b9a82859a5">
 r16-5283-gf94a73e0fcedf7</a>. No further impact (beyond <code>std::optional</code> range test),
 was identified by testsuite.</p>
@@ -292,9 +292,9 @@ addressing them.</p>
 
 <h4><a name="impact.correct-view">5.1.1. Correcting view implementation</a></h4>
 
-<p>As illusrated by the implementation exprience from libstdc++, the changes
+<p>As illustrated by the implementation experience from libstdc++, the changes
 in this paper may expose issue in the view implementation, that lead to them
-failing <code>movable</code> requirements. Correcting them will address the
+failing <code>movable</code> requirements. Correcting that will address the
 impact.</p>
 
 <h4><a name="impact.ref-view">5.1.2. Explicitly use <code>ref_view</code></a></h4>
@@ -313,8 +313,7 @@ previously valid, ill-formed. For example:</p>
 </pre>
 
 <p>In such cases, the previous behavior may be explicitly restored by constructing
-<code>ref_view</code> explicitly. Either uncoditionally, especially in case of
-non-generic code:</p>
+<code>ref_view</code> explicitly. Either unconditionally:</p>
 <pre>
  template&lt;typename T&gt;
    void process(std::optional&lt;T&gt; opt)
@@ -330,7 +329,7 @@ types:</p>
  template&lt;typename T&gt;
    void process(std::optional&lt;T&gt; opt)
    {
-     if constexpr (!std::movalbe&lt;T&gt;)
+     if constexpr (!std::movabile&lt;T&gt;)
      {
        auto view = std::ranges::ref_view(opt) | views::transform(...) | ...;
        furtherProcessing(view);
@@ -355,10 +354,12 @@ treated as <code>view</code> as previously, they can restore the previous behavi
 </pre>
 
 <p>This will restore the current behavior for all uses of <code>MyRange</code> in combination with
-range facilties.</p>
+range facilities.</p>
 
 <h2><a name="impact">6. Future work</a></h2>
 
+views::ref,
+movable_box for optional
 
 <h2><a name="wording">7. Proposed Wording</a></h2>
 
@@ -381,11 +382,9 @@ concept viewable_range =
 </pre>
 </blockquote>
 
-
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
-<!--p>.... offered many useful suggestions and
-  corrections to the proposal.</p-->
+<p>Barry Revzin offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">9. References</a></h2>
 
@@ -399,8 +398,8 @@ concept viewable_range =
       (P3168R2, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3168r2.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3168r2.html</a>)</li>
 
   <li>Tomasz Kamiński,
-      "[RFC v2 0/4] libstdc++: Implement P3982R1 range_slice and",
-      (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-March/065843.html">https://gcc.gnu.org/pipermail/libstdc++/2026-March/065843.html</a>)</li>
+      "[RFC] libstdc++: Use !enable_view in viewable_range concept.",
+      (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-November/068246.html">https://gcc.gnu.org/pipermail/libstdc++/2026-November/068246.html</a>)</li>
 
 
   <li>Thomas Köppe,
