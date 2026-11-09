@@ -87,8 +87,6 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
-
 <p>This paper proposes modification to the <code>viewable_range</code> concept,
 that prevents standard library facilities from implicitly forming a reference
 to the type that was explicitly designated to be an <code>view</code> (i.e. for
@@ -266,7 +264,7 @@ but is not <code>movable</code> may end up in second branch (third branch requir
 
 <p>This paper proposed changing to <code>!view&lt;remove_cvref_t&lt;T&gt;&gt;</code> to
 <code>!enable_view&lt;remove_cvref_t&lt;T&gt;&gt;</code>. Directly reflecting the intent
-of the class implementer, instead of silently ignoring it (possibly due error).</p>
+of the class implementer, instead of silently ignoring it.</p>
 
 <h3><a name="motivation.user-view">3.3. Impacts reaches up to C++20</h3>
 
@@ -278,8 +276,8 @@ but C++20 and later standards.</p>
 <h2><a name="ship-vehicle">4. Ship vehicle</a></h2>
 
 <p>Proposed changes should be implemented as DR, at least for C++26,
-and when possible to eariel standard. It is recommended that implementers
-approach above changes in similar manner as LWG issue would be.</p>
+and when possible to eariel standards. It is recommended that implementers
+approach proposed changes in similar manner as LWG issue would be.</p>
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
@@ -362,10 +360,45 @@ treated as <code>view</code> as previously, they can restore the previous behavi
 <p>This will restore the current behavior for all uses of <code>MyRange</code> in combination with
 range facilities.</p>
 
-<h2><a name="impact">6. Future work</a></h2>
+<h2><a name="future">6. Future work</a></h2>
 
-views::ref,
+<h3><a name="future.views.ref">6.1. Provide <code>views::ref</code></h3>
+
+<p>This paper <a href="#impact.ref-view">suggests</a> using <code>ref_view</code> explicitly to mitigate
+the impact. However, as the standard library does not provide dedicated adaptor inside <code>std::views</code>,
+constructor syntax (combined with CTAD) needs to be used.</p>
+
+<p>Providing an <code>std::views::ref</code> adaptor, would provide a more consistient interface, and hopefully
+make the solution easier to discover, at at least remember.</p>
+
+<h3><a name="future.optional.assing">6.2. movable box</h3>
+
 movable_box for optional
+
+<p>Note, that above potential relaxation of <code>optional</code> assigment, would
+not superseed the changes proposed to this paper: <code>optional</code> supports wrapping
+types that are neither move-constructible and move-assingable (e.g. <code>optional&lt;mutext&gt;</code>),
+and <code>optional</code> containing such type would still not model the <code>view</code>.</p>
+
+<h3><a name="future.optional.assing">6.3. Adjusting <code>view</code></h3>
+
+<p>Modifying pre-existing concept so many years after C++20 standard is most likely not a viable
+path, so this option is listed mostly for completness.</p>
+
+<p>In the examples included in this paper, the failure to meet <code>movable</code> requirements
+is caused by lack of move-assingablity of the type. This leads to the question if <code>view</code>
+concept should not require <code>move_constructible</code> instead.</p>
+
+<p>From the inspection of the author, not of the standard facilities requires assigment to be
+present. In contratry, provding move-assigments requires workaround in form of <code><i>movable-box</i></code>,
+to handle storing functors (and other not-view state).</p>
+
+<p>Futhermore, with the similiary motivated removal of default-constructiblity requirement from <code>view</code>
+(<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2325r3.html">P2325R3</a>), we no longer
+can use default-construct and then assign pattern.</p>
+
+<p>Finally, as before <code>optional&lt;mutext&gt;</code>, illustrates even with changes to <code>std::view</code>
+concept, the changes proposed to this papere are mangfull.</p> 
 
 <h2><a name="wording">7. Proposed Wording</a></h2>
 
@@ -406,6 +439,10 @@ concept viewable_range =
   <li>Tomasz Kamiński,
       "[RFC] libstdc++: Use !enable_view in viewable_range concept.",
       (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-November/068246.html">https://gcc.gnu.org/pipermail/libstdc++/2026-November/068246.html</a>)</li>
+
+  <li>P2325R3,
+      "Views should not be required to be default constructible",
+      (P2325R3, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2325r3.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2325r3.html</a>)</li>
 
 
   <li>Thomas Köppe,
