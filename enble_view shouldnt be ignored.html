@@ -1,0 +1,386 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org gr__isocpp_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>enable_view shouldnt be ignored</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>D4463R0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-11-09</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>SG9 Ranges, Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title"><code>enable_view</code> shouldn't be ignored</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p><b>Addresses <a href="https://github.com/cplusplus/nbballot/issues/816">PL007: Define the extent member of the <code>strided_slice</code></a></b></p>
+
+<p>This paper proposal a modification to the <code>viewable_range</code> concept,
+that prevents a standard library facilites from implicitly forming an reference
+to the type that was explicitly designated to be an <code>view</code> (i.e. for
+which <code>enable_view</code> is  true).</p>
+
+<table><tbody>
+  <tr>
+    <th>Code</th>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+
+  <tr>
+   <td><pre>
+return std::optional&lt;NotAssignable&gt;(...)
+  | views::transform(...)
+  | ...;
+</pre></td>
+<td><font color="orange">ill-formed</font></td>
+<td><font color="orange">ill-formed</font></td>
+  </tr>
+
+<tr>
+   <td><pre>
+std::optional&lt;NotAssignable&gt; opt;
+return opt
+  | views::transform(...)
+  | ...;
+</pre></td>
+     <td>
+	<font color="red">undefined-behavior</font><br/>
+	dangling refernece to <code>opt</code>
+     </td>
+     <td><font color="orange">ill-formed</font></td>
+  </tr>
+
+  <tr>
+   <td><pre>
+return std::optional&lt;Movable&gt;(...)
+  | views::transform(...)
+  | ...;
+</pre></td>
+<td>
+  <font color="green">ok</font><br/>
+  optional moved into view
+</td>
+<td>
+  <font color="green">ok</font><br/>
+  optional moved into view
+</td>
+  </tr>
+
+  <tr>
+   <td><pre>
+std::optional&lt;Movable&gt; opt(...)
+return opt
+  | views::transform(...)
+  | ...;
+</pre></td>
+<td>
+  <font color="green">ok</font><br/>
+  <code>opt</code> copied into view
+</td>
+<td>
+ <font color="green">ok</font><br/>
+  <code>opt</code> copied into view
+</td>
+  </tr>
+
+</tbody></table>
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+<h2><a name="motivation">3. Motivation and Scope</a></h2>
+
+<p>The C++ <code>views</code>s are subset of the <code>range</code>s,
+that are inexpensive to move (and copy if supported), and in consequence
+stored by value when adapted by standard range adaptors, like <code>views::transform</code>
+or <code>views::take</code>. Such by-value semantic eliminates a risk
+of dangling reference related undefined behavior, when such view
+chain is returned:</p>
+<pre>
+  auto process_span(std::span&lt;const int&gt; s)
+  {
+    // span is a view and returned view chain stores a copy of
+    // s parameter, and does not depend on it's lifetime
+    return s
+      | std::views::transform([](int x) { return x * 3; })
+      | std::views::take(20);
+  }
+
+  auto process_vec(const std::vector&lt;int&gt; v)
+  {
+    // vector is not a view by itself, and returned view chain
+    // refers to it (ref_view) is created, and dangles
+    return v
+      | std::views::transform([](int x) { return x * 3; })
+      | std::views::take(20);
+  }
+</pre>
+
+<p>As the difference between <code>view</code> and the <code>range</code>
+are mostly in semantic, the author of the range, must explicitly opt-in to
+it, by making sure that <code>enable_view</code> is true, by specializing
+is explicitly or deriving from either <code>view_base</code> or
+<code>view_interface</code> (see <a href="https://cplusplus.github.io/LWG/issue3326">
+LWG3326: <code>enable_view</code> has false positives</a>).</p>
+
+<p>Given above, it seem resonable to assume, that <b>once type is designed
+as the view, it will always be stored by value in view chains</b>. However,
+in cases when such type is not <code>movable</code>, library infastructure
+<b>will form an reference to such type</b> when adapted.</b>
+
+<h3><a name="motivation.optional">3.1. Impact on <code>std::optional</code></a></h3>
+
+<p>After C++26 change that in an <code>view</code>
+(<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3168r2.html">P3168</a>),
+<code>std::optional</code> may excibit above behavior if the wrapped type is not 
+<code>movable</code>, due not being move-constructible, move-assingable, or both.</p>
+
+<p>In particular move-assingablity requirment, implies that lvalues <code>optional</code>,
+of const-qualifed types will be referenced (instead of stored by value) in view chain.
+For <a href="https://compiler-explorer.com/z/d1f4EjoEa">example</a> when using
+<code>std::optional&lt;std::pair&lt;const std::string, int&gt;</code> (value type of
+<code>std::map</code>):</p>
+<pre>
+constexpr auto
+process_rvalue()
+{
+  std::pair&lt;const std::string, int&gt; p("test", 20);
+  return std::optional(p) | std::views::keys; // ill-formed
+}
+
+constexpr auto
+process_lvalue()
+{
+  std::pair&lt;const std::string, int&gt; p("test", 20);
+  std::optional opt(p);
+  return opt | std::views::keys;
+}
+</pre>
+
+<p>The changes proposed in this paper makes the operand of <code>return</code> in
+<code>process_lvalue</code> ill-formed.</p>
+
+<h3><a name="motivation.user-view">3.2. user-views may be affected</h3>
+
+<h3><a name="motivation.change">3.3. Proposed change to <code>std::viewable_range</code></h3>
+
+
+<h2><a name="ship-vehicle">4. Ship vehicle, proposed polls, and review history</a></h2>
+
+At least C++26, or eariel
+Createe LWG issue
+
+<h2><a name="impact">5. Impact and Implementability</a></h2>
+
+<p>The implementation of the paper for libstdc++ can be found under following patch
+<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-March/065843.html">patch series</a>.
+Running test exposed an issue in the implementation of the internal <code>_Utf_view</code>,
+that was then addressed in <a href="https://gcc.gnu.org/cgit/gcc/commit/?id=f94a73e0fcedf7a05b04aa12beee57b9a82859a5">
+r16-5283-gf94a73e0fcedf7</a>. No further impact (beyond <code>std::optional</code> range test),
+was identified by testsuite.</p>
+
+<h3><a name="impact.migration">5.1. Migration guide</a></h3>
+
+<p>As this paper make currently accepted code ill-formed, it can potentially lead to 
+build failures and other breaking changes. This section list possible strategies of
+addressing them.</p>
+
+<h4><a name="impact.correct-view">5.1.1. Correcting view implementation</a></h4>
+
+<p>As illusrated by the implementation exprience from libstdc++, the changes
+in this paper may expose issue in the view implementation, that lead to them
+failing <code>movable</code> requirements. Correcting them will address the
+impact.</p>
+
+<h4><a name="impact.ref-view">5.1.2. Explicitly use <code>ref_view</code></a></h4>
+
+<p>While storing the reference to "view" may lead to dangling references,
+such uses are safe if the adapted view does not outlive the referenced object.
+In such cases, the changes proposed in this paper, will make code that was
+previously valid, ill-formed. For example:</p>
+<pre>
+ template&lt;typename T&gt;
+   void process(std::optional&lt;T&gt; opt)
+   {
+     auto view = opt | std::views::transform(...) | ...;
+     furtherProcessing(view);
+   }
+</pre>
+
+<p>In such cases, the previous behavior may be explicitly restored by constructing
+<code>ref_view</code> explicitly. Either uncoditionally, especially in case of
+non-generic code:</p>
+<pre>
+ template&lt;typename T&gt;
+   void process(std::optional&lt;T&gt; opt)
+   {
+     auto view = std::ranges::ref_view(opt) | views::transform(...) | ...;
+     furtherProcessing(view);
+   }
+</pre>
+
+<p>Or conditionally, to avoid any changes in the emitted code for <code>movable</code>,
+types:</p>
+<pre>
+ template&lt;typename T&gt;
+   void process(std::optional&lt;T&gt; opt)
+   {
+     if constexpr (!std::movalbe&lt;T&gt;)
+     {
+       auto view = std::ranges::ref_view(opt) | views::transform(...) | ...;
+       furtherProcessing(view);
+     }
+     else
+     {
+       auto view = opt | std::views::transform(...) | ...;
+       furtherProcessing(view);
+     }
+   }
+</pre>
+
+<h4><a name="impact.cond-enable">5.1.3. Specialize <code>enable_view</code> conditionally</a></h4>
+
+<p>In situation when the user desires that they <code>MyRange&lt;T, Args...&gt;</code> is conditionally
+treated as <code>view</code> as previously, they can restore the previous behavior by providing
+<code>enable_view</code> specialization that is conditionally defined to <code>true</code>:</p>
+<pre>
+  template&lt;typename T, typename... Args&gt;
+    constexpr bool enable_view&lt;MyRange&lt;T, Args...&gt;&gt; 
+      = movable&lt;MyRange&lt;T, Args...&gt;&gt;; // conditions under which MyRange specialization is a view
+</pre>
+
+<p>This will restore the current behavior for all uses of <code>MyRange</code> in combination with
+range facilties.</p>
+
+<h2><a name="impact">6. Future work</a></h2>
+
+
+<h2><a name="wording">7. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n5050"></a> N5050 (C++ Working Draft, 2026-06-01).</p>
+
+<p>Apply following changes to section [range.refinements] Other range refinements:</p>
+<blockquote class="std">
+ 
+<dl class="attribute">
+  <dd>-6-The <code>viewable_range</code> concept specifies the requirements of a <code>range</code>
+      type that can be converted to a <code>view</code> safely.</dd>
+</dl>
+<pre>
+template&lt;class T&gt;
+concept viewable_range =
+  range&lt;T&gt; &amp;&amp;
+  ((view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp; constructible_from&lt;remove_cvref_t&lt;T&gt;, T&gt;) ||
+  (!<ins>enable_</ins>view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp;
+     (is_lvalue_reference_v&lt;T&gt; || (movable&lt;remove_reference_t&lt;T&gt;&gt; &amp;&amp; !is-initializer-list&lt;T&gt;))))
+</pre>
+</blockquote>
+
+
+<h2><a name="acknowledgements">8. Acknowledgements</a></h2>
+
+<!--p>.... offered many useful suggestions and
+  corrections to the proposal.</p-->
+
+<h2><a name="literature">9. References</a></h2>
+
+<ol>
+  <li>Germany DE 282,
+      "<code>enable_view</code> has false positives",
+      (LWG3326, <a href="https://cplusplus.github.io/LWG/issue3326">https://cplusplus.github.io/LWG/issue3326</a>)</li>
+
+  <li>Marco Foco, Darius Neațu, Barry Revzin, David Sankel,
+      "Give <code>std::optional</code> Range Support",
+      (P3168R2, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3168r2.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3168r2.html</a>)</li>
+
+  <li>Tomasz Kamiński,
+      "[RFC v2 0/4] libstdc++: Implement P3982R1 range_slice and",
+      (<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-March/065843.html">https://gcc.gnu.org/pipermail/libstdc++/2026-March/065843.html</a>)</li>
+
+
+  <li>Thomas Köppe,
+      "Working Draft, Standard for Programming Language C++"
+      (N5050, <a href="https://wg21.link/n5050">https://wg21.link/n5050</a>)</li>
+</ol>
+
+
+
+</body></html>
