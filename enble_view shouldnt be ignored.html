@@ -239,7 +239,7 @@ process_lvalue()
 <code>process_lvalue</code> ill-formed.</p>
 
 
-<h3><a name="motivation.change">3.2. Proposed fix: modification <code>std::viewable_range</code></h3>
+<h3><a name="motivation.change">3.2. Proposed fix: modify <code>std::viewable_range</code></h3>
 
 <p>The ability of applying range adaptors, is controlled by the <code>std::viewable_range</code>,
 that is defined as follows:</p>
@@ -253,27 +253,33 @@ concept viewable_range =
 </pre>
 
 <p>The checks after confirming that type is <code>range</code> are split into three branches, corresponding
-to `view::all`:
-<iol>
+to <code>view::all</code>:
+<ol>
  <li>views are returned by value</code>,</li>
  <li>non-views lvalues are wrapped into <code>ref_view</code>,</li>
- <li>non-views rvalues are wrapped into <code>owning_view</code> if the are <code>movable</code>.</li>
-</ul></p>
+ <li>non-views rvalues are wrapped into <code>owning_view</code> if they are <code>movable</code>.</li>
+</ol></p>
 
-<p>However, as <code>view&lt;T&gt;</code> requires <code>range&lt;T&t; &amp;amp;&amp; movable&lt;T&t;
-&amp;&amp; enable_view&lt;T&t;</code>, type for which <code>enable_view</code> is <code>true</code>,
+<p>However, as <code>view&lt;T&gt;</code> requires <code>range&lt;T&gt; &amp;&amp; movable&lt;T&gt;
+&amp;&amp; enable_view&lt;T&gt;</code>, type for which <code>enable_view</code> is <code>true</code>,
 but is not <code>movable</code> may end up in second branch (third branch requires <code>movable</code>).</p>
 
 <p>This paper proposed changing to <code>!view&lt;remove_cvref_t&lt;T&gt;&gt;</code> to
 <code>!enable_view&lt;remove_cvref_t&lt;T&gt;&gt;</code>. Directly reflecting the intent
 of the class implementer, instead of silently ignoring it (possibly due error).</p>
 
-<h3><a name="motivation.user-view">3.3. User defined ranges may be affected</h3>
+<h3><a name="motivation.user-view">3.3. Impacts reaches up to C++20</h3>
 
-<h2><a name="ship-vehicle">4. Ship vehicle, proposed polls, and review history</a></h2>
+<p>While the paper focuses on examples using <code>std::optional</code>, the problem
+addressed by the paper can impact any user-defined range, for which <code>enable_view</code>
+is true, but it is not <code>movable</code>. Thus the issue is not limited to C++26,
+but C++20 and later standards.</p>
 
-At least C++26, or eariel
-Createe LWG issue
+<h2><a name="ship-vehicle">4. Ship vehicle</a></h2>
+
+<p>Proposed changes should be implemented as DR, at least for C++26,
+and when possible to eariel standard. It is recommended that implementers
+approach above changes in similar manner as LWG issue would be.</p>
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
