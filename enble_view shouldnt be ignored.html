@@ -238,10 +238,37 @@ process_lvalue()
 <p>The changes proposed in this paper makes the operand of <code>return</code> in
 <code>process_lvalue</code> ill-formed.</p>
 
+
+<h3><a name="motivation.change">3.2. Proposed fix: modification <code>std::viewable_range</code></h3>
+
+<p>The ability of applying range adaptors, is controlled by the <code>std::viewable_range</code>,
+that is defined as follows:</p>
+<pre>
+template&lt;class T&gt;
+concept viewable_range =
+  range&lt;T&gt; &amp;&amp;
+  ((view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp; constructible_from&lt;remove_cvref_t&lt;T&gt;, T&gt;) ||
+  (!view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp;
+     (is_lvalue_reference_v&lt;T&gt; || (movable&lt;remove_reference_t&lt;T&gt;&gt; &amp;&amp; !is-initializer-list&lt;T&gt;))))
+</pre>
+
+<p>The checks after confirming that type is <code>range</code> are split into three branches, corresponding
+to `view::all`:
+<iol>
+ <li>views are returned by value</code>,</li>
+ <li>non-views lvalues are wrapped into <code>ref_view</code>,</li>
+ <li>non-views rvalues are wrapped into <code>owning_view</code> if the are <code>movable</code>.</li>
+</ul></p>
+
+<p>However, as <code>view&lt;T&gt;</code> requires <code>range&lt;T&t; &amp;amp;&amp; movable&lt;T&t;
+&amp;&amp; enable_view&lt;T&t;</code>, type for which <code>enable_view</code> is <code>true</code>,
+but is not <code>movable</code> may end up in second branch (third branch requires <code>movable</code>).</p>
+
+<p>This paper proposed changing to <code>!view&lt;remove_cvref_t&lt;T&gt;&gt;</code> to
+<code>!enable_view&lt;remove_cvref_t&lt;T&gt;&gt;</code>. Directly reflecting the intent
+of the class implementer, instead of silently ignoring it (possibly due error).</p>
+
 <h3><a name="motivation.user-view">3.2. user-views may be affected</h3>
-
-<h3><a name="motivation.change">3.3. Proposed change to <code>std::viewable_range</code></h3>
-
 
 <h2><a name="ship-vehicle">4. Ship vehicle, proposed polls, and review history</a></h2>
 
@@ -250,8 +277,8 @@ Createe LWG issue
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
-<p>The implementation of the paper for libstdc++ can be found under following patch
-<a href="https://gcc.gnu.org/pipermail/libstdc++/2026-March/065843.html">patch series</a>.
+<p>The implementation of the paper for libstdc++ can be found in following
+<a href="TODO">patch</a>.
 Running test exposed an issue in the implementation of the internal <code>_Utf_view</code>,
 that was then addressed in <a href="https://gcc.gnu.org/cgit/gcc/commit/?id=f94a73e0fcedf7a05b04aa12beee57b9a82859a5">
 r16-5283-gf94a73e0fcedf7</a>. No further impact (beyond <code>std::optional</code> range test),
