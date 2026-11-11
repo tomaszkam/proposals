@@ -259,7 +259,16 @@ to <code>view::all</code>:
 
 <p>However, as <code>view&lt;T&gt;</code> requires <code>range&lt;T&gt; &amp;&amp; movable&lt;T&gt;
 &amp;&amp; enable_view&lt;T&gt;</code>, type for which <code>enable_view</code> is <code>true</code>,
-but is not <code>movable</code> may end up in second branch (third branch requires <code>movable</code>).</p>
+but is not <code>movable</code> may end up satisfying the concept via second branch:
+<code>is_lvalue_reference_v&lt;T&gt; || movable&lt;remove_reference_t&lt;T&gt;&gt;</code>.</p>
+
+<p>For example, applying range adaptor on rvalue of <code>optional&lt;NotMovable&gt;</code>
+(see <code>process_rvalue</code>), result in check for <code>viewable_range&lt;optional&lt;NotMovable&gt;&gt;</code>,
+that fails as neither <code>is_lvalue_reference_v&lt;optional&lt;NotMovable&gt;&gt;</code>
+or <code>movable&lt;optional&lt;NotMovable&gt;&gt;</code> are true. In contrast applying some
+adaptor on lvalue of such type (<code>precess_lvalue</code>), results in
+<code>viewable_range&lt;optional&lt;NotMovable&gt;&amp;&gt;</code>, that is satisified as
+<code>is_lvalue_reference_v&lt;optional&lt;NotMovable&gt;&amp;&gt;</code> is <code>true</code>.</p>
 
 <p>This paper proposed changing to <code>!view&lt;remove_cvref_t&lt;T&gt;&gt;</code> to
 <code>!enable_view&lt;remove_cvref_t&lt;T&gt;&gt;</code>. Directly reflecting the intent
@@ -368,13 +377,14 @@ the impact. However, as the standard library does not provide dedicated adaptor 
 namespace, an call to constructor (combined with CTAD) needs to be used.</p>
 
 <p>Providing an <code>std::views::ref</code> adaptor, would provide a more consistent interface,
-and hopefully make the solution easier to discover, at at least remember.</p>
+and hopefully make the solution easier to discover, or at least remember.</p>
 
 <h3><a name="future.optional.assign">6.2. Relax <code>optional</code> assignment</h3>
 
 <p>In the examples included in the paper, <code>optional</code> fails to meet <code>view</code>
 requirements due lack of move-assign ability, they would be addressed by modifying <code>optional</code>
-assignment to destroy existing object, and then construct from the source.</code>
+assignment to destroy existing object, and then construct from the source when contained object
+do not provide corresponding assigment operator.</code>
 
 <p>The proposed semantic of assignment <code>dst = src</code> of two object of type <code>optional&lt;T&gt;</code>
 would (<b>addition are marked as bold</b>):
@@ -386,7 +396,10 @@ would (<b>addition are marked as bold</b>):
       <code>dst.reset(); dst.emplace(*src);</code>, otherwise</b></li>
   <li><code>*dst = *src;</code></li>
 </ol>
-</p>
+As <code>std::optional</code> assigment is currently not usable (deleted or constrained away) for
+types for which <code>is_move/copy_assignable_v</code> is <code>false</code>, the above enables
+<code>optional</code> assigment for types for which is not currently present, and does not not
+change it's behaviour for type that supports it already.</p>
 
 <p>The standard already defines (and implementations ships) such modified type, as exposition
 only <code><i>movable-box</i></code>, and there is existing proposal (<a
@@ -440,7 +453,7 @@ concept viewable_range =
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
-<p>Barry Revzin offered many useful suggestions and corrections to the proposal.</p-->
+<p>Barry Revzin and David Sankel offered many useful suggestions and corrections to the proposal.</p>
 
 <h2><a name="literature">9. References</a></h2>
 
