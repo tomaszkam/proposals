@@ -87,9 +87,9 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
-<p>This paper proposes modification to the <code>viewable_range</code> concept,
-that prevents standard library facilities from implicitly forming a reference
-to the type that was explicitly designated to be an <code>view</code> (i.e. for
+<p>This paper proposes a modification to the <code>viewable_range</code> concept,
+preventing standard library facilities from implicitly forming a reference
+to a type that was explicitly designated to be an <code>view</code> (i.e. for
 which <code>enable_view</code> is  true).</p>
 
 <table><tbody>
@@ -166,11 +166,11 @@ return opt
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>The C++ <code>view</code>s are subset of the <code>range</code>s,
-that are inexpensive to move (and copy if supported), and consequently are
+<p>A C++ <code>view</code> is a subset of a <code>range</code>,
+that is inexpensive to move (and copy, if supported), and consequently is
 stored by value when adapted by standard range adaptors, like <code>views::transform</code>
 or <code>views::take</code>. Such by-value semantics eliminate the risk of
-dangling-reference-related undefined behavior, when such view
+dangling-reference-related undefined behavior, when such a view
 chain is returned:</p>
 <pre>
   auto process_span(std::span&lt;const int&gt; s)
@@ -192,9 +192,9 @@ chain is returned:</p>
   }
 </pre>
 
-<p>As the difference between <code>view</code> and the <code>range</code>
-is mostly in semantic, the author of the range, must explicitly opt-in to
-it, by making sure that <code>enable_view</code> is true, by specializing
+<p>As the difference between <code>view</code> and <code>range</code>
+is mostly semantic, the author of the range must explicitly opt-in to
+the concept, by making sure that <code>enable_view</code> is true, by specializing
 it explicitly or deriving from either <code>view_base</code> or
 <code>view_interface</code> (see <a href="https://cplusplus.github.io/LWG/issue3326">
 LWG3326: <code>enable_view</code> has false positives</a>).</p>
@@ -284,8 +284,8 @@ but C++20 and later standards.</p>
 <h2><a name="ship-vehicle">4. Ship vehicle</a></h2>
 
 <p>Proposed changes should be implemented as DR, at least for C++26,
-and when possible to eariel standards. It is recommended that implementers
-approach proposed changes in similar manner as LWG issue would be.</p>
+and when possible to earlier standards. It is recommended that implementers
+approach the proposed changes similarly to an LWG issue.</p>
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
@@ -305,7 +305,7 @@ addressing them.</p>
 <h4><a name="impact.correct-view">5.1.1. Correcting view implementation</a></h4>
 
 <p>As illustrated by the implementation experience from libstdc++, the changes
-in this paper may expose issue in the view implementation, that leads to them
+in this paper may expose issues in a view's implementation, that leads to it
 failing <code>movable</code> requirements. Correcting that will address the
 impact.</p>
 
