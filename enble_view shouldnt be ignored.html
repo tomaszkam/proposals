@@ -87,6 +87,10 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="intro">1. Introduction</a></h2>
 
+<p><b>Addresses <a href="https://cplusplus.github.io/LWG/issue4639">LWG4639</a>
+<code>optional&lt;NonMovable&gt;</code> lvalue does not satisify <code>view</code>,
+but is <code>viewable_range</code></a>.</b></p>
+
 <p>This paper proposes a modification to the <code>viewable_range</code> concept,
 preventing standard library facilities from implicitly forming a reference
 to a type that was explicitly designated to be an <code>view</code> (i.e. for
@@ -246,7 +250,7 @@ concept viewable_range =
   range&lt;T&gt; &amp;&amp;
   ((view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp; constructible_from&lt;remove_cvref_t&lt;T&gt;, T&gt;) ||
   (!view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp;
-     (is_lvalue_reference_v&lt;T&gt; || (movable&lt;remove_reference_t&lt;T&gt;&gt; &amp;&amp; !is-initializer-list&lt;T&gt;))))
+     (is_lvalue_reference_v&lt;T&gt; || (movable&lt;remove_reference_t&lt;T&gt;&gt; &amp;&amp; !is-initializer-list&lt;T&gt;))));
 </pre>
 
 <p>The checks after confirming that type is <code>range</code> are split into three branches, corresponding
@@ -285,7 +289,7 @@ but C++20 and later standards.</p>
 
 <p>Proposed changes should be implemented as DR, at least for C++26,
 and when possible to earlier standards. It is recommended that implementers
-approach the proposed changes similarly to an LWG issue.</p>
+approach the proposed changes similarly to any other LWG issue.</p>
 
 <h2><a name="impact">5. Impact and Implementability</a></h2>
 
@@ -425,7 +429,7 @@ present. In contrary, providing move-assignments requires workaround in form of 
 to handle storing functors (and other not-view state). Furthermore, with the similarly motivated removal of
 default-constructibility requirement from <code>view</code>
 (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2325r3.html">P2325R3</a>), the assignment
-cannot be used to initialize otherwise default-constructed object.</p>
+cannot be used to setup previously default-constructed object.</p>
 
 <p>As previously mentioned, such changes are not sufficient to address <code>optional&lt;mutext&gt;</code>,
 and would not eliminate need for the adjustment suggested in this paper.</p>
@@ -438,7 +442,7 @@ and would not eliminate need for the adjustment suggested in this paper.</p>
 <blockquote class="std">
  
 <dl class="attribute">
-  <dd>-6-The <code>viewable_range</code> concept specifies the requirements of a <code>range</code>
+  <dd>-6- The <code>viewable_range</code> concept specifies the requirements of a <code>range</code>
       type that can be converted to a <code>view</code> safely.</dd>
 </dl>
 <pre>
@@ -458,6 +462,10 @@ concept viewable_range =
 <h2><a name="literature">9. References</a></h2>
 
 <ol>
+  <li>Tomasz Kamiński,
+      "<code>optional&lt;NonMovable&gt;</code> lvalue does not satisify <code>view</code>",
+      (LWG4639, <a href="https://cplusplus.github.io/LWG/issue4639">https://cplusplus.github.io/LWG/issue4639</a>)</li>
+
   <li>Germany DE 282,
       "<code>enable_view</code> has false positives",
       (LWG3326, <a href="https://cplusplus.github.io/LWG/issue3326">https://cplusplus.github.io/LWG/issue3326</a>)</li>
