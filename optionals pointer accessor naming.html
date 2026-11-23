@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html class="gr__open-std_org gr__isocpp_org"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<style type="text/css">
+pre {margin-left:20pt; }
+pre > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > i {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+pre > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+code > em {
+  font-family: "OCR A Extended", "Consolas", "Lucida Console", monospace;
+  font-style:italic;
+}
+body { color: #000000; background-color: #FFFFFF; }
+del { text-decoration: line-through; color: #8B0040; }
+ins { text-decoration: underline; color: #005100; }
+
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract { margin-left: 2em; background-color: #F5F6A2;
+  border: 1px solid #E1E28E; }
+
+p.function { }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;
+  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+blockquote.std { color: #000000; background-color: #F1F1F1;
+  border: 1px solid #D1D1D1;
+  padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through;
+  color: #000000; background-color: #FFEBFF;
+  border: 1px solid #ECD7EC;
+  padding-left: 0.5empadding-right: 0.5em; ; }
+
+blockquote.stdins { text-decoration: underline;
+  color: #000000; background-color: #C8FFC8;
+  border: 1px solid #B3EBB3; padding: 0.5em; }
+
+table.header { border: 0px; border-spacing: 0;
+  margin-left: 0px; font-style: normal; }
+
+table { border: 1px solid black; border-spacing: 0px;
+  margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+td { text-align: left; vertical-align: top;
+  padding-left: 0.4em; border: none;
+  padding-right: 0.4em; border: none; }
+</style>
+
+<title>optional pointer accessor naming</title>
+</head>
+
+<body data-gr-c-s-loaded="true">
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td>DXXXXR0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td>2026-11-23</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td>Library Evolution Working Group</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td><address>Tomasz Kamiński &lt;tomaszkam at gmail dot com&gt;</address></td>
+  </tr>
+</tbody></table>
+
+<h1><a name="title"><code>optional</code> pointer accessor naming</a></h1>
+
+<h2><a name="intro">1. Introduction</a></h2>
+
+<p>This paper suggest to rename <code>optional</code> pointer accessor from
+<code>get_ptr</code> (per 
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p4189r0.html">P4189R0</a>,
+accepted for C++29) to <code>pointer</code>.
+
+<h2><a name="history">2. Revision history</a></h2>
+
+<h3><a name="history.r0">2.1. Revision 0</a></h3>
+
+<p>Initial revision.</p>
+
+<h2><a name="motivation">3. Motivation</a></h2>
+
+<h3><a name="motivation.local-consistnecy">3.1. Local consistency</a></h3>
+
+<p>In author's opinion the <code>pointer</code> is more consistent
+with pre-existing <code>optional</code> API:</p>
+
+<table><tbody>
+  <tr>
+    <th>Operation</th>
+    <th>Code</th>
+  </tr>
+
+  <tr>
+    <td>accessing contained object ("value")</td>
+    <td><code>opt.value()</code></td>
+  <tr>
+
+  <tr>
+    <td>returning value or alternative</td>
+    <td><code>opt.value_or(alt)</code></td>
+  <tr>
+
+  <tr>
+    <td>transforming value</td>
+    <td><code>opt.transform(funct)</code></td>
+  <tr>
+
+  <tr>
+    <td>accessing pointer to contained object</td>
+    <td>
+      status-quo: <code>opt.get_ptr()</code><br/>
+      proposed: <code>opt.pointer()</code><br/>
+    </td>
+  <tr>
+
+</tbody></table>
+
+<p>The <code>pointer</code> name is already widely as the member
+name in the standard library. Most notably, containers and iterators
+use <code>pointer</code> member type to denote type of pointer used
+for object.</p>
+
+<p>While the proposed name may seem inconsistent, especially given
+that C++23 made <code>optional</code> and range and view, the author
+believe that local consistency in naming is more important. Furthermore
+no other <code>view</code> from the standard provides a <code>pointer</code>
+member type.</p>
+
+<h3><a name="motivation.pointer_or">3.2. Future extensions</a></h3>
+
+<p>One of possible and trivial extension of "accessing pointer to contained
+object or null", is an function that returns pointer to object or alternative
+pointer value, i.e. equivalent to: <code>opt.has_value() ? opt.pointer() : alt_ptr</code>.
+For <code>optional</code> of non-reference types, this eliminates a repeated
+check for presence of value inside <code>pointer()</code> function.</p>
+
+<p>With proposed <code>pointer</code> name, the obvious name of such extension would
+be <code>pointer_or</code>, the current naming leads to <code>get_ptr_or</code>.</p>
+
+<h3><a name="motivation.address">3.3. Rejected alternative: <code>address</code></a></h3>
+
+<p>The <code>address</code> name is currently consistently related to returning 
+<code><i>cv</i> void*</code>, i.e. type that cannot be dereferenced to produce
+an object:
+<ul>
+ <li><code>coroutine_handle::address</code> - the value is not connected to address
+     of object returned from <code>coroutine_handle::promise</code>,</li>
+ <li><code>atomic_ref::address</code> - accessing object via returned value may
+     lead to data-races.</li>
+</ul></p>
+
+<p>As the intent of this function is to return an null pointer or dereferenceable
+pointer to object, the existing uses of <code>address</code> name (and core
+meaning of that term) are will conflict with it.</p>
+
+<h3><a name="motivation.address">3.4. Rejected alternative: <code>data</code></a></h3>
+
+<p>As previously mentioned, <code>optional</code> is <code>contingous_range</code>,
+and such ranges use <code>data</code> to expose address of the first element:
+either by having <code>data</code> member, or more generically via <code>ranges::data</code>.</p>
+
+<p>At first glance, we could embrace the range API for <code>optional</code>,
+and rename the <code>get_ptr</code> to <code>data</code>. However, this would
+lead to change of the behavior or already supported <code>ranges::data(opt)</code>:
+it will call <code>opt.data()</code> instead of <code>to_address(opt.begin())</code>.</p>
+
+<p>While for non-empty <code>optional</code> <code>opt</code>, the behavior of
+<code>opt.get_ptr()</code> and <code>to_address(opt.begin())</code> is equivalent,
+they result differs for empty optional:<ul>
+ <li><code>opt.get_ptr()</code> returns <code>nullptr</code>,</li>
+ <li><code>to_address(opt.begin())</code> can return any pointer for which
+      <code>+0</code> is well-formed.</li>
+</ul>
+In particular <code>optional</code> of non-reference type always return pointer
+to contained object (that is not within lifetime for empty optional).</p>
+
+<h2><a name="impact">4. Impact and Implementability</a></h2>
+
+<p>The proposed change has no-impact beyond the name of <code>optional::get_ptr</code>,
+and as simple rename does not cause additional implementability concerns.</p>
+
+<h2><a name="wording">5. Proposed Wording</a></h2>
+
+<p>The proposed wording changes refer to <a href="http://wg21.link/n5050"></a> N5050 (C++ Working Draft, 2026-06-01).</p>
+
+<!--p>Apply following changes to section [range.refinements] Other range refinements:</p>
+<blockquote class="std">
+ 
+<dl class="attribute">
+  <dd>-6- The <code>viewable_range</code> concept specifies the requirements of a <code>range</code>
+      type that can be converted to a <code>view</code> safely.</dd>
+</dl>
+<pre>
+template&lt;class T&gt;
+concept viewable_range =
+  range&lt;T&gt; &amp;&amp;
+  ((view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp; constructible_from&lt;remove_cvref_t&lt;T&gt;, T&gt;) ||
+  (!<ins>enable_</ins>view&lt;remove_cvref_t&lt;T&gt;&gt; &amp;&amp;
+     (is_lvalue_reference_v&lt;T&gt; || (movable&lt;remove_reference_t&lt;T&gt;&gt; &amp;&amp; !is-initializer-list&lt;T&gt;))))
+</pre>
+</blockquote-->
+
+<h2><a name="acknowledgements">8. Acknowledgements</a></h2>
+
+<!--p>... offered many useful suggestions and corrections to the proposal.</p-->
+
+<h2><a name="literature">9. References</a></h2>
+
+<ol>
+ <li>P4189R0,
+     "get()ing the pointer from optional",
+     (P4189R0, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p4189r0.html">https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p4189r0.html</a>)</li>
+
+  <li>Thomas Köppe,
+      "Working Draft, Standard for Programming Language C++"
+      (N5050, <a href="https://wg21.link/n5050">https://wg21.link/n5050</a>)</li>
+</ol>
+
+</body></html>
