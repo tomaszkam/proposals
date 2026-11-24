@@ -158,11 +158,16 @@ check for presence of value inside <code>pointer()</code> function.</p>
 <p>With proposed <code>pointer</code> name, the obvious name of such extension would
 be <code>pointer_or</code>, the current naming leads to <code>get_ptr_or</code>.</p>
 
-<h3><a name="motivation.address">3.3. Rejected alternative: <code>address</code></a></h3>
+<h3><a name="motivation.address">3.3. Alternative name: <code>address</code></a></h3>
 
-<p>The <code>address</code> name is currently consistently related to returning 
-<code><i>cv</i> void*</code>, i.e. type that cannot be dereferenced to produce
-an object:
+<p>Possible alternative name would be <code>address</code>, as in "taking an
+<code>address</code> of containing object" in parallel to "getting an
+<code>value</code> of contained object.</p>
+
+<p>Such approach would match naming <code>to_address</code> and <code>addressof</code>
+functions that produce pointer to an object. However the <code>address</code>
+name by itself is currently used as name of member that return
+<code><i>cv</i> void*</code>, i.e. type that cannot be dereferenced:
 <ul>
  <li><code>coroutine_handle::address</code> - the value is not connected to address
      of object returned from <code>coroutine_handle::promise</code>,</li>
@@ -170,15 +175,12 @@ an object:
      lead to data-races.</li>
 </ul></p>
 
-<p>As the intent of this function is to return an null pointer or dereferenceable
-pointer to object, the existing uses of <code>address</code> name (and core
-meaning of that term) are will conflict with it.</p>
-
 <h3><a name="motivation.address">3.4. Rejected alternative: <code>data</code></a></h3>
 
-<p>As previously mentioned, <code>optional</code> is <code>contingous_range</code>,
+<p>As previously mentioned, <code>optional</code> is <code>continuous_range</code>,
 and such ranges use <code>data</code> to expose address of the first element:
-either by having <code>data</code> member, or more generically via <code>ranges::data</code>.</p>
+either by having <code>data</code> member, or more generically via
+<code>ranges::data</code>.</p>
 
 <p>At first glance, we could embrace the range API for <code>optional</code>,
 and rename the <code>get_ptr</code> to <code>data</code>. However, this would
@@ -223,6 +225,7 @@ concept viewable_range =
 
 <h2><a name="acknowledgements">8. Acknowledgements</a></h2>
 
+<p>Jonathan Wakely for convincing me that <code>address</code> is reasonable choice for alternative name.</p>
 <!--p>... offered many useful suggestions and corrections to the proposal.</p-->
 
 <h2><a name="literature">9. References</a></h2>
